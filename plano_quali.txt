@@ -1,0 +1,49 @@
+
+Introdução
+    - vendendo compiladores:
+        - Mostrar que compildaores amarra sistemas operacionais até web
+        - deixar um gancho pra explcar o que eh ocmpiladores
+    - explicar um compilador no alto nível
+    - mostrar que compilar leva tempo para algumas coisas
+        - exemplo gcc, gimple
+    - interesse da pesquisa
+        - Quais são as 'tretas' de se paralelizar um compilador.
+        - vale a pena?
+        - se sim, quais casos,
+        - cc.
+    - explicar a estrutura do texto.
+
+Fundamentação Teórica
+    - explicar o que eh um compilador.
+    - computação paralela
+        - técnicas de paralelização
+        - pthreads (nao explicar API)
+    - no caso de interpretador, vale a pena?
+    - relação entre tamanho do arquivo e tempo de compilação
+    - algoritmos de otimização através do grafo de chamadas
+    - gcc (soh na minha parada)
+        - falar sobre o gimple
+
+Paralelizando o gcc
+    - pq paralelizar?
+    - discussão com a comunidade. (liska fez assim).
+    - como paralelizar (pthreads).
+    - documentar as variáveis globais.
+    - (talvez) esboço de possivel implementação
+
+Metodologia
+    - o que era preciso coletar
+    - como eu capturei os tempos (meu wrapper, e modo liska)
+    - se granular_patch entrar, dizer que isso ajuda por causa do ponto de gargalo
+    - experimento no gcc e em arquivos separados.
+    - arbodagem estatística?
+    - roteiro do experimento.
+    - scenario do experimento.
+
+Resultados preliminares (se tiver)
+    - estado das questões de pesquisa
+
+Plano de trabalho
+    - água
+    - próximos passos
+
