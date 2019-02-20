@@ -2,73 +2,92 @@
 \chapter{Introdução}
 \label{cap:introducao}
 
-Com o avanço na tecnologia da computação, novos softwares são criados para
-suprir necessidades de diversos domínios. Atualmente, o ecossistema de software
-é bem diversa: Sistemas web desenvolvidos codificados em Ruby, Python, Java; até
-sistemas operacionais, destinados a controlar os recursos do hardware, escritos
-em C.
+O avanço na tecnologia da computação trouxe uma enorme expansão
+dos ecossistemas de \textit{software}. Novos programas são criados para
+suprir as necessidades dos mais diversos domínios, seja através de sistemas web 
+codificados em linguagens de \textit{script}; ou por componentes para
+sistemas operacionais destinados à embarcados, com a finalidade de controlar algum
+recurso do \textit{hardware}. Independente da razão por trás do desenvolvimento
+do \textit{software}, em algum ponto seu código será transformado em linguagem
+de máquina por um compilador, mesmo que ele seja executado por um
+interpretador.
 
-Independente da razão pela qual o software foi desenvolvido, em algum ponto o
-código da aplicação será transformado em linguagem de máquina por um
-compilador, mesmo que ele seja executado por um interpretador. Um compilador
-nada mais é que um software que traduz um código em uma linguagem de
-programação $A$ para outra linguagem $B$ \citep{dragonbook}.
-
-Compiladores são programas largamente adotados pela indústria e academia. Muito
+Um compilador nada mais é que um software que traduz um código em uma linguagem
+de programação $A$ para outra linguagem $B$ \citep{dragonbook}.  Compiladores
+são programas enormes, largamente adotados pela indústria e academia, onde muito
 esforço e pesquisa foi e ainda é empregado para que eles produzam código
-correto e rápido. Existem projetos enormes destinados a desenvolver e
-aprimorá-los, como o Gnu Compiler Collection, capaz de traduzir diversas
-linguagens como C, C++ e Fortran, para linguagem de máquina. Há também outros
-projetos menores como o F2C, um compilador de Fortran para C, utilizado em
-ambientes onde não há um compilador Fortran disponível.  Embora ainda seja
-possível escrever código em linguagem de máquina, o que tornaria um compilador
-desnecessário, isto é uma prática extremamente incomum nos projetos
-contemporâneos a este trabalho
-\citep{githuboctoverse} (vide Figura \ref{fig:github_2017}).
+eficiente e correto. Existem projetos enormes destinados a desenvolvê-los e
+aprimorá-los, como o Gnu Compiler Collection
+(GCC\footnote{https://gcc.gnu.org/}), capaz de traduzir diversas linguagens
+como C, C++ e Fortran, para linguagem de máquina. Há também outros projetos
+menores como o F2C\footnote{https://www.netlib.org/f2c/}, um compilador de
+Fortran para C, utilizado em ambientes onde não há um compilador Fortran
+disponível.
+
+Embora seja possível escrever código em linguagem de máquina, o que
+tornaria um compilador desnecessário, isto parece ser uma prática extremamente
+incomum nos projetos contemporâneos a este trabalho \citep{githuboctoverse} (vide
+Figura \ref{fig:github_2017}).
 
 \begin{figure}[ht]
  \centering
  \includegraphics[scale=1.0]{github_2017.pdf}
- \caption{As 15 linugagens mais usadas em 2017. Fonte: \cite{githuboctoverse}}
+ \caption{As 15 linguagens mais usadas no GitHub em 2017. Fonte: \cite{githuboctoverse}}
  \label{fig:github_2017}
 \end{figure}
 
+Compiladores são usados em projetos dos mais variados tamanhos.
 Grandes projetos podem conter milhões de linhas de código, e até mesmo
 construir novas linguagens para facilitar o desenvolvimento de novas
 funcionalidades. Por exemplo, O GCC contém uma linguagem própria para facilitar
 a adição de novas otimizações para gerar código mais rápido, que em seguida é
 compilado em um único arquivo C, para (1) aproveitar as otimizações já
-implementadas do próprio compilador C, e (2) evitar reescrever várias
-funcionalidades já implementadas no compilador. Infelizmente, este processo
-gera um gargalo na compilação do projeto em máquinas manycore, pois o GCC não é
-capaz de compilar um arquivo em paralelo, e todo o paralelismo na fase de
-compilação é providenciado pelo GNU Make, que apenas fornece uma granularidade
-a nível dos arquivos. Tal problema pode parecer uma característica peculiar do
-projeto GCC, entretanto discussões na lista de email do GCC \citep{mailgcc} e Phoronix levaram
+implementadas no próprio compilador, e (2) evitar reescrever várias
+funcionalidades já implementadas. Infelizmente, este processo
+gera um gargalo na compilação do projeto em máquinas \textit{manycore}, pois o
+GCC não é capaz de compilar um arquivo em paralelo \citep{pr84402}. Até então, todo o o
+paralelismo na fase de compilação é providenciado pelo \cite{make}, que apenas
+fornece uma granularidade a nível dos arquivos. Esse gargalo pode parecer uma
+característica peculiar do projeto GCC, mas discussões com a comunidade levaram
 usuários a relatar o mesmo problema em seus projetos, algo que um compilador
-que seja capaz de compilar um único arquivo em paralelo é capaz de mitigar.
-Outra possível solução para cada projeto é quebrar o arquivo em outros
-arquivos, e utilizar o esquema de paralelismo do GNU Make, mas isto implica em
-uma modificação na estrutura do projeto, o que pode não ser o ideal.
+que seja capaz de compilar um único arquivo em paralelo é capaz de mitigar
+\citep{mailgcc} \citep{phoronix}. Outra possível solução para cada
+projeto é partir o arquivo em arquivos menores e utilizar o esquema de
+paralelismo já existente do GNU Make, mas isto implica em uma modificação na
+estrutura do projeto, o que pode não ser o ideal.
 
-Por fim, atualmente existe uma tendência para que os processadores sejam cada vez mais
-paralelos. Ambas a AMD e Intel oferecem produtos com até 16 núcleos para
-entusiastas, e é possível encontrar servidores com mais de 64 núcleos
-disponíveis para processamento. Compiladores que compilam em paralelo poderiam
-aproveitar esse recurso, pois diminuiria o tempo de compilação de um projeto,
-ou até mesmo uma suíte de testes que necessita recompilação antes de sua
-execução.
+Outro caso interessante é a avaliação de expressões constantes. Compiladores
+modernos são capazes de avaliar código cujo todos os parâmetros são conhecidos
+de antemão, com a finalidade de evitar cálculos em tempo de execução, técnica
+conhecida como \textit{constant folding} \citep{dragonbook}. Esse tipo de
+operação se tornou-se tão comum a ponto de o padrão C++1z adicionar algo
+relacionado a isto em sua especificação através do acrônimo \texttt{constexpr}
+\citep{iso148822017}.
+Sendo assim, talvez o compilador seja capaz de paralelizar esse tipo de
+computação, o que implicaria em ganhos para projetos pequenos, com poucos
+arquivos.
 
-É perfeitamente compreensível que pouca pesquisa seja realizada a
-respeito de paralelização de compiladores. Compiladores se apoiam algoritmos em
-grafos e analisadores léxicos-sintáticos, que geralmente são difíceis de
-paralelizar no caso geral. É necessário um caso extremo -- um arquivo muito
-grande -- para que haja algum benefício de paralelização; e este caso existe
-dentro do próprio projeto do GCC, conforme discutido acima.
+Considerando que atualmente há uma tendência para que os processadores sejam
+cada vez mais paralelos, compiladores que usufruam deste recurso poderiam
+reduzir o tempo de compilação de um projeto, ou de uma suíte de testes que
+necessita recompilação antes de sua execução, economizando recursos no caso da
+computação ser cobrada por hora.
+
+Deve ser observado que nem todos os processos de um compilador pode ser
+paralelizado. Compiladores operam em etapas que podem ser fortemente
+dependentes do resultado da etapa anterior. Por exemplo, ao compilar uma
+função em C, pode ser necessário saber se outra foi declarada anteriormente. Ou
+então o analisador sintático pode alterar um estado do analisador léxico para
+detectar variáveis de um novo tipo. Além disto, compiladores também se apoiam em algoritmos
+em grafos, cujo paralelismo é um desafio \citep{lumsdaine2007challenges}.
+
+Sendo assim, existe interesse em pesquisas que aponte onde exatamente um compilador
+pode tirar vantagem de paralelismo, e esta é a questão de pesquisa que este
+trabalho aborda.
 
 
 
-%Escrever bem é uma arte que exige muita técnica e dedicação e,
+%Escrever bem é uma a://pt-br.libreoffice.org/assets/Uploads/PT-BR-Documents/VERO/VeroptBRV320AOC.oxtte que exige muita técnica e dedicação e,
 %consequentemente, há vários bons livros sobre como escrever uma boa
 %dissertação ou tese. Um dos trabalhos pioneiros e mais conhecidos nesse
 %sentido é o livro de
