@@ -4,19 +4,19 @@
 
 O avanço na tecnologia da computação trouxe uma enorme expansão
 dos ecossistemas de \textit{software}. Novos programas são criados para
-suprir as necessidades dos mais diversos domínios, seja através de sistemas web 
+suprir as necessidades dos mais diversos domínios, seja através de sistemas web
 codificados em linguagens de \textit{script}; ou por componentes para
-sistemas operacionais destinados à embarcados, com a finalidade de controlar algum
+sistemas operacionais destinados a embarcados, com a finalidade de controlar algum
 recurso do \textit{hardware}. Independente da razão por trás do desenvolvimento
 do \textit{software}, em algum ponto seu código será transformado em linguagem
 de máquina por um compilador, mesmo que ele seja executado por um
 interpretador.
 
-Um compilador nada mais é que um software que traduz um código em uma linguagem
+Um compilador nada mais é que um \textit{software} que traduz um código em uma linguagem
 de programação $A$ para outra linguagem $B$ \citep{dragonbook}.  Compiladores
 são programas enormes, largamente adotados pela indústria e academia, onde muito
 esforço e pesquisa foi e ainda é empregado para que eles produzam código
-eficiente e correto. Existem projetos enormes destinados a desenvolvê-los e
+eficiente, com destaque a corretude. Existem projetos enormes destinados a desenvolvê-los e
 aprimorá-los, como o Gnu Compiler Collection
 (GCC\footnote{https://gcc.gnu.org/}), capaz de traduzir diversas linguagens
 como C, C++ e Fortran, para linguagem de máquina. Há também outros projetos
@@ -25,10 +25,12 @@ Fortran para C, utilizado em ambientes onde não há um compilador Fortran
 disponível.
 
 Embora seja possível escrever código em linguagem de máquina, o que
-tornaria um compilador desnecessário, isto parece ser uma prática extremamente
+tornaria um compilador desnecessário, isto é extremamente caro e
+sujeito a erros, além de ser uma prática extremamente
 incomum nos projetos contemporâneos a este trabalho \citep{githuboctoverse} (vide
 Figura \ref{fig:github_2017}).
 
+%TODO: Deixar essa imagem mais legível
 \begin{figure}[ht]
  \centering
  \includegraphics[scale=1.0]{github_2017.pdf}
@@ -46,7 +48,8 @@ implementadas no próprio compilador, e (2) evitar reescrever várias
 funcionalidades já implementadas. Infelizmente, este processo
 gera um gargalo na compilação do projeto em máquinas \textit{manycore}, pois o
 GCC não é capaz de compilar um arquivo em paralelo \citep{pr84402}. Até então, todo o o
-paralelismo na fase de compilação é providenciado pelo \cite{make}, que apenas
+paralelismo na fase de compilação é providenciado pelo 
+GNU Make\footnote{https://www.gnu.org/software/make/}, que apenas
 fornece uma granularidade a nível dos arquivos. Esse gargalo pode parecer uma
 característica peculiar do projeto GCC, mas discussões com a comunidade levaram
 usuários a relatar o mesmo problema em seus projetos, algo que um compilador
@@ -60,7 +63,7 @@ Outro caso interessante é a avaliação de expressões constantes. Compiladores
 modernos são capazes de avaliar código cujo todos os parâmetros são conhecidos
 de antemão, com a finalidade de evitar cálculos em tempo de execução, técnica
 conhecida como \textit{constant folding} \citep{dragonbook}. Esse tipo de
-operação se tornou-se tão comum a ponto de o padrão C++1z adicionar algo
+operação tornou-se tão comum a ponto de o padrão C++1z adicionar algo
 relacionado a isto em sua especificação através do acrônimo \texttt{constexpr}
 \citep{iso148822017}.
 Sendo assim, talvez o compilador seja capaz de paralelizar esse tipo de
@@ -73,15 +76,17 @@ reduzir o tempo de compilação de um projeto, ou de uma suíte de testes que
 necessita recompilação antes de sua execução, economizando recursos no caso da
 computação ser cobrada por hora.
 
-Deve ser observado que nem todos os processos de um compilador pode ser
-paralelizado. Compiladores operam em etapas que podem ser fortemente
+Deve ser observado que nem todos os processos de um compilador podem ser
+paralelizados. Compiladores operam em etapas que podem ser fortemente
 dependentes do resultado da etapa anterior. Por exemplo, ao compilar uma
-função em C, pode ser necessário saber se outra foi declarada anteriormente. Ou
+função em C, pode ser necessário saber se outra foi declarada anteriormente, ou
 então o analisador sintático pode alterar um estado do analisador léxico para
 detectar variáveis de um novo tipo. Além disto, compiladores também se apoiam em algoritmos
 em grafos, cujo paralelismo é um desafio \citep{lumsdaine2007challenges}.
 
-Sendo assim, existe interesse em pesquisas que aponte onde exatamente um compilador
+% TODO: Deixar as questões de pesquisa mais detalhadas, e talvez colocar em outra
+% subseção.
+Sendo assim, existe interesse em pesquisas que apontem onde exatamente um compilador
 pode tirar vantagem de paralelismo, e esta é a questão de pesquisa que este
 trabalho aborda.
 

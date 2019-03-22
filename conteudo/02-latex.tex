@@ -1,148 +1,267 @@
-\chapter{Usando o \LaTeX{} e este modelo}
+\chapter{Fundamentação Teórica}
 
-Não é necessário que o texto seja redigido usando \LaTeX{}, mas é fortemente
-recomendado o uso dessa ferramenta, pois ela facilita diversas etapas do
-trabalho e o resultado final é muito bom\footnote{O uso de um sistema de
-controle de versões, como mercurial (\url{mercurial-scm.org}) ou git
-(\url{git-scm.com}), também é altamente recomendado.}. Este modelo inclui
-vários comentários explicativos e pacotes interessantes para auxiliá-lo com
-ele, sendo composto dos arquivos principais de cada exemplo
-(\texttt{tese-exemplo.tex}, \texttt{artigo-exemplo.tex},
-\texttt{apresentacao-exemplo.tex} e \texttt{poster-exemplo.tex}) e de
-vários arquivos auxiliares:
+Este capítulo apresenta uma breve introdução sobre os conceitos tocados neste
+trabalho. Primeiro, é abordado as partes do \textit{pipeline} de um compilador
+de maneira a entender, ao menos superficialmente, os algoritmos usados.
+Em seguida, discute-se conceitos de computação paralela e possíveis abordagens
+de paralelismo.
 
+\begin{section}{Compiladores}
+
+\begin{subsection}{\textit{Analisadores léxicos e sintáticos}}
+
+O primeiro passo na compilação é a análise léxica e sintática para a criação
+da árvore abstrata. Estas duas peças se comunicam constantemente, conforme
+ilustrado na Figura \ref{fig:lexico_sintatico}.
+
+\begin{figure}
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=6em, text centered, rounded corners, node distance=9cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+    minimum height=2em]
+
+\begin{center}
+\scalebox{0.8}{
+\begin{tikzpicture}[node distance = 3cm, auto]
+    % Place nodes
+    \node [block]                    (lexico) {Analisador Léxico};
+    \node [block, right of = lexico] (sintatico) {Analisador Sintático};
+    \coordinate [left of=lexico]     (fonte);
+    \coordinate [right of=sintatico] (ast);
+
+    % Draw edges
+    \draw[->]    ([yshift=0.5em] lexico.east)       -- ([yshift=0.5em] sintatico.west) node[midway] {Token};
+    \draw[->]    ([yshift=-0.5em] sintatico.west)   -- ([yshift=-0.5em] lexico.east)    node[midway] {próximo\_token()};
+    \draw[->]    (fonte.west)                       -- (lexico.west)    node[pos=0, above] {Código Fonte};
+    \draw[->]    (sintatico.east)                   -- (ast.west)   node[pos=1, above] {Árvore Abstrata};
+\end{tikzpicture}
+}
+\end{center}
+
+\caption{Interações entre um analisador léxico e sintático.}
+\label{fig:lexico_sintatico}
+\end{figure}
+
+    Primeiro, a análise léxica é responsável por ler o arquivo
+de texto contendo o código fonte, e quebrar as palavras em \textit{tokens}, que
+serão alimentados para o analisador sintático. Por consequência, ele é capaz de
+realizar alguns filtros como ignorar os comentários, identificar constantes
+numéricas, eliminar espaços desnecessários,
+entre outros. Analisadores léxicos também podem ser usados para substituição
+de macros, como implementado pelo preprocessador do C
+(CPP)\footnote{https://gcc.gnu.org/onlinedocs/cppinternals/Lexer.html}.
+
+Geralmente, os analisadores léxicos são implementados utilizando autômatos por
+serem $O(n)$, onde $n$ é o tamanho da entrada, pela existência de algoritmos
+para converter expressões regulares em autômatos \citep{thompson}, e pela
+existência de algoritmos para minimização de estados de um autômato
+\citep{hopcroft1971n}. Isto possibilita que geradores de analisadores léxicos
+como o \texttt{Flex}\footnote{https://www.gnu.org/software/flex/}
+sejam bastante eficientes.
+
+	Por fim, o analisador sintático entra em cena. O analisador sintático é
+responsável por gerar a Árvore de Sintaxe Abstrata (AST) inspecionando a 
+sequência de \textit{tokens} fornecido pelo analisador léxico. Neste processo,
+ele certifica-se que o código fonte respeita a gramática da linguagem,
+apontando erros caso contrário.
+
+	Analisadores léxicos se apoiam nas gramáticas que geram uma
+linguagem livre de contexto determinística, isto porque gramáticas mais
+poderosas requerem algoritmos computacionalmente mais custosos
+\citep{sipser2012}. Existem vários algoritmos para realizar a análise sintática,
+mas destacam-se:
 \begin{itemize}
-  \item Arquivos com o conteúdo do trabalho:
-  \begin{itemize}
-    \item \texttt{conteudo/folhas-de-rosto.tex} (capa, dedicatória etc.)
-    \item \texttt{conteudo/resumo-abstract.tex}
-    \item \texttt{conteudo/capitulos.tex}, \texttt{conteudo/apendices.tex},
-          \texttt{conteudo/anexos.tex} e demais arquivos carregados por eles
-          %(\texttt{XX-*.tex}, \texttt{apendice-pseudocodigo.tex}, \texttt{anexo-soft-livre.tex})
-    \item \texttt{bibliografia.bib} (dados bibliográficos)
-  \end{itemize}
+    \item LL($k$): Um algoritmo de caráter preditivo, que tenta construir a AST da
+        raiz para as folhas. Seu uso é devido a facilidade de codificação e
+        mensagens de erros mais informativas para o usuário.
 
-  \item Arquivos com as \textit{packages} usadas e suas configurações (leia
-        os comentários neles se quiser modificar algum aspecto do
-        documento ou acrescentar alguma \textit{package}):
-  \begin{itemize}
-    \item \texttt{extras/basics.tex} (\textit{packages} e configurações essenciais),
-          \texttt{extras/fonts.tex} (definição das fontes do documento) e
-          \texttt{extras/floats.tex} (configurações e melhorias para \textit{floats})
-    \item \texttt{extras/thesis-formatting.tex} (aparência: espaçamento, sumário etc.)
-    \item \texttt{extras/index.tex} (configuração do índice remissivo)
-    \item \texttt{extras/hyperlinks.tex} (configuração das referências cruzadas)
-    \item \texttt{extras/source-code.tex} (exibição de código-fonte e pseudocódigo)
-    \item \texttt{extras/utils.tex} (\textit{packages} adicionais diversas)
-    \item \texttt{extras/bibconfig.tex} (configuração da bibliografia)
-  \end{itemize}
-
-  \item Outros arquivos auxiliares (geralmente não precisam ser editados):
-  \begin{itemize}
-    \item \texttt{extras/imeusp-capa.sty} (formatação da capa e demais páginas iniciais)
-    \item \texttt{extras/imeusp-headers.sty} (formatação dos cabeçalhos)
-    \item \texttt{extras/lstpseudocode.sty} (suporte a pseudocódigo com \textsf{listings})
-    \item \texttt{extras/annex.sty} (permite adicionar anexos) e
-          \texttt{extras/appendixlabel.sty} (melhora a lista de
-          apêndices/anexos no sumário)
-    \item \texttt{extras/beamer*.sty} (\textit{layouts} e cores para
-          apresentações e \textit{posters})
-    \item \texttt{extras/plainnat-ime.*} (estilo plainnat para bibliografias)\index{biblatex}
-    \item \texttt{extras/alpha-ime.bst} (estilo alpha para bibliografias com
-          bibtex)\index{bibtex}
-    \item \texttt{extras/natbib-ime.sty} (tradução da \textit{package}
-          padrão natbib)\index{natbib}
-    \item \texttt{hyperxindy.xdy} (configuração para xindy) e
-          \texttt{mkidxhead.ist} (configuração para makeindex)
-    \item \texttt{latexmkrc} e \texttt{Makefile} (automatizam a geração do
-          documento com os comandos \textsf{latexmk} e \textsf{make} respectivamente)
-  \end{itemize}
+    \item LR($k$): Um algoritmo que tenta construir a AST das folhas para a raiz.
+          Sua codificação é mais complicada e as mensagens de erro são mais
+          precárias, porém são mais poderosos que o LL($k$) (toda gramática
+          LL($k$) é LR($k$)). Outra vantagem interessante é a existência de
+          \textit{softwares} como o
+          \texttt{Bison}\footnote{https://www.gnu.org/software/bison/}, capaz
+          de gerar um analisador LR($1$) a partir da especificação da gramática.
 \end{itemize}
 
-Para compilar o documento, basta executar o comando \textsf{latexmk} (ou
-\textsf{make})\footnote{Você também pode usar \textsf{latexmk poster-exemplo},
-\textsf{make apresentacao-exemplo} etc.}. Talvez seu editor ofereça uma
-opção de menu para compilar o documento, mas ele provavelmente depende do
-\textsf{latexmk} para isso. \LaTeX{} gera diversos arquivos auxiliares
-durante a compilação que, em algumas raras situações, podem ficar
-inconsistentes (causando erros de compilação ou erros no PDF gerado, como
-referências faltando ou numeração de páginas incorreta no sumário). Nesse
-caso, é só usar o comando \textsf{latexmk -C} (ou \textsf{make clean}),
-que apaga todos os arquivos auxiliares gerados, e em seguida rodar
-\textsf{latexmk} (ou \textsf{make}) novamente.
+    Por fim, uma ação mais detalhada do funcionamento destes algoritmos
+pode ser encontrada em \citep{appel2004modern}.
 
-\section{Instalação do \LaTeX{}}
+    Uma vez gerada a AST, é possível fazer verificações extras de semântica
+relacionada a linguagem de programação, e em seguida essa AST normalmente é
+traduzida para uma linguagem intermediária, onde serão feitas otimizações
+no código.
 
-\LaTeX{} é, na verdade, um conjunto de programas. Ao invés de procurar e
-baixar cada um deles, o mais comum é baixar um pacote com todos eles juntos.
-Há dois pacotes desse tipo disponíveis: MiK\TeX{} (\url{miktex.org}) e
-\TeX{}Live (\url{www.tug.org/texlive}). Ambos funcionam em Linux, Windows e
-MacOS X. Em Linux, \TeX{}Live costuma estar disponível para instalação junto
-com os demais opcionais do sistema. Em MacOS X, o mais popular é o Mac\TeX{}
-(\url{www.tug.org/mactex/}), a versão do \TeX{}Live para MacOS X.  Em Windows,
-o mais comumente usado é o MiK\TeX{}.
+Todo esse processo de analise léxica, sintática, e tradução
+para a linguagem intermediária de uma linguagem é normalmente chamado de
+\textit{frontend} de um compilador. Cada linguagem que o compilador aceita
+como entrada contém um \textit{fronted} próprio, por exemplo, um para C,
+outro para Fortran. Isto deixa o compilador mais modularizado, pois para
+implementar uma nova linguagem de programação para o compilador, basta
+implementar um novo \textit{frontend}.
 
-Por padrão, eles não instalam tudo que está disponível, mas sim apenas os
-componentes mais usados, e oferecem um gestor de pacotes que permite adicionar
-outros. Embora uma instalação completa do \LaTeX{} seja relativamente grande
-(perto de 5GB), em geral vale a pena instalar a maior parte dos pacotes. Se
-você preferir uma instalação mais ``enxuta'', não deixe de incluir todos os
-pacotes necessários para este modelo, como indicado no arquivo README.md.
+\end{subsection}
 
-Também é muito importante ter o \textsf{latexmk} (ou o \textsf{make}). No Linux,
-a instalação é similar à de outros programas. No MacOS X e no Windows,
-\textsf{latexmk} pode ser instalado pelo gestor de pacotes do MiK\TeX{} ou
-\TeX{}Live. Observe que ele depende da linguagem \textsf{perl}, que precisa ser
-instalada à parte no Windows (\url{www.perl.org/get.html}).
+\begin{subsection}{Linguagem Intermediária e Otimizações}
 
-\section{Bibliografia}
+    Para um compilador ser capaz de compilar diversas linguagens como C, C++,
+Fortran, normalmente é utilizado uma linguagem intermediária na qual a AST
+será traduzida. Tal linugagem deve ser capaz de encapsular toda a
+semântica da linguagem original, e permitir com que otimizações sejam
+implementadas facilmente.
 
-Sugerimos que você faça referências bibliográficas nos formatos ``alpha'' ou
-``plainnat''.  Se estiver usando natbib+bibtex\index{natbib}\index{bibtex},
-use os arquivos .bst ``alpha-ime.bst'' ou ``plainnat-ime.bst'', que são
-versões desses dois formatos traduzidas para o português. Se estiver usando
-biblatex\index{biblatex} (recomendado), escolha o estilo ``alphabetic''
-(que é um dos estilos padrão do biblatex) ou ``plainnat-ime''. O arquivo de
-exemplo inclui todas essas opções; basta des-comentar as linhas
-correspondentes e, se necessário, modificar o arquivo Makefile para chamar
-o bibtex\index{bibtex} ao invés do biber\index{biber} (este último é usado
-em conjunto com o biblatex).
+    Uma maneira de fazer isso é através de uma linugagem que represente
+expressões em \textit{Three-Address code}. Aqui a expressão $a*x + b$ é
+representado como
 
-\section{Perguntas Frequentes sobre o Modelo}
+$$ t_1 = a*x$$
+$$ t_2 = t_1 + b $$
 
-\begin{itemize}
+    E para isso, novas variáveis são declaradas para conter os valores
+intermediários possibilitando também a remoção de sub-expressões em comum.
+Também neste modo, laços e o fluxo de código são transformados em
+uma sequência de \texttt{if} e \texttt{goto} para facilitar a construção do
+grafo de controle de fluxo. Com isto, é possível também eliminar código que
+nunca será utilizado, e descartar variáveis que não são mais necessárias em
+um certo ponto do programa. Todo esse processo normalmente é feito sem
+analisar como as funções do programa interagem entre si.
 
-\item \textbf{Posso usar pacotes \LaTeX{} adicionais aos sugeridos?}\\
-Com certeza! Você pode modificar o arquivo o quanto desejar, o modelo serve só como uma ajuda inicial para o seu trabalho. Observe, no entanto, que ele é baseado na classe \textsf{book} e deve funcionar, com alterações mínimas, com \textsf{article}; já as classes \textsf{KOMA-Script} ou a classe \textsf{memoir} podem ser mais difíceis de adaptar. Além disso, \textsf{pstricks} e \textit{packages} derivadas dependem da linguagem PostScript e, portanto, não funcionam facilmente com as versões modernas de \LaTeX{}.
+    Para realizar otimizações considerando as interações entre as rotinas,
+é utilizado um grafo de chamada de funções (\texttt{cgraphs}). Aqui as rotinas são
+representadas como um vértice no grafo, e existe um arco de $f$ à $g$
+quando há uma chamada de $g$ a partir de $f$. Dependendo da linguagem de
+programação utilizada, construir tais grafos pode ser uma tarefa simples pois
+as chamadas são normalmente feitas de modo estático, como é o caso de C; mas
+isto pode se tornar algo extremamente complexo quando orientação à objetos é
+empregada, pois é possível sobrescrever métodos.
 
-\item \textbf{As figuras podem ser colocadas no meio do texto ou devem ficar no final dos capítulos?}\\
-Em geral, as figuras devem ser apresentadas assim que forem referenciadas. Colocá-las no final dos capítulos dificultaria um pouco a leitura, mas isso depende do estilo do autor, orientador ou lugar de publicação. Converse com seu orientador!
+    Os grafos de chamadas de funções permitem otimizações que eliminem chamadas
+de funções, economizando assim o custo da chamada, e ainda permite com que as
+funções sejam emitidas por ordem de proximidade, evitando com que o salto no
+fluxo de execução seja demasiado longo, o que implicaria em \textit{cache miss}.
+Também é possível descobrir que uma função não altera algum estado global, por exemplo,
+imprimir na tela, e assim pré-computar o seu retorno em tempo de compilação. Por
+exemplo:
+    $$ \texttt{double pi = 4*atan(1.);}$$
+Como a função \texttt{atan} não altera um estado global, \texttt{pi} poderia
+ser computado em tempo de compilação. Grafos de chamada de funções também
+permitem com que apenas funções que em tese serão chamadas sejam compiladas
+apenas explorando a partir do ponto de entrada do programa, gerando assim
+um binário menor.
 
-\item \textbf{As figuras e tabelas são colocadas em lugares ruins.}\\
-Veja a discussão a respeito na Seção~\ref{sec:limitations}.
+    Após todo esse processo de otimização, o código em linguagem intermediária
+pode ainda sofrer transformações em para algo que seja mais próximo do
+\textit{hardware}-alvo, no caso da compilação ter como alvo código de máquina.
+Um exemplo é o \textit{Register Transfer Language} (RTL) onde o código é
+representado como uma sequência de instruções em uma máquina de infinitos
+registradores. Finalmente, após essa sequência de transformações, o controle é
+passado ao \textit{Backend} do compilador.
 
-\item \textbf{Estou tendo problemas com caracteres acentuados!}\\
-Veja a discussão a respeito na Seção~\ref{sec:limitations}.
+\end{subsection}
 
-\item \textbf{Existe algo específico para citações de páginas web?}\\
-Biblatex define o tipo ``online'', que deve ser usado para materiais com título, autor etc., como uma postagem ou comentário em um blog, um gráfico ou mesmo uma mensagem de email para uma lista de discussão. Bibtex\index{bibtex}, por padrão, não tem um tipo específico para isso; com ele, normalmente usa-se o campo ``howpublished'' para especificar que se trata de um recurso \textit{online}. Se o que você está citando não é algo determinado com título, autor etc. mas sim um sítio (como uma empresa ou um produto), pode ser mais adequado colocar a referência apenas como nota de rodapé e não na lista de referências; nesses casos, algumas pessoas acrescentam uma segunda lista de referências especificamente para recursos \textit{online} (biblatex\index{biblatex} permite criar múltiplas bibliografias). Já artigos disponíveis \textit{online} mas que fazem parte de uma publicação de formato tradicional (mesmo que apenas \textit{online}), como os anais de um congresso, devem ser citados por seu tipo verdadeiro e apenas incluir o campo ``url'' (não é nem necessário usar o comando \textsf{\textbackslash{}url\{\}}), aceito por todos os tipos de documento do bibtex/biblatex.
+\begin{subsection}{Backend}
+    É no \textit{Backend} do compilador que é implementado os assuntos
+referentes à linguagem-alvo, como maneiras de imprimir rotinas, ou escolher
+as instruções mais adequadas, expressando o código de uma maneira razoavelmente
+eficiente. Esse tipo de modularização permite com que o compilador possa
+suportar outra linguagem, ou outra máquina, apenas reimplementando o
+\textit{Backend}.
+\end{subsection}
 
-\item \textbf{A bibliografia está sendo impressa em inglês (usa ``and'' ao invés de ``e'' para separar os nomes dos autores).}\\
-Você deve estar usando um estilo de bibliografia bibtex diferente dos sugeridos. Uma simples solução é copiar o arquivo de estilo correspondente da sua instalação \LaTeX{} para o diretório onde seus arquivos estão e mudar ``and'' por ``e'' (ou ``\&'' se preferir) na função format.names. O mais recomendado, no entanto, é usar biblatex: ele é mais fácil de adaptar para diferentes estilos, tem pleno suporte a diferentes línguas e é possível personalizar as traduções (há um exemplo no modelo).
+\begin{figure}[ht]
+\centering
+  \begin{subfigure}[b]{0.40\textwidth}
+	\tikzstyle{line} = [draw, -latex]
+	\tikzstyle{node} = [draw, circle]
+	\begin{center}
+	\scalebox{0.8}{
+	\begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
+		% Place nodes
+		\node [node]                    (main) {\texttt{main}};
+		\node [node, below of = main]    	 (f) {\texttt{f}};
+		\node [node, below of = f]      	 (g) {\texttt{g}};
+		\node [node, below of = g]      	 (h) {\texttt{h}};
 
-\item \textbf{Aparece uma folha em branco entre os capítulos}\\
-Essa característica foi colocada propositalmente, dado que todo capítulo deve (ou deveria) começar em uma página de numeração ímpar (lado direito do documento). Se quiser mudar esse comportamento, acrescente ``openany'' como opção da classe, i.e., \textsf{\textbackslash{}documentclass[openany,11pt,twoside,a4paper]\{book\}}.
+		% Draw edges
+		\draw[->]    (main)           -- (f);
+		\draw[->]    (f)              -- (g);
+		\draw[->]    (g)              -- (h);
+		\draw[->]    (main)      to [out=-30,in=30] (h);
+	\end{tikzpicture}
+	}
+	\end{center}
+	\label{fig:call_graph}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.40\textwidth}
+	  \begin{lstlisting}[
+		language=pseudocode,
+		style=pseudocode,
+		style=wider,
+		functions={},
+		specialidentifiers={extern, call},
+	  ]
+		extern function g,h
 
-\item \textbf{É possível resumir o nome das seções/capítulos que aparece no topo das páginas e no sumário?}\\
-Sim, usando a sintaxe \textsf{\textbackslash{}section[mini-titulo]\{titulo enorme\}}. Isso é especialmente útil nos \textit{captions}\index{Legendas} das figuras e tabelas, que muitas vezes são demasiadamente longos para a lista de figuras/tabelas.
+		function f()
+			call $g$
+			call $h$
+		end
 
-\item \textbf{Existe algum programa para gerenciar referências em formato bibtex?}\\
-Sim, há vários. Uma opção bem comum é o JabRef; outra é usar Zotero\index{Zotero} ou Mendeley\index{Mendeley} e exportar os dados deles no formato .bib.
+		function main()
+			call $f$
+			call $h$
+		end
+	  \end{lstlisting}
+  \end{subfigure}
+  \caption{Um programa e seu respectivo grafo de chamada de funções}
+\end{figure}
 
-\item \textbf{Como faço para usar o Makefile (comando make) no Windows?}\\
-Lembre-se que a ferramenta recomendada para compilação do documento é o \textsf{latexmk}, então você não precisa do \textsf{make}. Mas, se quiser usá-lo, você pode instalar o MSYS2 (\url{www.msys2.org}) ou o Windows Subsystem for Linux (procure as versões de Linux disponíveis na Microsoft Store). Se você pretende usar algum dos editores sugeridos, é possível deixar a compilação a cargo deles, também dispensando o \textsf{make}.
 
-\item \textbf{Como eu faço para...}\\
-Leia os comentários dos arquivos ``tese-exemplo.tex'' e outros que compõem este modelo, além do tutorial (Capítulo \ref{chap:tutorial}) e dos exemplos do Capítulo \ref{chap:exemplos}; é provável que haja uma dica neles ou, pelo menos, a indicação da \textit{package} relacionada ao que você precisa.
+\end{section}
 
-\end{itemize}
+\begin{section}{Computação Paralela}
+
+\end{section}
+
+
+
+\begin{section}{O compilador GCC}
+
+\begin{subsection}{GNU Toolchain e as etapas da compilação}
+
+\begin{figure}
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=6em, text centered, rounded corners, node distance=6.5cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+    minimum height=2em]
+\begin{center}
+\scalebox{0.7}{
+\begin{tikzpicture}[node distance = 3cm, auto]
+    % Place nodes
+    \node [block]                      (cc1) {Compilador \\ (cc1)};
+    \node [block, right of = cc1]      (as) {Montador\\(as)};
+    \node [block, right of = as]       (collect2) {Linkeditor\\(collect2)};
+    \coordinate [left of=cc1]          (fonte);
+    \coordinate [right of=collect2]    (bin);
+
+    % Draw edges
+    \draw[->]    (cc1.east)          -- (as.west)       node[midway, above] {Arquivo Assembler};
+    \draw[->]    (cc1.east)          -- (as.west)       node[midway, below] {(.s)};
+    \draw[->]    (as.east)           -- (collect2.west) node[midway, above] {Arquivo Objeto};
+    \draw[->]    (as.east)           -- (collect2.west) node[midway, below] {(.o)};
+    \draw[->]    (fonte.west)        -- (cc1.west)      node[pos=0, above] {Código Fonte\\ (.c)};
+    \draw[->]    (fonte.west)        -- (cc1.west)      node[pos=0, below] {(.c)};
+    \draw[->]    (collect2.east)     -- (bin.west)      node[pos=1, above] {Arquivo Binário};
+\end{tikzpicture}
+}
+\end{center}
+
+\caption{Etapas de Compilação.}
+\label{fig:gnu_toolchain}
+\end{figure}
+
+\end{subsection}
+
+\end{section}
