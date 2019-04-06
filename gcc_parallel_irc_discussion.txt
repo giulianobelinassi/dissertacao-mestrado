@@ -1,0 +1,307 @@
+                       │11:30:00    jwakely | I don't think all these GSoC candidates who want to work on memory_order_consume realise quite what a tricky topic it is          │ Hunger      
+                       │11:30:01      jakub | richi: I think the DCE change is fine, I was just worried about larger changes                                                    │ i_ron       
+                       │11:31:12      jakub | jwakely: I wonder why it is listed in GSoC at all, it is extremely hard if not impossible, and requires propagating the mess      │ iains      ++
+   flusp_oftc          │11:31:56      jakub | that said, the parallelizing compiler task is like 20x of GSoC workload too if not more                                           │ amacleod
+ 2.  #cncnet-developers│11:32:27      richi | ;)                                                                                                                                │ Ameisen
+ 3.  #ccsl-usp         │11:32:34    jwakely | yeah                                                                                                                              │ andreast_
+ 4.  #gcc              │11:32:57      richi | well, I think massaging the pass manager to funnel multiple functions through a few gimple passes should work out                 │ andres
+ 5.  #mingw-w64        │11:33:12      richi | just to see where you hit blocks                                                                                                  │ anoopcs
+ 6.  *status           │11:33:41      richi | ISTR I wrote up sth when I proposed the task - at most one function per pass, so it's more like "pipelining"                      │ any0n
+ 7.  *status           │11:34:34      richi | slow pass / large function holds up the rest (bah), but it's arbitrarily wide so more functions can "start"                       │ aurel32
+ 8.  siqueira          │11:35:39      jakub | richi: well, first something needs to be done on the global state side of things, even GIMPLE passes have huge amounts of that    │ balrog
+ 9.  #msfloss          │11:35:49        law | yea.  we still have to be careful about things like "cfun" though and static data that isn't well isolated, but I'd consider      │ berndj
+10.  #gcc              │                    | forward progress on those issues a successful GSOC outcome                                                                        │ Bigcheese
+11.  #msfloss          │11:35:57      richi | jakub: if you only execute a GIMPLE pass once at a time it works though                                                           │ bollu  
+                       │11:36:01        <-- | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has quit (Ping timeout: 480 seconds)                                 │ cfields  
+                       │11:36:14        law | so if the project just tells us where the pain points are, then it's good with me                                                 │ chill
+                       │11:36:21      richi | jakub: but yeah - cfun (TLS var it becomes)                                                                                       │ chrisccoulson
+                       │11:36:28        law | anyway, off to look at that arm thingie, thanks richi                                                                             │ clavi
+                       │11:36:40      jakub | law: I'm actually bisecting it now                                                                                                │ clm
+                       │11:36:40      richi | law: just a wild guess it might be yours                                                                                          │ clyon
+                       │11:36:41        law | cprop or lra changes look most likely                                                                                             │ cyphase
+                       │11:37:01      jakub | law: so if you wait a few minutes, I'll have details                                                                              │ dansan
+                       │11:37:16        law | works for me :-)                                                                                                                  │ dinfuehr
+                       │11:38:06      richi | jwakely: I could pseudo-code that "scheduler", it might help ...                                                                  │ dinux
+                       │11:39:06        --> | msebor (~Thunderbi@75-166-119-163.hlrn.qwest.net) has joined #gcc                                                                 │ djgpp
+                       │11:39:59      jakub | e.g. with touching mem-stat.h today, concurrent accesses to the mem-stats.h hash tables will not work                             │ dmalcolm
+                       │11:40:23      richi | yeah, gc_malloc, UID allocation, etc. will all need locks                                                                         │ Dodji
+                       │11:40:29      richi | (or atomics)                                                                                                                      │ doko
+                       │11:40:51      jakub | richi: that is going to be slow                                                                                                   │ dominiq
+                       │11:41:22      richi | depends on how much that's really done                                                                                            │ dongcarl
+                       │11:41:48      richi | (in post-IPA GIMPLE passes)                                                                                                       │ DrNick
+                       │11:42:01      jakub | maybe it would be better to just fork a few times after IPA and handle portions of the IL in separate processes                   │ echristo
+                       │11:42:22      jakub | depends on where we spend most time usually of course                                                                             │ Ekho 
+                       │11:42:23      richi | forking is slow (but yeah, WPA does that...)                                                                                      │ EricWF
+                       │11:42:32      richi | at -O0 it's in RA ...                                                                                                             │ EricWF[m]
+                       │11:43:45      jakub | well, adding all the locking means we slow even the cases where user just has 1 CPU or has enough parallel make jobs to fill up   │ eternaleye
+                       │                    | all CPUs with work                                                                                                                │ Extrems
+                       │11:44:21      richi | but how much?  That's the experiment!                                                                                             │ feather
+                       │11:44:44      richi | and how much can we improve there?  (per thread GC zone)                                                                          │ FL4SHK
+                       │11:45:27      richi | but yeah, working on making it possible to have multiple functions in RTL state would probably be better (but less sexy and even  │ funnel  
+                       │                    | harder)                                                                                                                           │ furrymcgee  
+                       │11:46:48      honza | richi: I spent some time playing around with WPA streaming.                                                                       │ gabbayo__   
+                       │11:46:51      richi | and as to simply forking we can also do LTO in partial-link mode for single units...                                              │ giulianob   
+                       │11:47:02      jakub | do we still have some *-elf* *-gnu* targets that don't use elfos.h ?                                                              │ glenfe      
+                       │11:47:08        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Remote host closed the connection)                                                     │ gruetzkopf  
+                       │11:47:11      richi | so gimple-match.c goes into 32 ltrans pieces then linked together                                                                 │ guerby      
+                       │11:47:12      honza | we hit the point in GCC 9 that fork outweights the parallelism to large degree for Linux and I suppose for other OSes it will be  │ Guest4084   
+                       │                    | worse.                                                                                                                            │ hergertme   
+                       │11:47:15      willy | are there any passes in GCC which would benefit from OpenMP, or is everything just too irregular for the OpenMP model?  (my sense │ honza       
+                       │                    | is the latter)                                                                                                                    │ hpa         
+                       │11:47:41      richi | honza: you mean the fork cost is too high?                                                                                        │ Hunger      
+                       │11:47:52      honza | for Firefox and bigger stuff it seems to be.                                                                                      │ i_ron       
+                       │11:48:01      richi | honza: then as first, pre-assign multiple ltrans units to each "fork"                                                             │ iains      ++
+   flusp_freenode      │11:48:09        law | i was asked to look at that years ago, I didn't find anything that would meaningfully benefit from openmp within gcc itself       │ alanm
+   flusp_oftc          │11:48:18      honza | yes, I plan to still do this trick for GCC9 (since it is regression and very easy to impement)                                    │ amacleod
+ 2.  #cncnet-developers│11:48:35      honza | law: For WPA this may be interesting.                                                                                             │ Ameisen
+ 3.  #ccsl-usp         │11:49:00      richi | law: the GC mark step maybe (but you'd need to do atomics)                                                                        │ andreast_
+ 4.  #gcc              │11:49:02      honza | Tree merging (streaming in) is theoretically parallelisable and I think it may be fun to try to make inliner work in parallel     │ andres
+ 5.  #mingw-w64        │                    | too.                                                                                                                              │ anoopcs
+ 6.  *status           │11:49:04      jakub | willy: gcc has way too many hot loops and we don't want to parallelize at that level                                              │ any0n
+ 7.  *status           │11:49:04        law | my analysis pre-dates having any significant IPA/WPA infrastructure                                                               │ aurel32
+ 8.  siqueira          │11:49:35      jakub | if at all, on the level of whole passes or sets of passes for a single function or something like that                            │ balrog
+ 9.  #msfloss          │11:49:43      honza | I hope to find some time to play with it.                                                                                         │ berndj
+10.  #gcc              │11:49:51      richi | willy: I think parallelizing at the function level is the only reasonable thing                                                   │ Bigcheese
+11.  #msfloss          │11:50:06      honza | (assuming we get thread safe symbol table of course :)                                                                            │ bollu  
+                       │11:50:46      richi | honza: most IPA analysis could be done in parallel on multiple functions (IPA ICF hashing for example)                            │ cfields  
+                       │11:50:50      honza | Also Chris had some presentation on new higher level IL for LLVM that mentioned parlellisable SSA walks for example. Not sure if  │ chill
+                       │                    | sources are available now.                                                                                                        │ chrisccoulson
+                       │11:51:22      honza | richi: Yep, IPA ICF comparsion is another obvoius candidate (easier than inliner since you can delay actual merging to the final  │ clavi
+                       │                    | serial step)                                                                                                                      │ clm
+                       │11:51:27      richi | honza: likewise IPA transform I guess                                                                                             │ clyon
+                       │11:51:46      honza | The actual function analysis/trnasofrms are not that interesting since they run at compile time/ltrans                            │ cyphase
+                       │11:52:27      honza | So I guess it would fit to the general idea that we may want to try run backend on multiple functions at once as you said.        │ dansan
+                       │11:52:47        --> | tromey (~tromey@174-29-37-56.hlrn.qwest.net) has joined #gcc                                                                      │ dinfuehr
+                       │11:53:33      honza | BTW even with forking, i think it would work for stuff like insn-attrtab or those asan units.  The working set of WPA is very     │ dinux
+                       │                    | large and the work to stream ltrans unit has reuced a lot. Big .c units are much smaller and running backend takes a lot longer.  │ djgpp
+                       │11:54:27      richi | I wonder whether wall-clock time for "LTO"ing gimple-match.c is better than serial compile                                        │ dmalcolm
+                       │11:54:45      richi | honza: can we do LTO gimple-match.c -> gimple-match.o (non-LTO-IL) now?                                                           │ Dodji
+                       │11:54:54      honza | richi: One can try it.                                                                                                            │ doko
+                       │11:55:04      honza | Just build it with -flto and then incrementally link into final .o file :)                                                        │ dominiq
+                       │11:55:24      richi | honza: what's the magic linker flag I need to add?  Just -r?                                                                      │ dongcarl
+                       │11:55:47      honza | and -flinker-output=nolto-rel                                                                                                     │ DrNick
+                       │11:55:55      honza | and -flto=<num-threads> of course :)                                                                                              │ echristo
+                       │11:56:13        --> | rth (~rth@174-21-5-201.tukw.qwest.net) has joined #gcc                                                                            │ Ekho 
+                       │11:57:12      honza | richi: My stuent got first prorotype of the TBAA mod-ref                                                                          │ EricWF
+                       │11:57:25      honza | we simply collect pairs base_alias_set and ref_alias_set for loads/stores                                                         │ EricWF[m]
+                       │11:59:14      honza | then if we simply disambiguate using alias_sets_conflict_p (base_ref_set, other_base_ref_set) this seems to work modulo few       │ eternaleye
+                       │                    | Fortran testcases.                                                                                                                │ Extrems
+                       │11:59:25      jakub | law: it likely is regcprop, only a few iterations to finish to prove that (or I can just try those two)                           │ feather
+                       │11:59:41        law | no need, I'll just take it and start debugging :-)                                                                                │ FL4SHK
+                       │11:59:43        --> | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has joined #gcc                                                      │ funnel  
+                       │11:59:55      honza | I looked into dynamic_displatch_2.f03                                                                                             │ furrymcgee  
+                       │11:59:58      honza | problem there is with                                                                                                             │ gabbayo__   
+                       │12:00:04      richi | ok, so GCC 9 with -O2 -g -fno-checking takes 22s with LTO and 8 threads (on 4-core machine) but 56s in a single thread            │ giulianob   
+                       │12:00:10      richi | win!                                                                                                                              │ glenfe      
+                       │12:00:29      honza |   struct __class_m_T1_t arg.3;                                                                                                    │ gruetzkopf  
+                       │12:00:35      honza |   arg.3 = VIEW_CONVERT_EXPR<struct __class_m_T1_t>(a);                                                                            │ guerby      
+                       │12:00:36      honza |   make_real2 (&arg.3, &r);                                                                                                        │ Guest4084   
+                       │12:00:36      honza |   arg.3 ={v} {CLOBBER};                                                                                                           │ hergertme   
+                       │12:00:50      honza | dse1 removes arg.3 store.                                                                                                         │ honza       
+                       │12:00:54      honza | richi: Cool :)                                                                                                                    │ hpa         
+                       │12:01:07      honza | Now we need tooling to make WPA happen by default.                                                                                │ Hunger      
+                       │12:01:37      honza | make_real is:                                                                                                                     │ i_ron       
+                       │12:01:39      honza | make_real2 (struct __class_m_T2_t & restrict arg, real(kind=4) & restrict arg2)                                                   │ iains      ++
+   flusp_freenode      │12:01:48      richi | gimple-match goes into 19 ltrans pieces it seems                                                                                  │ alanm
+   flusp_oftc          │12:01:54      honza | so there seems to be type mismatch between __class_m_T2_t and __class_m_T1_t                                                      │ amacleod
+ 2.  #cncnet-developers│12:02:04      honza | which are not considered conflicting by TBAA                                                                                      │ Ameisen
+ 3.  #ccsl-usp         │12:02:32      honza | richi: You may experiment with sizes of pieces. They are not very well tuned in the trunk. Probably something to add to my TODO   │ andreast_
+ 4.  #gcc              │12:02:38      richi | honza: fortran has some known issues there                                                                                        │ andres
+ 5.  #mingw-w64        │12:02:43      honza | last time I tuned was in gcc5 timeframe for Firefox, so long time ago.                                                            │ anoopcs
+ 6.  *status           │12:03:10      honza | yep, it seems like front-end issue to me.                                                                                         │ any0n
+ 7.  *status           │12:03:32      richi | LTO object is also a tiny bit larger (~1%)                                                                                        │ aurel32
+ 8.  siqueira          │12:03:47      richi | well, have to go now                                                                                                              │ balrog
+ 9.  #msfloss          │12:03:55      honza | yep, cost for more sections I think.                                                                                              │ berndj
+10.  #gcc              │12:04:05      honza | richi: OK, I will send you some summary of issues later.                                                                          │ Bigcheese
+11.  #msfloss          │12:05:04      honza | __class_m_T1_t contains a pointer to type _t1 and virtual table pointer. __class_m_T2_t contains pointer to type _t2 and virtual  │ bollu  
+                       │                    | table pointer                                                                                                                     │ cfields  
+                       │12:05:17      honza | It looks like bug to me, but I do not see why it survives -O3 :)                                                                  │ chill
+                       │12:13:03        <-- | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has quit (Remote host closed the connection)                         │ chrisccoulson
+                       │12:13:15        --> | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has joined #gcc                                                      │ clavi
+                       │12:14:24        law | looks like notes are inconsistent/wrong as we enter regcprop, likely related to cond_exec support                                 │ clm
+                       │12:14:57      jakub | law: I've added another comment with what I found                                                                                 │ clyon
+                       │12:15:02      jakub | law: now it is all yours                                                                                                          │ cyphase
+                       │12:15:39        law | ack.   I think we both zero'd in on that note                                                                                     │ dansan
+                       │12:16:22        law | This just can't be right:                                                                                                         │ dinfuehr
+                       │12:16:29        law | (insn 44 43 12 2 (set (reg:SI 0 r0 [orig:127 iftmp.1_5+4 ] [127])                                                                 │ dinux
+                       │12:16:29        law |         (reg:SI 1 r1 [orig:126 iftmp.1_5 ] [126])) "j.c":9:14 181 {*arm_movsi_insn}                                               │ djgpp
+                       │12:16:29        law |      (expr_list:REG_DEAD (reg:SI 1 r1 [orig:126 iftmp.1_5 ] [126])                                                                │ dmalcolm
+                       │12:16:29        law |         (expr_list:REG_UNUSED (reg:SI 0 r0 [orig:127 iftmp.1_5+4 ] [127])                                                         │ Dodji
+                       │12:16:29        law |             (nil))))                                                                                                              │ doko
+                       │12:16:31        law | (insn 12 44 13 2 (cond_exec (eq (reg:CC 100 cc)                                                                                   │ dominiq
+                       │12:16:32        law |             (const_int 0 [0]))                                                                                                    │ dongcarl
+                       │12:16:34        law |         (set (reg:SI 1 r1 [orig:126 iftmp.1_5 ] [126])                                                                            │ DrNick
+                       │12:16:36        law |             (not:SI (reg:SI 12 ip [orig:124 a.0_1 ] [124])))) "j.c":9:14 3805 {*p *arm_one_cmplsi2}                               │ echristo
+                       │12:16:38        law |      (nil))                                                                                                                       │ Ekho 
+                       │12:16:40        law | (insn 13 12 39 2 (cond_exec (eq (reg:CC 100 cc)                                                                                   │ EricWF
+                       │12:16:42        law |             (const_int 0 [0]))                                                                                                    │ EricWF[m]
+                       │12:16:44        law |         (set (reg:SI 0 r0 [orig:127 iftmp.1_5+4 ] [127])                                                                          │ eternaleye
+                       │12:16:46        law |             (not:SI (reg:SI 14 lr [orig:125 a.0_1+4 ] [125])))) "j.c":9:14 3805 {*p *arm_one_cmplsi2}                             │ Extrems
+                       │12:16:48        law |      (nil))                                                                                                                       │ feather
+                       │12:16:54        law | r1 is live at the start of insn 12 because it's value is only replaced if the condition is true                                   │ FL4SHK
+                       │12:17:33        law | anyway, I'll start working backwards..  I had concerns about DF coming out of ce3 before                                          │ funnel  
+                       │12:18:31      jakub | law: I believe if some pass uses the REG_DEAD/REG_UNUSED notes, it must df_add_note_problem, does regcprop do that?               │ furrymcgee  
+                       │12:18:40        law | it does                                                                                                                           │ gabbayo__   
+                       │12:19:01          * | segher blames peephole2                                                                                                           │ giulianob   
+                       │12:19:07      jakub | df_note_add_problem                                                                                                               │ glenfe      
+                       │12:19:08        law | i suspect ce3 either forgot to mark something                                                                                     │ gruetzkopf  
+                       │12:19:08     segher | (out of principle)                                                                                                                │ guerby      
+                       │12:19:24      jakub | or df doesn't understand COND_EXEC, whatever                                                                                      │ Guest4084   
+                       │12:19:35        law | DF better understand COND_EXEC :-)                                                                                                │ hergertme   
+                       │12:19:46        law | if it didn't all kinds of things would be horribly broken                                                                         │ honza       
+                       │12:20:33        law | it may be the case that ce3 forgot to mark something as changed, that's where my money is -- things look fine before ce3          │ hpa         
+                       │12:21:25      jakub | yeah, because before ce3 it is unused                                                                                             │ Hunger      
+                       │12:23:07        <-- | V-ille (~vivoutil@192.89.120.62) has quit (Ping timeout: 480 seconds)                                                             │ i_ron       
+                       │12:27:26        law | yea, if I manually mark the insns and call df_analyze the notes get fixed, so DF will do the right thing if you ask it to :-)     │ iains      ++
+   flusp_freenode      │12:31:17      jakub | law: is it the COND_EXEC insns that need to be marked, or the ones before that too?                                               │ alanm
+   flusp_oftc          │12:32:28        law | I'm actually thinking that ce3 has set up DF so that it's not updating the death notes                                            │ amacleod
+ 2.  #cncnet-developers│12:33:10        law | which likely implies we just need a df_analyze call in regcprop                                                                   │ Ameisen
+ 3.  #ccsl-usp         │12:33:17        law | but I want to look a bit deeper                                                                                                   │ andreast_
+ 4.  #gcc              │12:35:45        law | yea, it's just got the live problem registered and I don't think that keeps notes up-to-date                                      │ andres
+ 5.  #mingw-w64        │12:35:49      jakub | law: sure, ce3 doesn't call df_note_add_problem, so the REG_UNUSED notes after it must not be used                                │ anoopcs
+ 6.  *status           │12:36:11      jakub | law: but when regcprop calls df_note_add_problem and df_analyze after that, that should have been fixed up                        │ any0n
+ 7.  *status           │12:36:40        law | we call df_analyze lazily, so if the notes are inconsistent before regcprop starts, then we're hosed                              │ aurel32
+ 8.  siqueira          │12:36:58        law | thus I think an initial df_analyze call should be sufficient here                                                                 │ balrog
+ 9.  #msfloss          │12:37:19      jakub | oh, regcprop uses the notes before it calls df_analyze?  That would be a bug                                                      │ berndj
+10.  #gcc              │12:37:24        law | yup                                                                                                                               │ Bigcheese
+11.  #msfloss          │12:38:38        law | that'll be going into the tester :-)                                                                                              │ bollu  
+                       │12:38:39      jakub | it could e.g. defer df_analyze across RTL scans that don't need the notes, but needs to be done before whatever uses those        │ cfields  
+                       │12:40:42      jakub | what's the point in deferring it that much when you call it unconditionally after the loop?                                       │ chill
+                       │12:41:16        law | we don't want to call it every block, particularly when 95% of the time nothing changes                                           │ chrisccoulson
+                       │12:41:59        law | even in the case where nothing is marked as changing, df_analyze is relatively heavyweight                                        │ clavi
+                       │12:42:21        law | (that was a surprise  to me, my jaw dropped when I looked at what it did)                                                         │ clm
+                       │12:44:12      jakub | it is expensive; but then wouldn't it be better to remove DF_DEFER_INSN_RESCAN and do df_analyze once and have all updates in the │ clyon
+                       │                    | loop update it immediately?                                                                                                       │ cyphase
+                       │12:44:47      jakub | even calling it once per bb is going to be quite expensive                                                                        │ dansan
+                       │12:44:55      jakub | that said, my DF knowledge is limited                                                                                             │ dinfuehr
+                       │12:46:04        law | I strongly suspect once per bb (iff something changes) is better than an incremental update for every change since a change has   │ dinux
+                       │                    | propagation effects                                                                                                               │ djgpp
+                       │12:47:01      jakub | law: or instead of calling df_analyze after each bb call just df_process_deferred_rescans ?                                       │ dmalcolm
+                       │12:47:52        law | i figured those would ultimately be equivalent, but maybe I'm wrong.  My knowledge of DF is limited too                           │ Dodji
+                       │12:47:58      jakub | law: that is just small part of all that df_analyze does                                                                          │ doko
+                       │12:49:30        <-- | uweigand (~uweigand@deibp9eh1--blueice2n7.emea.ibm.com) has quit (Quit: Leaving)                                                  │ dominiq
+                       │12:53:42        law | is it really less work though?  I think most of the same stuff ultimately happens                                                 │ dongcarl
+                       │12:54:21        law | it's just buried deeper :-)                                                                                                       │ DrNick
+                       │12:55:14      jakub | law: reading df_analyze_1, it is much less work, it doesn't have to df_compute_regs_ever_live, nor df_verify, nor df_add_problem  │ echristo
+                       │                    | for all the problems                                                                                                              │ Ekho 
+                       │12:56:07        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ EricWF
+                       │12:56:37        law | perhaps...  it's easy enough to throw into the tester as well                                                                     │ EricWF[m]
+                       │12:57:22      jakub | law: that said, as one change I'd stick that df_analyze unconditionally before the loop as one thing and changing the in-loop     │ eternaleye
+                       │                    | df_analyze can be another independent change                                                                                      │ Extrems
+                       │12:58:06        law | that's my plan, at least from a testing standpoint                                                                                │ feather
+                       │12:58:51        --> | jimn (~jimn@108-243-1-156.lightspeed.cicril.sbcglobal.net) has joined #gcc                                                        │ FL4SHK
+                       │13:00:02      jakub | one question is if we need the df_analyze after the loop when there is one before the loop and one after each                     │ funnel  
+                       │                    | copyprop_hardreg_forward_1 that has done any changes                                                                              │ furrymcgee  
+                       │13:00:56      jakub | maybe yes, because of the DEBUG_INSN updates                                                                                      │ gabbayo__   
+                       │13:01:29        --> | V-ille (~vivoutil@85-23-140-45.bb.dnainternet.fi) has joined #gcc                                                                 │ giulianob   
+                       │13:01:43        --> | ABataev_ (~Thunderbi@129.34.9.49) has joined #gcc                                                                                 │ glenfe      
+                       │13:03:17        law | yes, otherwise you can get debug-comparison failures :(                                                                           │ gruetzkopf  
+                       │13:03:53      jakub | but perhaps even that could be df_process_deferred_rescans, dunno                                                                 │ guerby      
+                       │13:05:35        law | not 100% sure either.  It used to be lazily done inside that second loop, but that's not safe for debug-compare                   │ Guest4084   
+                       │13:05:48        lxo | richi, I'm about to start flying back home                                                                                        │ hergertme   
+                       │13:06:04        lxo | the plan is to be there in less than 24 hours                                                                                     │ honza       
+                       │13:06:15        law | I can certainly try that.  I don't remember the testcase for the debug-comparison failures, but it was one of hte *-elf targets   │ hpa         
+                       │                    | with the standard testsuites, so it's easy to test                                                                                │ Hunger      
+                       │13:08:10      jakub | +         && !may_trap_p (set)                                                                                                    │ i_ron       
+                       │                    |                                                                                                                                   │ iains      ++
+   flusp_freenode      │13:08:10      jakub | +         && !RTX_FRAME_RELATED_P (insn)                                                                                          │ alanm
+   flusp_oftc          │                    |                                                                                                                                   │ amacleod
+ 2.  #cncnet-developers│13:08:10      jakub |           && INSN_P (insn)                                                                                                        │ Ameisen
+ 3.  #ccsl-usp         │                    |                                                                                                                                   │ andreast_
+ 4.  #gcc              │13:08:10      jakub | -         && !may_trap_p (insn)                                                                                                   │ andres
+ 5.  #mingw-w64        │                    |                                                                                                                                   │ anoopcs
+ 6.  *status           │13:08:18        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Ping timeout: 480 seconds)                                                             │ any0n
+ 7.  *status           │13:08:18         -- | ABataev_ is now known as ABataev                                                                                                  │ aurel32
+ 8.  siqueira          │13:08:43      jakub | law: what was the reason for moving may_trap_p call earlier?  INSN_P test is cheap, so is RTX_FRAME_RELATED_P, but a call is      │ balrog
+ 9.  #msfloss          │                    | expensive                                                                                                                         │ berndj
+10.  #gcc              │13:12:28        law | none, just adjusting it to test SET rather than INSN and adding the RTX_FRAME_RELATED_P check                                     │ Bigcheese
+11.  #msfloss          │13:12:35        law | no reason they couldn't be swapped                                                                                                │ bollu  
+                       │13:13:23        <-- | Lucretia (~Luke@2a02:c7d:3c35:b000:325a:3aff:fe0f:37a5) has quit (Quit: Konversation terminated!)                                 │ cfields  
+                       │13:18:29        --> | Lucretia (~Luke@2a02:c7d:3c35:b000:325a:3aff:fe0f:37a5) has joined #gcc                                                           │ chill
+                       │13:26:14        <-- | lh_mouse (~lh_mouse@0001c04f.user.oftc.net) has quit (Remote host closed the connection)                                          │ chrisccoulson
+                       │13:34:00        <-- | andikr (~quassel@deibp9eh1--blueice1n6.emea.ibm.com) has quit (Remote host closed the connection)                                 │ clavi
+                       │13:35:11        <-- | pthaugen (~pthaugen@129.42.161.35) has quit (Ping timeout: 480 seconds)                                                           │ clm
+                       │13:37:02        --> | jp3bgy (~quassel@240b:10:2221:e00:88a4:a377:bf50:ab20) has joined #gcc                                                            │ clyon
+                       │13:38:32        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Remote host closed the connection)                                                     │ cyphase
+                       │13:38:59        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ dansan
+                       │13:39:06        --> | pthaugen (~pthaugen@129.42.161.35) has joined #gcc                                                                                │ dinfuehr
+                       │13:48:07        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Remote host closed the connection)                                                     │ dinux
+                       │13:49:08        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ djgpp
+                       │14:08:01        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Remote host closed the connection)                                                     │ dmalcolm
+                       │14:21:30        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ Dodji
+                       │14:27:26        <-- | cp- (~cp@b157153.ppp.asahi-net.or.jp) has quit (Quit: Disappears in a puff of smoke)                                              │ doko
+                       │14:28:18        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Remote host closed the connection)                                                     │ dominiq
+                       │14:35:05        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ dongcarl
+                       │14:43:08        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Remote host closed the connection)                                                     │ DrNick
+                       │14:43:48        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ echristo
+                       │14:44:38        <-- | mattn (~mattn@host54.119-160-213.telecomplete.net) has quit (Ping timeout: 480 seconds)                                           │ Ekho 
+                       │14:47:42        <-- | iii_s390 (~iii@deibp9eh1--blueice1n6.emea.ibm.com) has quit (Ping timeout: 480 seconds)                                           │ EricWF
+                       │14:48:39        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Remote host closed the connection)                                                     │ EricWF[m]
+                       │14:48:51        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ eternaleye
+                       │14:56:13        <-- | chill (~chill@217.140.106.52) has quit (Quit: Leaving)                                                                            │ Extrems
+                       │15:05:34        <-- | lxo (~lxo@lxo.user.oftc.net) has quit (Ping timeout: 480 seconds)                                                                 │ feather
+                       │15:09:38        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Ping timeout: 480 seconds)                                                             │ FL4SHK
+                       │15:12:17        --> | ABataev (~Thunderbi@129.34.9.49) has joined #gcc                                                                                  │ funnel  
+                       │15:31:10        --> | chill (~chill@cpc92724-cmbg20-2-0-cust20.5-4.cable.virginm.net) has joined #gcc                                                   │ furrymcgee  
+                       │15:54:06        <-- | pthaugen (~pthaugen@129.42.161.35) has quit (Ping timeout: 480 seconds)                                                           │ gabbayo__   
+                       │15:56:31        --> | pthaugen (~pthaugen@129.42.161.35) has joined #gcc                                                                                │ giulianob   
+                       │16:19:31        <-- | Rhy0lite (~dje@00012cb6.user.oftc.net) has quit (Quit: Leaving)                                                                   │ glenfe      
+                       │16:46:37    ldionne | rodgertq: You guys have shipped the PSTL in GCC right?                                                                            │ gruetzkopf  
+                       │16:46:47    ldionne | But you have not committed to an ABI?                                                                                             │ guerby      
+                       │16:47:04    ldionne | What kind of stability guarantees are you providing right now?                                                                    │ Guest4084   
+                       │16:58:12        --> | lxo (~lxo@lxo.user.oftc.net) has joined #gcc                                                                                      │ hergertme   
+                       │17:04:02        <-- | jimn (~jimn@108-243-1-156.lightspeed.cicril.sbcglobal.net) has quit (Ping timeout: 480 seconds)                                   │ honza       
+                       │17:09:47        <-- | jbrown (~jules@2a02:c7d:8e33:7b00:5071:9d8c:bb3a:e90a) has quit (Ping timeout: 480 seconds)                                       │ hpa         
+                       │17:15:43        --> | Darcidride (~Darcidrid@37.169.190.131) has joined #gcc                                                                            │ Hunger      
+                       │17:21:40        law | bah.  df_process_deferred_rescans doesn't update REG_UNUSED (and probably REG_DEAD) notes.  it updates EQUIV/EQUAL                │ i_ron       
+                       │17:21:52        law | that makes it a non-starter                                                                                                       │ iains      + 
+   flusp_oftc          │17:24:16      jakub | ouch                                                                                                                              │ amacleod
+ 2.  #cncnet-developers│17:24:37      jakub | do we have anyone still familiar enough with df?                                                                                  │ Ameisen
+ 3.  #ccsl-usp         │17:25:00        law | occasionally steven chimes in                                                                                                     │ andreast_
+ 4.  #gcc              │17:26:30      jakub | maybe Paolo Bonzini                                                                                                               │ andres
+ 5.  #mingw-w64        │17:29:16        <-- | lxo (~lxo@lxo.user.oftc.net) has quit (Ping timeout: 480 seconds)                                                                 │ anoopcs
+ 6.  *status           │17:29:19      jakub | can't so far find any pass that would call df_analyze for each bb or similarly often                                              │ any0n
+ 7.  *status           │17:29:56      jakub | e.g. dce uses df_analyze_problem just for the particular problem it needs to update                                               │ aurel32
+ 8.  siqueira          │17:31:03      jakub | it can be called with a blocks_to_consider bitmap so that it is not global                                                        │ balrog
+ 9.  #msfloss          │17:32:06      jakub | or there is some df_set_blocks function + df_analyze                                                                              │ berndj
+10.  #gcc              │17:32:39        <-- | ams_cs (~ams_cs__@cpc128728-hawk17-2-0-cust66.know.cable.virginm.net) has quit (Quit: Leaving)                                    │ Bigcheese
+11.  #msfloss          │17:34:41        law | even so, I'm pretty sure we're *way* down into the noise here                                                                     │ bollu  
+                       │17:34:46      jakub | I guess first part of analysis needs to be to figure out what kind of changes the function actually can do to instructions and    │ cfields  
+                       │                    | how it could affect the notes problem                                                                                             │ chill
+                       │17:36:56        law | likely not worth the effort.  If we care to further optimize here, what I'd do is make a bitmap of blocks that could benefit from │ chrisccoulson
+                       │                    | reprocessing, then call df_analyze once before handling those blocks                                                              │ clavi
+                       │17:37:32        law | other parts of regcprop would need some auditing, but I wouldn't expect to run into anything major                                │ clm
+                       │17:37:45      jakub | law: aren't at least some of the df_analyze problems O(n^2) in number of basic blocks and thus O(n^3) if we call it for each of   │ clyon
+                       │                    | bbs?                                                                                                                              │ cyphase
+                       │17:39:11        law | 95% of the blocks never call df_analyze                                                                                           │ dansan
+                       │17:39:32        law | it's only when a block has propagations that a call is made                                                                       │ dinfuehr
+                       │17:40:09        law | and again, if we audit recgprop we could just do a single df_analyze call before reprocessing changed blocks                      │ dinux
+                       │17:40:28        <-- | ABataev (~Thunderbi@129.34.9.49) has quit (Quit: ABataev)                                                                         │ djgpp
+                       │17:40:29        law | however, we've probably already spend more time on this than we'll ever recover :-)                                               │ dmalcolm
+                       │17:40:39        law | got to run..                                                                                                                      │ Dodji
+                       │17:40:50        --> | jimn (~jimn@108-243-1-156.lightspeed.cicril.sbcglobal.net) has joined #gcc                                                        │ doko
+                       │17:41:16      jakub | law: right now you reprocess immediately (the pass = 0 and 1), rather than redoing the selected bbs only in the second step,      │ dominiq
+                       │                    | right?                                                                                                                            │ dongcarl
+                       │17:41:21        <-- | kelvin (~kdnilsen@2620:1f7:890:43f0::1:2e) has quit (Quit: This computer has gone to sleep)                                       │ DrNick
+                       │17:42:11      jakub | law: if there are just 2 passes, doing all bbs once, note what needs reprocessing in a bitmap , then second df_analyze, second    │ echristo
+                       │                    | pass over them and final df_analyze might be ok                                                                                   │ Ekho 
+                       │18:01:58        --> | shorne_ (~shorne@g191.61-115-60.ppp.wakwak.ne.jp) has joined #gcc                                                                 │ EricWF
+                       │18:03:41        <-- | shorne (~shorne@g250.124-44-13.ppp.wakwak.ne.jp) has quit (Ping timeout: 480 seconds)                                             │ EricWF[m]
+                       │18:11:18        <-- | tuliom (~tuliom@32.104.18.243) has quit (Ping timeout: 480 seconds)                                                               │ eternaleye
+                       │18:11:35        <-- | rth (~rth@174-21-5-201.tukw.qwest.net) has quit (Quit: Leaving)                                                                   │ Extrems
+                       │18:11:44        --> | kelvin (~kdnilsen@71.37.240.41) has joined #gcc                                                                                   │ feather
+                       │18:14:22        <-- | tromey (~tromey@174-29-37-56.hlrn.qwest.net) has quit (Ping timeout: 480 seconds)                                                 │ FL4SHK
+                       │18:18:46        <-- | pthaugen (~pthaugen@129.42.161.35) has quit (Ping timeout: 480 seconds)                                                           │ funnel  
+                       │18:19:50        --> | pthaugen (~pthaugen@2620:1f7:890:43f0::1:36) has joined #gcc                                                                      │ furrymcgee  
+                       │18:20:18        <-- | jotik (~7f000001@heh.ee) has quit (Quit: jotik)                                                                                   │ gabbayo__   
+                       │18:21:43        --> | jotik (~7f000001@heh.ee) has joined #gcc                                                                                          │ giulianob   
+                       │18:36:24        <-- | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has quit (Remote host closed the connection)                         │ glenfe      
+                       │18:44:50   rodgertq | ldionne: right, and none                                                                                                          │ gruetzkopf  
+                       │18:45:01   rodgertq | PSTL is "experimental" at this point                                                                                              │ guerby      
+                       │18:50:22        <-- | pthaugen (~pthaugen@2620:1f7:890:43f0::1:36) has quit (Read error: Connection reset by peer)                                      │ Guest4084   
+                       │18:53:27        --> | iii_s390 (~iii@082-221-018-212.ip-addr.vsenet.de) has joined #gcc                                                                 │ hergertme   
+                       │18:55:15        <-- | Darcidride (~Darcidrid@37.169.190.131) has quit (Remote host closed the connection)                                               │ honza       
+                       │19:01:32        <-- | iii_s390 (~iii@082-221-018-212.ip-addr.vsenet.de) has quit (Ping timeout: 480 seconds)                                            │ hpa         
+                       │19:10:13        --> | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has joined #gcc                                                      │ Hunger      
+                       │19:33:22        <-- | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has quit (Remote host closed the connection)                         │ i_ron       
+                       │19:33:34        --> | ldionne (~ldionne@modemcable203.184-161-184.mc.videotron.ca) has joined #gcc                                                      │ iains      ++
