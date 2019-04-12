@@ -491,7 +491,34 @@ o código já implementado nas etapas anteriores.
 %representado como uma sequência de instruções em uma máquina de infinitos
 %registradores. 
 
-\begin{subsection}{GNU Toolchain e as etapas da compilação}
+\begin{subsection}{GNU Toolchain e o Processo Clássico de Compilação}
+
+    Um \textit{toolchain} é um conjunto de ferramentas que são ligadas em
+uma cascata para o desenvolvimento de \textit{software}. Normalmente o
+\textit{toolchain} consiste em um compilador, um montador e um linkeditor,
+mas também pode conter mais ferramentas, como um \textit{debugger}.
+
+A GNU providencia um conjunto de ferramentas para desenvolvimento de software
+conhecido como GNU \textit{toolchain}. São parte desse toolchain:
+\begin{itemize}
+    \item \textit{Binutils}, um conjunto de ferramentas contendo o linkeditor
+LD, o montador AS, e outras ferramentas\footnote{\url{https://www.gnu.org/software/binutils/}}.
+
+    \item O driver \texttt{gcc}, providenciando os compiladores \texttt{cc1},
+        \texttt{cc1plus}, \texttt{f951} para C, C++ e Fortran, respectivamente,
+        e responsável por chamar as ferramentas do \textit{Toolchain}.
+
+    \item A biblioteca \texttt{glibc}.
+
+    \item O \textit{debugger} GDB.
+\end{itemize}
+
+As ferramentas acima interagem umas com as outras da seguinte forma: Primeiro, o código na
+Linguagem Fonte é compilado usando o GCC para a linguagem de máquina. Em seguida, o código
+é montado utilizando o AS, onde é construído um arquivo objeto, para que então o linkeditor
+LD colete todos os arquivos objetos gerados, gerando o binário especificado. A Figura
+\ref{fig:gnu_toolchain} retrata esse processo.
+
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -503,27 +530,73 @@ o código já implementado nas etapas anteriores.
 \scalebox{0.7}{
 \begin{tikzpicture}[node distance = 3cm, auto]
     % Place nodes
-    \node [block]                      (cc1) {Compilador \\ (cc1)};
-    \node [block, right of = cc1]      (as) {Montador\\(as)};
-    \node [block, right of = as]       (collect2) {Linkeditor\\(collect2)};
+    \node [block]                      (cc1) {Compilador \\ (CC1)};
+    \node [block, right of = cc1]      (as) {Montador\\(AS)};
+    \node [block, right of = as]       (ld) {Linkeditor\\(LD)};
     \coordinate [left of=cc1]          (fonte);
-    \coordinate [right of=collect2]    (bin);
+    \coordinate [right of=ld]    (bin);
 
     % Draw edges
     \draw[->]    (cc1.east)          -- (as.west)       node[midway, above] {Arquivo Assembler};
     \draw[->]    (cc1.east)          -- (as.west)       node[midway, below] {(.s)};
-    \draw[->]    (as.east)           -- (collect2.west) node[midway, above] {Arquivo Objeto};
-    \draw[->]    (as.east)           -- (collect2.west) node[midway, below] {(.o)};
+    \draw[->]    (as.east)           -- (ld.west)       node[midway, above] {Arquivo Objeto};
+    \draw[->]    (as.east)           -- (ld.west)       node[midway, below] {(.o)};
     \draw[->]    (fonte.west)        -- (cc1.west)      node[pos=0, above] {Código Fonte\\ (.c)};
     \draw[->]    (fonte.west)        -- (cc1.west)      node[pos=0, below] {(.c)};
-    \draw[->]    (collect2.east)     -- (bin.west)      node[pos=1, above] {Arquivo Binário};
+    \draw[->]    (ld.east)     -- (bin.west)      node[pos=1, above] {Arquivo Binário};
 \end{tikzpicture}
 }
 \end{center}
-
 \caption{Etapas de Compilação.}
 \label{fig:gnu_toolchain}
 \end{figure}
+
+Esse processo é tradicionalmente usado para compilar \textit{softwares} complexos,
+em conjunto com uma ferramenta que controla a geração de arquivos objetos e executáveis,
+como o Make.
+
+
+
+\begin{figure}
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=6em, text centered, rounded corners, node distance=6.5cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+    minimum height=2em]
+\begin{center}
+\scalebox{0.7}{
+\begin{tikzpicture}[node distance = 3cm, auto]
+    % Place nodes
+    \node [block, comp1]                         (make)   {Makefile};
+    \coordinate[below of=make]            (c);
+    \node [block, below of=c]         (fonte1) {fonte1.c};
+    \node [block, below of=c, right of=fonte1]         (fonte2) {fonte2.cpp};
+    \node [block, below of=c, right of=fonte2, right of=fonte1]         (fonte3) {fonte3.f90};
+
+    \node [block, below of=fonte1]        (gcc)      {gcc};
+    \node [block, below of=fonte2]        (g++)      {g++};
+    \node [block, below of=fonte3]        (gfortran) {gfortran};
+    
+    \node [block, below of=gcc]           (objeto1) {objeto1.o};
+    \node [block, below of=g++]           (objeto2) {objeto2.o};
+    \node [block, below of=gfortran]      (objeto3) {objeto3.o};
+
+    \node [block, below of=objeto2]       (ld) {LD};
+    
+    \node [block, below of=ld]            (bin) {Executável};
+
+    % Draw edges
+    \draw[->]    (make.south)   -- (fonte1.north);
+    \draw[->]    (make.south)   -- (fonte2.north);
+    \draw[->]    (make.south)   -- (fonte3.north);
+
+\end{tikzpicture}
+}
+\end{center}
+\caption{Etapas de Compilação.}
+\label{fig:classical_build}
+\end{figure}
+
 
 \end{subsection}
 
