@@ -348,7 +348,7 @@ Eliminação de Redundância, Eliminação de Subexpressão Comum,
 Propagação de Constantes, e Eliminação de Código Morto são
 classificadas como tal, suportando o argumento de paralelização.
 
-Já esse argumenton não pode
+Já esse argumento não pode
 ser afirmado para as otimizações \textit{Inter-Procedurais}, pela
 própria definição. 
 Otimizações \textit{Inter-Procedurais} são normalmente aplicadas
@@ -466,6 +466,59 @@ o código já implementado nas etapas anteriores.
 
 \begin{section}{O compilador GCC}
 
+A coleção de compiladores da GNU, também conhecido como GCC, é um projeto
+iniciado por Richard Stallman com a primeira versão disponibilizada ao público
+em Março de 1987. Tal versão apenas suportava a linguagem C, mas já permitia
+gerar código para diversas arquiteturas.
+Hoje, o GCC suporta diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
+e várias arquiteturas, como i386, amd64, riscv, arm, ppc, pdp-11. O GCC também
+é um compilador otimizador, ou seja, ele é capaz de alterar o código fornecido
+pelo usuário com a finalidade de gerar código mais eficiente, sem alterar a semântica do programa. Isso é
+possível por conta das várias representações intermediárias implementadas no
+GCC. São estas linguagens: GENERIC, GIMPLE, CGRAPH, e RTL
+
+\begin{subsection}{GENERIC}
+
+    O GENERIC é uma linguagem intermediária que possibilita representar quaisquer
+funções do programa através de árvores. Tal linguagem é um superconjunto
+das funcionalidades e atributos que cada Linguagem Fonte contém, por exemplo, atributos
+como \texttt{volatile} de C e C++ contém uma representação nessa linguagem.
+Outras funcionalidades são: Chamadas de função, declaração de variáveis, classes,
+funções, expressões, entre outros \citep{generic}.
+
+    Essa linguagem contém uma representação mais próxima de como o programa foi
+escrito pelo programador, ou seja, raramente são feitas modificações nas expressões,
+que aqui estão representadas como originalmente. Sendo assim, essa linguagem
+intermediária não se enquadra nas categorias de \textit{Three Address Code},
+ou \textit{Static Single Assignment}. O objetivo principal dessa linguagem
+é facilitar a tradução para a próxima linguagem intermediária, a GIMPLE, e assim
+facilitar o desenvolvimento dos \textit{Front End} do compilador, mas isso não
+significa que otimizações não possam ser aplicadas aqui.
+
+    O GCC possui um mecanismo de substituição de nós em sua representação
+interna, suportando a árvore construída em GENERIC. Esse mecanismo é simples: o
+compilador procura por uma cadeia de nós na árvore, buscando padrões,
+como especificado no arquivo \texttt{gcc/match.pd}, e os substitui pelo o que
+foi instruído na regra de substituição. Esse mecanismo, embora simples, permite
+com que diversas simplificações matemáticas sejam implementadas no código, o
+que pode significar uma melhora de até $10\times$ no programa original
+\citep{sinatan}.
+
+    Por fim, cada um dos \textit{Front End} do GCC é responsável por traduzir o
+código fonte para esta linguagem intermediária. Para visualizar um programa
+nessa representação, basta compilá-lo utilizando o atributo
+\texttt{-fdump-tree-original}.
+
+\end{subsection}
+
+\begin{subsection}{GIMPLE}
+
+    O GIMPLE é outra linguagem intermediária do GCC, basicamente consistindo
+na conversão de GENERIC para \textit{Three Address Code}.
+
+
+\end{subsection}
+
 %    Para realizar otimizações considerando as interações entre as rotinas,
 %é utilizado um grafo de chamada de funções (\texttt{cgraphs}). Aqui as rotinas são
 %representadas como um vértice no grafo, e existe um arco de $f$ à $g$
@@ -537,12 +590,12 @@ LD colete todos os arquivos objetos gerados, gerando o binário especificado. A 
     \coordinate [right of=ld]    (bin);
 
     % Draw edges
-    \draw[->]    (cc1.east)          -- (as.west)       node[midway, above] {Arquivo Assembler};
-    \draw[->]    (cc1.east)          -- (as.west)       node[midway, below] {(.s)};
-    \draw[->]    (as.east)           -- (ld.west)       node[midway, above] {Arquivo Objeto};
-    \draw[->]    (as.east)           -- (ld.west)       node[midway, below] {(.o)};
-    \draw[->]    (fonte.west)        -- (cc1.west)      node[pos=0, above] {Código Fonte\\ (.c)};
-    \draw[->]    (fonte.west)        -- (cc1.west)      node[pos=0, below] {(.c)};
+    \draw[->]    (cc1.east)    -- (as.west)       node[midway, above] {Arquivo Assembler};
+    \draw[->]    (cc1.east)    -- (as.west)       node[midway, below] {(.s)};
+    \draw[->]    (as.east)     -- (ld.west)       node[midway, above] {Arquivo Objeto};
+    \draw[->]    (as.east)     -- (ld.west)       node[midway, below] {(.o)};
+    \draw[->]    (fonte.west)  -- (cc1.west)      node[pos=0, above] {Código Fonte\\ (.c)};
+    \draw[->]    (fonte.west)  -- (cc1.west)      node[pos=0, below] {(.c)};
     \draw[->]    (ld.east)     -- (bin.west)      node[pos=1, above] {Arquivo Binário};
 \end{tikzpicture}
 }
@@ -552,14 +605,20 @@ LD colete todos os arquivos objetos gerados, gerando o binário especificado. A 
 \end{figure}
 
 Esse processo é tradicionalmente usado para compilar \textit{softwares} complexos,
-em conjunto com uma ferramenta que controla a geração de arquivos objetos e executáveis,
-como o Make.
+em conjunto com uma ferramenta que controla a geração de arquivos objetos e executáveis
+como o GNU Make, como ilustrado na Figura \ref{fig:classical_build}. Aqui cada arquivo
+é compilado individualmente, passando por todos os processos da compilação (tradução
+para a linguagem intermediária, otimização, tradução para a Linguagem Alvo,
+e encapsulamento no arquivo objeto), para em seguida eles sejam ligados por um
+linkeditor como o LD. Aqui nenhuma otimização é aplicada observando o programa
+como um todo, ou como as funções interagem entre si entre dois arquivos distintos,
+gerando possívelmente um código suboptimal.
 
 
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=6.5cm, auto, minimum height=2em]
+    text width=6em, text centered, rounded corners, node distance=3cm, auto, minimum height=2em]
 \tikzstyle{line} = [draw, -latex]
 \tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
     minimum height=2em]
@@ -567,33 +626,48 @@ como o Make.
 \scalebox{0.7}{
 \begin{tikzpicture}[node distance = 3cm, auto]
     % Place nodes
-    \node [block, comp1]                         (make)   {Makefile};
+    \node [block]                         (make)   {Makefile};
     \coordinate[below of=make]            (c);
-    \node [block, below of=c]         (fonte1) {fonte1.c};
-    \node [block, below of=c, right of=fonte1]         (fonte2) {fonte2.cpp};
-    \node [block, below of=c, right of=fonte2, right of=fonte1]         (fonte3) {fonte3.f90};
+    \node [block, left of=c]              (fonte1) {fonte1.c};
+    \node [block, right of=fonte1]        (fonte2) {fonte2.cpp};
+    \node [block, right of=fonte2]        (fonte3) {fonte3.f90};
 
     \node [block, below of=fonte1]        (gcc)      {gcc};
     \node [block, below of=fonte2]        (g++)      {g++};
     \node [block, below of=fonte3]        (gfortran) {gfortran};
-    
+
     \node [block, below of=gcc]           (objeto1) {objeto1.o};
     \node [block, below of=g++]           (objeto2) {objeto2.o};
     \node [block, below of=gfortran]      (objeto3) {objeto3.o};
 
     \node [block, below of=objeto2]       (ld) {LD};
-    
+
     \node [block, below of=ld]            (bin) {Executável};
 
     % Draw edges
-    \draw[->]    (make.south)   -- (fonte1.north);
+    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
     \draw[->]    (make.south)   -- (fonte2.north);
-    \draw[->]    (make.south)   -- (fonte3.north);
+    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
+
+    \draw[->]    (fonte1.south)   -- (gcc.north);
+    \draw[->]    (fonte2.south)   -- (g++.north);
+    \draw[->]    (fonte3.south)   -- (gfortran.north);
+
+    \draw[->]    (gcc.south)   -- (objeto1.north);
+    \draw[->]    (g++.south)   -- (objeto2.north);
+    \draw[->]    (gfortran.south)   -- (objeto3.north);
+
+    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]ld.north);
+    \draw[->]    (objeto2.south)   -- (ld.north);
+    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]ld.north);
+
+    \draw[->]    (ld.south)   -- (bin.north);
+
 
 \end{tikzpicture}
 }
 \end{center}
-\caption{Etapas de Compilação.}
+\caption{Processo clássico de compilação de um programa.}
 \label{fig:classical_build}
 \end{figure}
 
