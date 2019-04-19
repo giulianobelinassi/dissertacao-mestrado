@@ -384,7 +384,6 @@ algoritmos referentes a essas otimizações são discutidos por
     \end{tikzpicture}
     }
     \end{center}
-    \label{fig:call_graph}
   \end{subfigure}
   \begin{subfigure}[b]{0.40\textwidth}
       \begin{lstlisting}[
@@ -458,13 +457,8 @@ o código já implementado nas etapas anteriores.
 
 \end{section}
 
-\begin{section}{Computação Paralela}
 
-\end{section}
-
-
-
-\begin{section}{O compilador GCC}
+\begin{section}{O Compilador GCC}
 
 A coleção de compiladores da GNU, também conhecido como GCC, é um projeto
 iniciado por Richard Stallman com a primeira versão disponibilizada ao público
@@ -475,7 +469,8 @@ e várias arquiteturas, como i386, amd64, riscv, arm, ppc, pdp-11. O GCC também
 é um compilador otimizador, ou seja, ele é capaz de alterar o código fornecido
 pelo usuário com a finalidade de gerar código mais eficiente, sem alterar a semântica do programa. Isso é
 possível por conta das várias representações intermediárias implementadas no
-GCC. São estas linguagens: GENERIC, GIMPLE, CGRAPH, e RTL
+GCC. São estas linguagens: GENERIC, GIMPLE, e RTL. O compilador executa vários
+passos de otimização em cada uma dessas linguagens intermediárias.
 
 \begin{subsection}{GENERIC}
 
@@ -513,8 +508,131 @@ nessa representação, basta compilá-lo utilizando o atributo
 
 \begin{subsection}{GIMPLE}
 
-    O GIMPLE é outra linguagem intermediária do GCC, basicamente consistindo
-na conversão de GENERIC para \textit{Three Address Code}.
+O GIMPLE é outra linguagem intermediária do GCC, basicamente consistindo na
+conversão de GENERIC para \textit{Three Address Code}. Assim como o
+GENERIC, a GIMPLE também é geral o suficiente para representar os atributos
+de todas as Linguagens Fonte de cada \textit{Front End}.  Essa linguagem
+intermediaria é baseada na linguagem SIMPLE, do compilador McCAT \citep{gimple}.
+
+    Por ser uma linguagem do tipo \textit{Three Address Code}, é aqui onde
+grande parte das otimizações livre de arquitetura são aplicadas, e portanto o
+GIMPLE fornece uma \textit{Application Programming Interface} (API) detalhada
+para efetuar alterações no código, incluindo a representação em forma SSA para análise
+de fluxo, que os passos de otimização deverão utilizar.
+
+    Por fim, o compilador pode ser instruído a escrever o código em
+GIMPLE através da opção \texttt{-fdump-tree-gimple}, ou então usando
+a opção \texttt{-fdump-tree-ssa} para escrever a representação SSA
+em disco.
+
+\end{subsection}
+
+\begin{subsection}{\textit{Register Transfer Language}}
+
+    Por fim, a última linguagem intermediária do compilador GCC é a
+\textit{Register Transfer Language} (RTL). A sintaxe dessa linguagem
+tem inspiração no Lisp, onde as expressões são representadas por uma
+lista de comandos.
+
+    A RTL é uma linguagem que visa ser extremamente próxima da linguagem
+de montagem, mas ainda sendo genérica o suficiente a ponto de ser compatível
+com todas as arquiteturas suportadas como Linguagem Alvo do GCC.
+Para isso, ela representa uma máquina com infinitos
+registradores, que serão alocados em registradores reais no passo de alocação de
+registradores. Caso a Linguagem Alvo não tenha o número necessário de
+registradores, as variáveis deverão ser guardadas em memória. Por exemplo,
+no caso do i386, elas deverão ser salvas na pilha.
+
+    Essa linguagem é a última etapa antes da geração do código final. O
+\textit{Back end} transformará essa linguagem no código final buscando
+uma sequencia de instruções em RTL, e realizando a substituição por uma
+sequência de instruções da Linguagem Alvo. Essa escolha segue um sistema
+de custos, na qual o compilador procura escolher uma sequencia de instruções
+que minimiza a soma do custo total da tradução.
+
+    Na arquitetura i386, as regras de substituição estão implementadas
+em \texttt{gcc/config/i386/i386.md}, com o sistema de custos definido
+na \texttt{struct processor\_costs}, no arquivo \texttt{gcc/config/i386/i386.h}.
+Cada processador da arquitetura i386 deve definir o custo de cada instrução,
+como definido em \texttt{gcc/config/i386/x86-tune-costs.h}.
+
+
+\end{subsection}
+
+\begin{subsection}{Passos de Otimização}
+    O GCC possui vários passos de otimização que são aplicados em cada linguagem
+intermediária. Esses passos são divididos em três etapas:
+
+    \begin{enumerate}
+        \item \textbf{IPA} - Após a tradução do programa para GENERIC, o
+            compilador constrói um grafo de chamadas de função. Para cada
+            chamada de $g$ a partir de $f$, é inserido um arco de $f$ à $g$.
+            Com isso o compilador pode decidir eliminar funções que não são
+            utilizadas no programa simplesmente descartando a função do
+            código, ou então decidir que uma função precisa ser tornada
+            \texttt{inline}, como programado em \texttt{pass\_ipa\_inline}.
+
+        \item \textbf{GIMPLE} - Após a etapa IPA, são executados os passos
+            de otimização do GIMPLE. Tais passos são executados em cada
+            função de maneira independente, ou seja, são otimizações
+            Intra Procedurais.
+
+            Existem diversas otimizações que são aplicadas nesse passo.
+            Por exemplo, aqui é aplicado a \texttt{pass\_vectorize},
+            que tenta vetorizar um laço, a \texttt{pass\_parallelize\_loops},
+            que tenta fazer paralelização automática de laços, a
+            \texttt{pass\_sincos}, que tenta aplicar otimizações algébricas em
+            funções trigonométricas, entre outras.
+
+        \item \textbf{RTL} - Após a etapa GIMPLE e o código RTL ter sido gerado,
+            são aplicadas otimizações no código RTL. Essas otimizações também são
+            de caráter Intra Procedural, e portanto podem ser aplicadas de maneira
+            independente em cada função.
+    \end{enumerate}
+
+    Cada otimização esta implementada em algum arquivo especifico do GCC,
+agrupada por quão similar elas são. Por exemplo, o passo de vetorização está implementado
+em \texttt{gcc/tree-ssa-loop.c}. Cada otimização também deve ser implementada
+    herdando e implementando as funções de uma das seguintes classes:
+\texttt{gimple\_opt\_pass}, \texttt{ipa\_opt\_pass\_d}, \texttt{rtl\_opt\_pass},
+    \texttt{simple\_ipa\_opt\_pass}, como ilustrado na Figura \ref{fig:opt_uml}.
+
+    Por fim, a ordem que as otimizações são feitas estão
+especificadas no arquivo \texttt{gcc/passes.def}.
+
+\begin{figure}
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=9em, text centered, rounded corners, node distance=4.5cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+    minimum height=2em]
+\begin{center}
+\scalebox{0.7}{
+\begin{tikzpicture}[node distance = 5cm, auto]
+    % Place nodes
+    \node [block]                         (pass_data)   {pass\_data};
+    \node [block, below of=pass_data]     (opt_pass) {opt\_pass};
+
+    \node [block, below of=opt_pass]        (gimple_opt_pass) {gimple\_opt\_pass};
+    \node [block, left of=gimple_opt_pass] (ipa_opt_pass_d)  {ipa\_opt\_pass\_d};
+    \node [block, right of=gimple_opt_pass]  (rtl_opt_pass)    {rtl\_opt\_pass};
+    \node [block, right of=rtl_opt_pass]    (simple_ipa_opt_pass) {simple\_ipa\_opt\_pass};
+
+    % Draw edges
+    \draw[->, thick]    (opt_pass.north)          -- (pass_data.south);
+
+    \draw[->, thick]    (gimple_opt_pass.north)      -- (opt_pass.south);
+    \draw[->, thick]    (ipa_opt_pass_d.north)       -- ([xshift=-1cm]opt_pass.south);
+    \draw[->, thick]    (rtl_opt_pass.north)         -- ([xshift=1cm]opt_pass.south);
+    \draw[->, thick]    (simple_ipa_opt_pass.north)  -- ([xshift=1.8cm]opt_pass.south);
+
+
+\end{tikzpicture}
+}
+\end{center}
+\caption{Hierarquia dos passos de otimização do GCC.}
+\label{fig:opt_uml}
+\end{figure}
 
 
 \end{subsection}
@@ -671,6 +789,114 @@ gerando possívelmente um código suboptimal.
 \label{fig:classical_build}
 \end{figure}
 
+
+\end{subsection}
+
+\end{section}
+
+\begin{section}{Computação Paralela}
+    A Computação Paralela é o ato de coordenar vários fluxos de
+execução operando simultaneamente em um ou mais computadores para
+atingir um objetivo em comum. Ela se tornou uma tendência na
+computação contemporânea por conta dos processadores \textit{multicore}
+e \textit{manycore}, que hoje podem ser adquiridos facilmente e são
+produzidos com um custo menor do que um processador de apenas um
+núcleo de igual desempenho.
+
+    Para ilustrar a evolução dos processadores \textit{multicore}, \cite{42years}
+    publicou um gráfico mostrando o número
+de transistores, núcleos e performance de cada núcleo desde 1970,
+apresentado na Figura \ref{fig:42years}.
+Neste gráfico é possível notar que a Lei de Moore ainda se aplica,
+mas a performance sequencial dos processadores estão em desaceleração,
+enquanto o número de núcleos cresce exponencialmente desde 2008. Isto
+justifica o uso de computação paralela sempre que possível para que
+seja utilizado o máximo dos recursos computacionais disponíveis.
+
+\begin{figure}[ht]
+ \centering
+ \includegraphics[scale=1.2]{42-years-processor-trend.pdf}
+ \caption{42 anos de evolução dos processadores. Fonte: \cite{42years}}
+ \label{fig:42years}
+\end{figure}
+
+\begin{subsection}{A Taxonomia de Flynn}
+	Mesmo com a evolução dos processadores \textit{multicore} e
+\textit{manycore}, esses não são as únicas arquiteturas disponíeis para
+realizar computação paralela.  Michael J. Flynn \citep{pacheco:2011} definiu
+uma taxonomia das arquiteturas, mas vale destaque para duas delas:
+\begin{enumerate}
+    \item \textbf{SIMD} - \textit{Single Instruction, Multiple Data}. Isso se refere
+        a processadores vetoriais que permite com que uma operação seja executada em
+        todos os elementos de um vetor simultâneamente. Alguns exemplos são as
+        instruções SSE da Intel, e também as \textit{Graphics Processing Units} (GPU),
+        embora essa última não seja considerada uma arquitetura puramente SIMD.
+
+    \item \textbf{MIMD} - \textit{Multiple Instruction, Multiple Data}. Isso se refere
+        aos sistemas \textit{multicore} independentes, capazes de executar tarefas
+        de maneira assíncrona. Aqui estão localizados ambas as arquiteturas de memória
+        compartilhada e memória distribuida.
+\end{enumerate}
+\end{subsection}
+
+\begin{subsection}{Programação Paralela em Memória Compartilhada}
+	Uma maneira de permitir Computação Paralela é através de
+uma memória compartilhada. Aqui vários processadores ou núcleos
+são ligados através de um barramento a uma memória compartilhada entre
+todos os processadores, que permite leitura e escrita de dados. Aqui
+são necessários mecanismos de travas e sincronização para evitar problemas
+clássicos de concorrência, como por exemplo, o problema da seção crítica,
+onde apenas um núcleo pode estar executando um determinado código.
+
+	 Aqui, muitos dos recursos para sincronização são fornecidos pelo
+Sistema Operacional (OS), e portanto é necessário explicar um pouco
+das abstrações que ele fornece.
+
+\begin{subsubsection}{Processos e \textit{Threads}}
+
+	Antigamente, os processadores eram capazes de executar apenas
+um programa simultaneamente. Com isto em mente, os desenvolvedores
+de Sistemas Operacionais criaram uma série de abstrações para que fosse
+possível dar a ilusão ao usuário que vários programas estavam executando
+ao mesmo tempo. Com isso nasce o conceito de Processos e \textit{Threads}.
+
+	Um \textit{Processo} é um modelo de abstração do Sistema Operacional que
+dá a um programa a ilusão de que ele tem o monopólio do processador
+\citep{love:2005}. Cada processo tem a sua região de memória privada por
+padrão, e para que processos possam compartilhar memória, isso deve ser 
+explicitado no programa. Um exemplo onde isso pode ser feito é através das
+chamadas \texttt{shmget}, do extinto \texttt{System V}, mas que ainda é
+suportado pelo Linux.
+
+Cada processo contém pelo menos um fluxo de execução, e cada fluxo de
+execução é chamado de \textit{thread}. Cada \textit{thread} dentro
+de um processo compartilha memória com as demais \textit{threads}
+do processo, facilitando assim o desenvolvimento de mecanismos de
+comunicação através de uma memória compartilhada.
+
+\end{subsubsection}
+
+\begin{subsubsection}{Mecanismos de Sincronização}
+
+	Seja através de auxilio de \textit{hardware}, ou com algoritmos 
+puramente implementados em \textit{software}, o Sistema Operacional 
+costuma fornecer mecânismos de sincronização para coordenar as várias
+\textit{threads} de um processo, ou até mesmo vários processos.
+
+	Um dos mecanismos mais famosos são os \textit{Semáforos}. Um
+semáforo nada mais é que um contador que assume valores não negativos
+com duas operações atômicas: \texttt{P} para decrementá-lo, e \texttt{V} 
+para incrementá-lo. Quando o semáforo atinge o valor 0, o processo que
+em sequência tentar decrementá-lo será bloqueado. A sua execução só será
+retomada quando o semáforo for novamente incrementado por outro processo
+\citep{dijkstra1965} \citep{semaphore}.
+
+
+\end{subsubsection}
+
+\begin{subsubsection}{O Problema do Produtor-Consumidor}
+
+\end{subsubsection}
 
 \end{subsection}
 
