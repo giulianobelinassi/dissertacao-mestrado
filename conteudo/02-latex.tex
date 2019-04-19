@@ -880,21 +880,147 @@ comunicação através de uma memória compartilhada.
 
 	Seja através de auxilio de \textit{hardware}, ou com algoritmos 
 puramente implementados em \textit{software}, o Sistema Operacional 
-costuma fornecer mecânismos de sincronização para coordenar as várias
+costuma fornecer mecanismos de sincronização para coordenar as várias
 \textit{threads} de um processo, ou até mesmo vários processos.
 
-	Um dos mecanismos mais famosos são os \textit{Semáforos}. Um
-semáforo nada mais é que um contador que assume valores não negativos
-com duas operações atômicas: \texttt{P} para decrementá-lo, e \texttt{V} 
-para incrementá-lo. Quando o semáforo atinge o valor 0, o processo que
-em sequência tentar decrementá-lo será bloqueado. A sua execução só será
-retomada quando o semáforo for novamente incrementado por outro processo
-\citep{dijkstra1965} \citep{semaphore}.
+    Um dos mecanismos mais famosos são os \textit{Semáforos}
+\citep{dijkstra1965}.  Um semáforo nada mais é que um contador que assume
+valores não negativos com duas operações atômicas: \texttt{P} para
+decrementá-lo, e \texttt{V} para incrementá-lo. Quando o semáforo atinge o
+valor 0, o processo que em sequência tentar decrementá-lo será bloqueado. A
+sua execução só será retomada quando o semáforo for novamente incrementado
+por outro processo \citep{semaphore}.
 
+    Semáforos também podem ser utilizados para resolver o problema da
+seção crítica, onde apenas uma \textit{thread} pode executar um determinado
+trecho de código, embora seja mais comum a utilização de \textit{Mutexes}.
+\textit{Mutexes} nada mais são que uma estrutura que garante a exclusão
+mútua de uma região, conforme ilustrado na Figura \ref{fig:mutex}. Nessa
+figura, três \textit{threads} são iniciadas executando a função $f$, mas
+apenas uma deve estar executando a seção crítica.
+Quando um \texttt{mutex} é travado, outra \textit{thread} que tentar
+acessar a seção crítica será bloqueada pelo Sistema Operacional,
+garantindo assim a seção crítica. A \textit{thread} só voltará a executar
+assim que o \texttt{mutex} for desbloqueado.
+\begin{figure}
+      \begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call, async},
+      ]
+        extern mutex_lock, mutex_unlock
+        mutex_t lock
+
+        async function f()
+            mutex_lock(lock)
+                // Região crítica
+            mutex_unlock(lock)
+        end
+
+        function main()
+            f()
+            f()
+            f()
+        end 
+      \end{lstlisting}
+      \label{fig:mutex}
+      \caption{Ilustração de uso de um mutex,}
+\end{figure}
+
+Outro mecanismo de sincronização muito útil são as Barreiras. Uma barreira
+é um ponto no programa onde, assim que a \textit{thread} executar, ela
+será bloqueada até que todas as \textit{threads} cheguem ao mesmo ponto.
+Isso é bastante útil para evitar com que \textit{threads} avancem na execução
+do código enquanto ela deveria estar aguardando o resultado da computação
+de outras \textit{threads}. Barrerias também costumam receber um parâmetro
+de inicialização indicando quantas \textit{threads} precisam atingir a
+barreira para que elas sejam desbloqueadas.
+
+Por fim, exceto os semáforos, todos esses mecanismos mencionados acima são
+implementados na biblioteca \texttt{Pthread}. Já o Semáforos, este está
+disponível no Linux através da interface \texttt{semaphore.h}.
 
 \end{subsubsection}
 
 \begin{subsubsection}{O Problema do Produtor-Consumidor}
+    Uma estrutura de dados muito útil em computação paralela
+é uma fila que seja completamente \textit{Thread-safe}, ou seja,
+que várias \textit{threads} possam inserir e remover dados dessa
+fila simultaneamente sem o risco de perda de dados. Essa fila
+pode ser usada na comunicação entre as \textit{threads}, por
+exemplo, uma insere trabalho na fila, outra retira trabalho da
+fila. Isso permite com que \textit{pipelines} sejam implementados, 
+ou que um escalonamento dinâmico de trabalho possa ser implementado.
+
+Para implementar essa fila, são necessários dois semáforos e um
+\textit{mutex}. Um semáforo deve ser inicializado com o tamanho máximo
+da fila, e ao inserir um dado nela, esse semáforo deve ser decrementado
+para que quando a fila estiver cheia, as \textit{threads} que tentarem
+inserir nela sejam bloqueadas. O outro semáforo deve ser iniciado com
+0, indicando que a fila está vazia, e incrementado quando um item for
+inserido na fila. Esse semáforo tem a finalidade de
+bloquear as \textit{threads} que tentarem remover elementos dessa
+fila quando ela estiver vazia. Assim que dados forem inseridos ou removidos
+da fila, as \textit{threads} são devidamente acordadas. Isso evita gasto
+desnecessário de ciclos de processamento, evitando utilizar uma técnica
+chamada \textit{espera ocupada}. Por fim, um \textit{Mutex} deve ser
+utilizado para evitar problemas de concorrência ao incrementar e 
+decrementar os apontadores de inicio e fim da fila. Uma implementação
+está apresentada na Figura \ref{fig:prod_consumer}.
+
+\begin{figure}
+      \begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call, async, int, class, mod},
+      ]
+        class Fifo
+            int buffer[];
+            int size;
+            int head, tail;
+            Semaphore full, empty;
+            Mutex lock
+
+            function init(n)
+                buffer = allocate_memory(n);
+                head, tail = 0;
+                sem_init(empty, n);
+                sem_init(full, 0);
+                mutex_init(lock);
+                size = n;
+            end
+
+            function push(element)
+                sem_p(empty);
+                mutex_lock(lock);
+                buffer[head] = element;
+                head = head + 1 mod size;
+                mutex_unlock(lock);
+                sem_v(full);
+            end
+            
+            function pop()
+                sem_p(full);
+                mutex_lock(lock);
+                ret = buffer[tail];
+                tail = tail + 1 mod size;
+                mutex_unlock(lock);
+                sem_v(empty)
+
+                return ret;
+            end
+        end 
+
+      \end{lstlisting}
+      \label{fig:prod_consumer}
+      \caption{Uma implementação do Produtor-Consumidor.}
+\end{figure}
+
+
 
 \end{subsubsection}
 
