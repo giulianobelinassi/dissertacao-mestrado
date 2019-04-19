@@ -3,17 +3,17 @@
 Este capítulo apresenta uma breve introdução sobre os conceitos tocados neste
 trabalho. Primeiro, é abordado as partes do \textit{pipeline} de um compilador
 de maneira a entender, ao menos superficialmente, os passos de compilação.
-Em seguida, discute-se conceitos de computação paralela e possíveis abordagens
-de paralelismo.
+Em seguida, discute-se como o compilador GCC apresenta esses tópicos implementados,
+além do seu uso clássico do processo de compilação de um programa. Por fim, é
+apresentado alguns conceitos e ferramentas básicas sobre Computação Paralela.
 
 \begin{section}{Compiladores}
 
 Para evitar confusões a respeito das diferentes linguagens que um compilador
-trabalha em seus muitos estágios, vamos adotar a seguinte nomenclatura. 
-
-\textit{Definição.} Denote como \textit{Linguagem Fonte} como sendo a linguagem
-na qual o código fonte foi originalmente escrito;
-\textit{Linguagem Intermediária} as linguagens internas do compilador; e
+trabalha em seus muitos estágios, vamos adotar a seguinte nomenclatura:
+Denote como \textit{Linguagem Fonte} como sendo a linguagem
+na qual o código fonte do programa a ser compilado foi originalmente escrito;
+\textit{Linguagem Intermediária} uma das linguagens internas do compilador; e
 \textit{Linguagem Alvo} a linguagem na qual o compilador deverá gerar código.
 
 
@@ -27,15 +27,15 @@ maneira a acelerar o código a ser produzido, substituindo trechos de código po
 outros mais eficientes, reordenando as instruções do programa, etc.
 
 Por serem programas extremamente grandes, existe um grande interesse em evitar
-reescrever um novo compilador 
+reescrever um novo compilador
 sempre que uma nova linguagem é proposta, ou um novo \textit{hardware} é criado.
 Para isso, a seguinte modularização é largamente adotada por projetistas de
 compiladores \citep{redhat} \citep{llvm}, conforme ilustrado na Figura \ref{fig:compiler_arch}:
 
 \begin{itemize}
-    \item Um \textit{Front End} para cada Linguagem Fonte a ser compilada. 
-	É neste módulo que é executado a análise léxica e sintática para a
-construção da a Árvore de Sintaxe Abstrata (AST), para que em
+    \item Um \textit{Front End} para cada Linguagem Fonte.
+	É neste módulo que é executado a análise léxica e sintática, com a
+        finalidade de construir da a Árvore de Sintaxe Abstrata (AST), para que em
 seguida ela seja convertida para uma Linguagem Intermediária do compilador.
 
     \item Um \textit{Middle End}, responsável por aplicar diversas otimizações
@@ -43,12 +43,12 @@ independentes de arquitetura no código já convertido para a Linguagem Intermed
 
     \item Um \textit{Back End} para cada linguagem alvo, responsável por converter a linguagem intermediária
 na linguagem alvo. Aqui outras otimizações específicas da linguagem alvo são realizadas,
-como alocação de registradores, e o código é finalmente convertido para a linguagem alvo.
+como alocação de registradores.
 
 \end{itemize}
 
 Porém, essa modularização é opcional: compiladores mais antigos destinados a fazer uma
-conversão direta entre duas linguagens como o UNIX C Compiler  não costumam usar uma linguagem
+conversão direta entre duas linguagens, como o UNIX C Compiler,  não costumam usar uma linguagem
 intermediária \citep{ritchie1979tour}, além de diversos livros-texto não mencionarem tal módulo, fundindo suas
 funcionalidades com o \textit{Front End} \citep{dragonbook}. Não adotar tal metodologia
 simplifica o projeto, mas dificulta a inserção de suporte à novas
@@ -168,7 +168,7 @@ existência de algoritmos para minimização de estados de um autômato
 como o \texttt{Flex}\footnote{https://www.gnu.org/software/flex/}
 sejam bastante eficientes.
 
-    Por fim, o Analisador Sintático entra em cena. O analisador sintático é
+    Em sequência, o Analisador Sintático entra em cena. O analisador sintático é
 responsável por gerar a Árvore de Sintaxe Abstrata (AST), inspecionando a
 sequência de \textit{tokens} fornecido pelo Analisador Léxico. Neste processo,
 ele certifica-se que o código fonte respeita a gramática da linguagem,
@@ -231,8 +231,8 @@ contendo apenas dois operandos e uma operação de atribuição. Para isso,
 novas variáveis são declaradas para conter os valores intermediários
 possibilitando também a remoção de sub-expressões em comum.  Também nesta
 linguagem, laços e o fluxo de código são transformados em uma sequência de
-\texttt{if} e \texttt{goto} para facilitar a construção do grafo de
-controle de fluxo, possibilitando análises neste.
+\texttt{if} e \texttt{goto} para facilitar a construção de um grafo de
+controle de fluxo, possibilitando análises nessa estrutura.
 
 Esta representação é demasiada útil por facilitar o processo de alocação
 de registradores por representar com fidelidade a maneira de como os processadores
@@ -319,26 +319,25 @@ entre outros.
 
 Considerando o contexto de um compilador capaz de compilar
 diversas linguagens para os mais variados alvos, é exatamente
-no \textit{Middle End} onde as otimizações independente de
-arquitetura devem ocorrer, pois em qualquer outro lugar isto
-implicaria em duplicação de código. Sendo assim, boa parte
-do esforço de otimização é aplicado aqui.
+no \textit{Middle End} onde é alocado maior parte do tempo
+gasto na implementação de otimizações, pois isto implica gerar um código mais
+eficiente para todas as Linguagens Alvo suportadas pelo
+compilador.
 
 Como o \textit{Front End} já traduziu todo o código para a linguagem
 intermediária, então é perfeitamente possível marcar o inicio de
 todas as funções do código. Com isto, é possível particionar o
 conjunto das possíveis otimizações em dois conjuntos disjuntos:
 
-\begin{enumerate}
+\begin{itemize}
     \item Otimizações \textit{Intra-Procedurais}: Otimizam cada função sem
-interagir com as demais funções do programa, por exemplo, Invariante
-de Laços, Eliminação de Subexpressão Comum, Propragação de Constantes,
-e Eliminação de Código Morto.
+interagir com as demais funções do programa.
 
     \item Otimizações \textit{Inter-Procedurais}: Procuram observar o programa
 como um todo, observando as interações de cada função com as demais
-funções do programa.
-\end{enumerate}
+funções do programa. Um exemplo clássico é remover funções não utilizadas, e
+decidir se uma determinada função será compilada com o atributo \texttt{inline}.
+\end{itemize}
 Essa distinção é útil pois não há dependência entre as funções
 ao aplicar uma otimização \textit{Intra-Procedural}, e portanto as
 funções podem ser processadas em paralelo.
@@ -348,10 +347,8 @@ Eliminação de Redundância, Eliminação de Subexpressão Comum,
 Propagação de Constantes, e Eliminação de Código Morto são
 classificadas como tal, suportando o argumento de paralelização.
 
-Já esse argumento não pode
-ser afirmado para as otimizações \textit{Inter-Procedurais}, pela
-própria definição. 
-Otimizações \textit{Inter-Procedurais} são normalmente aplicadas
+Já esse argumento é válido para as otimizações \textit{Inter-Procedurais}, pela
+própria definição. Estas otimizações são normalmente aplicadas
 utilizando algoritmos em grafos:
 Cada rotina é representado como um vértice, e existe um arco de $f$
 à $g$ se $f$ chama $g$ em seu corpo, conforme ilustrado na Figura
@@ -448,7 +445,7 @@ sugerido por \cite{glanville1978}.
 
 Por fim, uma discussão mais detalhada sobre
 as técnicas de geração de código de máquina é discutida por
-\citep{blindell2016instruction}. Além disso, para 
+\cite{blindell2016instruction}. Além disso, para 
  adicionar suporte a uma nova arquitetura ou linguagem
 alvo, basta implementar um novo \textit{Back End}, aproveitando todo
 o código já implementado nas etapas anteriores.
@@ -463,13 +460,13 @@ o código já implementado nas etapas anteriores.
 A coleção de compiladores da GNU, também conhecido como GCC, é um projeto
 iniciado por Richard Stallman com a primeira versão disponibilizada ao público
 em Março de 1987. Tal versão apenas suportava a linguagem C, mas já permitia
-gerar código para diversas arquiteturas.
+    gerar código para diversas arquiteturas \citep{gcc_first_ver}.
 Hoje, o GCC suporta diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
 e várias arquiteturas, como i386, amd64, riscv, arm, ppc, pdp-11. O GCC também
 é um compilador otimizador, ou seja, ele é capaz de alterar o código fornecido
 pelo usuário com a finalidade de gerar código mais eficiente, sem alterar a semântica do programa. Isso é
-possível por conta das várias representações intermediárias implementadas no
-GCC. São estas linguagens: GENERIC, GIMPLE, e RTL. O compilador executa vários
+possível por conta das várias Linguagens Intermediárias implementadas no
+GCC. São estas: GENERIC, GIMPLE, e RTL. O compilador executa vários
 passos de otimização em cada uma dessas linguagens intermediárias.
 
 \begin{subsection}{GENERIC}
@@ -496,7 +493,7 @@ compilador procura por uma cadeia de nós na árvore, buscando padrões,
 como especificado no arquivo \texttt{gcc/match.pd}, e os substitui pelo o que
 foi instruído na regra de substituição. Esse mecanismo, embora simples, permite
 com que diversas simplificações matemáticas sejam implementadas no código, o
-que pode significar uma melhora de até $10\times$ no programa original
+que pode significar uma melhora de até $10\times$ em casos particulares
 \citep{sinatan}.
 
     Por fim, cada um dos \textit{Front End} do GCC é responsável por traduzir o
@@ -532,7 +529,7 @@ em disco.
     Por fim, a última linguagem intermediária do compilador GCC é a
 \textit{Register Transfer Language} (RTL). A sintaxe dessa linguagem
 tem inspiração no Lisp, onde as expressões são representadas por uma
-lista de comandos.
+lista de comandos \citep{rtl}.
 
     A RTL é uma linguagem que visa ser extremamente próxima da linguagem
 de montagem, mas ainda sendo genérica o suficiente a ponto de ser compatível
@@ -730,7 +727,8 @@ para a linguagem intermediária, otimização, tradução para a Linguagem Alvo,
 e encapsulamento no arquivo objeto), para em seguida eles sejam ligados por um
 linkeditor como o LD. Aqui nenhuma otimização é aplicada observando o programa
 como um todo, ou como as funções interagem entre si entre dois arquivos distintos,
-gerando possívelmente um código suboptimal.
+gerando possívelmente um código suboptimal. Usualmente, cada um desses arquivos
+são compilados em paralelo através do auxilio do Makefile.
 
 
 
@@ -805,13 +803,16 @@ núcleo de igual desempenho.
 
     Para ilustrar a evolução dos processadores \textit{multicore}, \cite{42years}
     publicou um gráfico mostrando o número
-de transistores, núcleos e performance de cada núcleo desde 1970,
+de transistores, núcleos e desempenho de cada núcleo desde 1970,
 apresentado na Figura \ref{fig:42years}.
 Neste gráfico é possível notar que a Lei de Moore ainda se aplica,
-mas a performance sequencial dos processadores estão em desaceleração,
+mas a desempenho sequencial dos processadores estão em desaceleração,
 enquanto o número de núcleos cresce exponencialmente desde 2008. Isto
 justifica o uso de computação paralela sempre que possível para que
 seja utilizado o máximo dos recursos computacionais disponíveis.
+
+    Nessa seção é discutida alguns conceitos básicos de computação
+paralela e alguns algoritmos úteis na paralelização de programas.
 
 \begin{figure}[ht]
  \centering
@@ -819,6 +820,17 @@ seja utilizado o máximo dos recursos computacionais disponíveis.
  \caption{42 anos de evolução dos processadores. Fonte: \cite{42years}}
  \label{fig:42years}
 \end{figure}
+
+\begin{subsection}{\textit{Speedup}}
+    Uma maneira de medir o ganho de tempo em uma implementação paralela
+de um algoritmo é através no conceito de \textit{speedup}. Sejam $T_1$
+o tempo do algoritmo sequencial e $T_n$ o tempo desse algoritmo paralelizado
+    com $n$ núcleos de processamento. Então o \textit{speedup} $S_n$
+é dado por:
+    $$ S_n = \frac{T_n}{T_1} $$
+
+\end{subsection}
+
 
 \begin{subsection}{A Taxonomia de Flynn}
 	Mesmo com a evolução dos processadores \textit{multicore} e
@@ -843,10 +855,9 @@ uma taxonomia das arquiteturas, mas vale destaque para duas delas:
 	Uma maneira de permitir Computação Paralela é através de
 uma memória compartilhada. Aqui vários processadores ou núcleos
 são ligados através de um barramento a uma memória compartilhada entre
-todos os processadores, que permite leitura e escrita de dados. Aqui
-são necessários mecanismos de travas e sincronização para evitar problemas
-clássicos de concorrência, como por exemplo, o problema da seção crítica,
-onde apenas um núcleo pode estar executando um determinado código.
+todos os processadores, que permite leitura e escrita de dados.
+Para evitar problemas de concorrência, são necessários mecanismos de
+travas e sincronização.
 
 	 Aqui, muitos dos recursos para sincronização são fornecidos pelo
 Sistema Operacional (OS), e portanto é necessário explicar um pouco
@@ -855,18 +866,20 @@ das abstrações que ele fornece.
 \begin{subsubsection}{Processos e \textit{Threads}}
 
 	Antigamente, os processadores eram capazes de executar apenas
-um programa simultaneamente. Com isto em mente, os desenvolvedores
+um programa por vez. Com isto em mente, os desenvolvedores
 de Sistemas Operacionais criaram uma série de abstrações para que fosse
 possível dar a ilusão ao usuário que vários programas estavam executando
-ao mesmo tempo. Com isso nasce o conceito de Processos e \textit{Threads}.
+ao mesmo tempo. Embora isso não seja mais um fato já que hoje os processadores
+são capazes de executar vários fluxos de execução simultaneamente, essa
+é a principal motivação do conceito de Processos e \textit{Threads}.
 
 	Um \textit{Processo} é um modelo de abstração do Sistema Operacional que
 dá a um programa a ilusão de que ele tem o monopólio do processador
 \citep{love:2005}. Cada processo tem a sua região de memória privada por
 padrão, e para que processos possam compartilhar memória, isso deve ser 
 explicitado no programa. Um exemplo onde isso pode ser feito é através das
-chamadas \texttt{shmget}, do extinto \texttt{System V}, mas que ainda é
-suportado pelo Linux.
+chamadas \texttt{shmget} do extinto \texttt{System V}, mas que ainda é
+suportado pelo Linux \citep{shmget}.
 
 Cada processo contém pelo menos um fluxo de execução, e cada fluxo de
 execução é chamado de \textit{thread}. Cada \textit{thread} dentro
@@ -887,56 +900,69 @@ costuma fornecer mecanismos de sincronização para coordenar as várias
 \citep{dijkstra1965}.  Um semáforo nada mais é que um contador que assume
 valores não negativos com duas operações atômicas: \texttt{P} para
 decrementá-lo, e \texttt{V} para incrementá-lo. Quando o semáforo atinge o
-valor 0, o processo que em sequência tentar decrementá-lo será bloqueado. A
+valor 0, a \textit{thread} que em sequência tentar decrementá-lo será bloqueado. A
 sua execução só será retomada quando o semáforo for novamente incrementado
 por outro processo \citep{semaphore}.
 
     Semáforos também podem ser utilizados para resolver o problema da
-seção crítica, onde apenas uma \textit{thread} pode executar um determinado
-trecho de código, embora seja mais comum a utilização de \textit{Mutexes}.
+seção crítica, que é uma seção de código que apenas uma \textit{thread}
+deve poder executar por vez, embora seja mais comum a utilização
+de \textit{Mutexes}.
+
 \textit{Mutexes} nada mais são que uma estrutura que garante a exclusão
 mútua de uma região, conforme ilustrado na Figura \ref{fig:mutex}. Nessa
 figura, três \textit{threads} são iniciadas executando a função $f$, mas
-apenas uma deve estar executando a seção crítica.
-Quando um \texttt{mutex} é travado, outra \textit{thread} que tentar
-acessar a seção crítica será bloqueada pelo Sistema Operacional,
-garantindo assim a seção crítica. A \textit{thread} só voltará a executar
-assim que o \texttt{mutex} for desbloqueado.
+apenas uma pode executar a seção crítica.
+    Quando o \textit{mutex} \texttt{lock} é travado,
+todas as outras \textit{threads} que tentarem acessar a seção crítica
+serão bloqueadas pelo Sistema Operacional, garantindo assim que apenas
+uma \textit{thread} esteja executando a seção crítica.
+As \textit{threads} bloqueadas somente voltarão a executar quando o
+    \textit{mutex} for desbloqueado pela \textit{thread} que o travou.
 \begin{figure}
       \begin{lstlisting}[
         language=pseudocode,
         style=pseudocode,
         style=wider,
         functions={},
-        specialidentifiers={extern, call, async},
+        specialidentifiers={extern, call, async, mutex_t},
       ]
-        extern mutex_lock, mutex_unlock
-        mutex_t lock
+        extern function mutex_lock, mutex_unlock;
+        mutex_t lock;
 
         async function f()
-            mutex_lock(lock)
+            mutex_lock(lock);
                 // Região crítica
-            mutex_unlock(lock)
+            mutex_unlock(lock);
         end
 
         function main()
-            f()
-            f()
-            f()
-        end 
+            for i=1, 3 do
+                call f();
+            done
+        end
       \end{lstlisting}
-      \label{fig:mutex}
       \caption{Ilustração de uso de um mutex,}
+      \label{fig:mutex}
 \end{figure}
 
 Outro mecanismo de sincronização muito útil são as Barreiras. Uma barreira
-é um ponto no programa onde, assim que a \textit{thread} executar, ela
-será bloqueada até que todas as \textit{threads} cheguem ao mesmo ponto.
+é um ponto no programa onde, assim que a \textit{thread} o executar, ela
+será bloqueada até que todas as \textit{threads} cheguem ao mesmo ponto, como
+ilustrado na Figura \ref{fig:barrier}.
 Isso é bastante útil para evitar com que \textit{threads} avancem na execução
 do código enquanto ela deveria estar aguardando o resultado da computação
 de outras \textit{threads}. Barrerias também costumam receber um parâmetro
 de inicialização indicando quantas \textit{threads} precisam atingir a
-barreira para que elas sejam desbloqueadas.
+barreira para que todas as \textit{threads} que a atingiu sejam desbloqueadas.
+
+\begin{figure}[ht]
+ \centering
+ \includegraphics[scale=1.0]{barrier.pdf}
+ \caption{Ilustração do funcionamento de uma barreira.}
+ \label{fig:barrier}
+\end{figure}
+
 
 Por fim, exceto os semáforos, todos esses mecanismos mencionados acima são
 implementados na biblioteca \texttt{Pthread}. Já o Semáforos, este está
@@ -951,12 +977,12 @@ que várias \textit{threads} possam inserir e remover dados dessa
 fila simultaneamente sem o risco de perda de dados. Essa fila
 pode ser usada na comunicação entre as \textit{threads}, por
 exemplo, uma insere trabalho na fila, outra retira trabalho da
-fila. Isso permite com que \textit{pipelines} sejam implementados, 
-ou que um escalonamento dinâmico de trabalho possa ser implementado.
+fila. Isso permite com que \textit{pipelines}, ou escalonamento
+dinâmico de trabalho, sejam implementados.
 
 Para implementar essa fila, são necessários dois semáforos e um
 \textit{mutex}. Um semáforo deve ser inicializado com o tamanho máximo
-da fila, e ao inserir um dado nela, esse semáforo deve ser decrementado
+da fila, e na inserção de um dado, esse semáforo deve ser decrementado
 para que quando a fila estiver cheia, as \textit{threads} que tentarem
 inserir nela sejam bloqueadas. O outro semáforo deve ser iniciado com
 0, indicando que a fila está vazia, e incrementado quando um item for
@@ -966,7 +992,7 @@ fila quando ela estiver vazia. Assim que dados forem inseridos ou removidos
 da fila, as \textit{threads} são devidamente acordadas. Isso evita gasto
 desnecessário de ciclos de processamento, evitando utilizar uma técnica
 chamada \textit{espera ocupada}. Por fim, um \textit{Mutex} deve ser
-utilizado para evitar problemas de concorrência ao incrementar e 
+utilizado para evitar problemas de concorrência ao incrementar e
 decrementar os apontadores de inicio e fim da fila. Uma implementação
 está apresentada na Figura \ref{fig:prod_consumer}.
 
@@ -976,14 +1002,14 @@ está apresentada na Figura \ref{fig:prod_consumer}.
         style=pseudocode,
         style=wider,
         functions={},
-        specialidentifiers={extern, call, async, int, class, mod},
+        specialidentifiers={extern, call, async, int, class, mod, semaphore_t, mutex_t},
       ]
         class Fifo
             int buffer[];
             int size;
             int head, tail;
-            Semaphore full, empty;
-            Mutex lock
+            semaphore_t full, empty;
+            mutex_t lock
 
             function init(n)
                 buffer = allocate_memory(n);
@@ -1002,7 +1028,7 @@ está apresentada na Figura \ref{fig:prod_consumer}.
                 mutex_unlock(lock);
                 sem_v(full);
             end
-            
+
             function pop()
                 sem_p(full);
                 mutex_lock(lock);
@@ -1016,11 +1042,9 @@ está apresentada na Figura \ref{fig:prod_consumer}.
         end 
 
       \end{lstlisting}
-      \label{fig:prod_consumer}
       \caption{Uma implementação do Produtor-Consumidor.}
+      \label{fig:prod_consumer}
 \end{figure}
-
-
 
 \end{subsubsection}
 

@@ -28,12 +28,18 @@ Embora seja possível escrever código em linguagem de máquina, o que
 tornaria um compilador desnecessário, isto é extremamente caro e
 sujeito a erros, além de ser uma prática extremamente
 incomum nos projetos contemporâneos a este trabalho \citep{githuboctoverse} (vide
-Figura \ref{fig:github_2017}).
+Figura \ref{fig:github_2017}). Escrever programas em código de máquina tendem a
+ser trabalhosos e caros, com difícil manutenção e quase impossível portabilidade.
+Um exemplo disso é o \textit{Internal Revenue Service} (IRS) dos Estados Unidos,
+que ainda mantém máquinas compatíveis com o IBM System/360 por conta do sistema
+contar com várias linhas de código escritas em linguagem de montagem para essa
+arqutetura \citep{gao}. Esse problema ganhou visibilidade na imprensa após a falha no
+\textit{Tax Day} de 2018 \citep{tax_failure}.
 
 %TODO: Deixar essa imagem mais legível
 \begin{figure}[ht]
  \centering
- \includegraphics[scale=1.0]{github_2017.pdf}
+ \includegraphics[scale=1.8]{github_2017.pdf}
  \caption{As 15 linguagens mais usadas no GitHub em 2017. Fonte: \cite{githuboctoverse}}
  \label{fig:github_2017}
 \end{figure}

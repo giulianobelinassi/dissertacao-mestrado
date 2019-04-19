@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="89.064mm"
+   height="67.937mm"
+   version="1.1"
+   viewBox="0 0 53.438 40.762"
+   id="svg329"
+   sodipodi:docname="barrier.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     id="namedview331"
+     showgrid="false"
+     inkscape:zoom="3.0895385"
+     inkscape:cx="187.6772"
+     inkscape:cy="127.19112"
+     inkscape:window-x="0"
+     inkscape:window-y="36"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g327" />
+  <defs
+     id="defs35">
+    <marker
+       id="Arrow1Lend"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.8 0 0 -.8 -10 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path2" />
+    </marker>
+    <marker
+       id="marker2025"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path5" />
+    </marker>
+    <marker
+       id="marker2025-8"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path8" />
+    </marker>
+    <marker
+       id="marker2025-5"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path11" />
+    </marker>
+    <marker
+       id="marker2025-3"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path14" />
+    </marker>
+    <marker
+       id="marker2025-92"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path17" />
+    </marker>
+    <marker
+       id="marker2025-39"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path20" />
+    </marker>
+    <marker
+       id="marker2025-59"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path23" />
+    </marker>
+    <marker
+       id="marker2025-1"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path26" />
+    </marker>
+    <marker
+       id="marker2025-33"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path29" />
+    </marker>
+    <marker
+       id="marker2025-594"
+       overflow="visible"
+       orient="auto">
+      <path
+         transform="matrix(-.4 0 0 -.4 -4 0)"
+         d="m0 0 5-5-17.5 5 17.5 5z"
+         fill-rule="evenodd"
+         stroke="#000"
+         stroke-width="1pt"
+         id="path32" />
+    </marker>
+  </defs>
+  <metadata
+     id="metadata37">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-21.866 -28.109)"
+     id="g327">
+    <g
+       fill="none"
+       stroke="#000"
+       stroke-width=".26458px"
+       id="g63">
+      <path
+         d="m31.788 47.101s0.24221 0.79346 0.65982-0.01669"
+         id="path39" />
+      <path
+         d="m33.108 47.068s-0.24221-0.79346-0.65982 0.01669"
+         id="path41" />
+      <path
+         d="m33.108 47.068s0.24221 0.79346 0.65982-0.01669"
+         id="path43" />
+      <path
+         d="m34.428 47.035s-0.24221-0.79346-0.65982 0.01669"
+         id="path45" />
+      <path
+         d="m34.428 47.035s0.24221 0.79346 0.65982-0.01669"
+         id="path47" />
+      <path
+         d="m35.747 47.001s-0.24221-0.79346-0.65982 0.01669"
+         id="path49" />
+      <path
+         d="m35.747 47.001s0.24221 0.79346 0.65982-0.01669"
+         id="path51" />
+      <path
+         d="m37.067 46.968s-0.24221-0.79346-0.65982 0.01669"
+         id="path53" />
+      <path
+         d="m37.067 46.968s0.24221 0.79346 0.65982-0.01669"
+         id="path55" />
+      <path
+         d="m38.387 46.934s-0.24221-0.79346-0.65982 0.01669"
+         id="path57" />
+      <path
+         d="m38.925 46.988h3.1656"
+         marker-end="url(#marker2025)"
+         id="path59" />
+      <path
+         d="m38.387 46.934s0.24221 0.79346 0.65982-0.01669"
+         id="path61" />
+    </g>
+    <rect
+       x="42.623"
+       y="32.55"
+       width="1.9376"
+       height="29.139"
+       fill="#b3b3b3"
+       stroke-width=".21791"
+       id="rect65" />
+    <g
+       fill="none"
+       stroke="#000"
+       stroke-width=".26458px"
+       id="g317">
+      <path
+         d="m31.788 52.027s0.24221 0.79346 0.65982-0.01669"
+         id="path67" />
+      <path
+         d="m33.108 51.994s-0.24221-0.79346-0.65982 0.01669"
+         id="path69" />
+      <path
+         d="m33.108 51.994s0.24221 0.79346 0.65982-0.01669"
+         id="path71" />
+      <path
+         d="m34.428 51.961s-0.24221-0.79346-0.65982 0.01669"
+         id="path73" />
+      <path
+         d="m34.428 51.961s0.24221 0.79346 0.65982-0.01669"
+         id="path75" />
+      <path
+         d="m35.747 51.927s-0.24221-0.79346-0.65982 0.01669"
+         id="path77" />
+      <path
+         d="m35.747 51.927s0.24221 0.79346 0.65982-0.01669"
+         id="path79" />
+      <path
+         d="m37.067 51.894s-0.24221-0.79346-0.65982 0.01669"
+         id="path81" />
+      <path
+         d="m37.067 51.894s0.24221 0.79346 0.65982-0.01669"
+         id="path83" />
+      <path
+         d="m38.387 51.861s-0.24221-0.79346-0.65982 0.01669"
+         id="path85" />
+      <path
+         d="m38.925 51.914h3.1656"
+         marker-end="url(#marker2025-8)"
+         id="path87" />
+      <path
+         d="m38.387 51.861s0.24221 0.79346 0.65982-0.01669"
+         id="path89" />
+      <path
+         d="m34.452 57.106s0.24221 0.79346 0.65982-0.01669"
+         id="path91" />
+      <path
+         d="m35.772 57.072s-0.24221-0.79346-0.65982 0.01669"
+         id="path93" />
+      <path
+         d="m35.772 57.072s0.24221 0.79346 0.65982-0.01669"
+         id="path95" />
+      <path
+         d="m37.092 57.039s-0.24221-0.79346-0.65982 0.01669"
+         id="path97" />
+      <path
+         d="m37.092 57.039s0.24221 0.79346 0.65982-0.01669"
+         id="path99" />
+      <path
+         d="m38.411 57.005s-0.24221-0.79346-0.65982 0.01669"
+         id="path101" />
+      <path
+         d="m38.95 57.059h3.1656"
+         marker-end="url(#marker2025-5)"
+         id="path103" />
+      <path
+         d="m38.411 57.005s0.24221 0.79346 0.65982-0.01669"
+         id="path105" />
+      <path
+         d="m31.788 42.392s0.24221 0.79346 0.65982-0.01669"
+         id="path107" />
+      <path
+         d="m33.108 42.359s-0.24221-0.79346-0.65982 0.01669"
+         id="path109" />
+      <path
+         d="m33.108 42.359s0.24221 0.79346 0.65982-0.01669"
+         id="path111" />
+      <path
+         d="m34.428 42.326s-0.24221-0.79346-0.65982 0.01669"
+         id="path113" />
+      <path
+         d="m34.428 42.326s0.24221 0.79346 0.65982-0.01669"
+         id="path115" />
+      <path
+         d="m35.747 42.292s-0.24221-0.79346-0.65982 0.01669"
+         id="path117" />
+      <path
+         d="m35.747 42.292s0.24221 0.79346 0.65982-0.01669"
+         id="path119" />
+      <path
+         d="m37.067 42.259s-0.24221-0.79346-0.65982 0.01669"
+         id="path121" />
+      <path
+         d="m37.067 42.259s0.24221 0.79346 0.65982-0.01669"
+         id="path123" />
+      <path
+         d="m38.387 42.225s-0.24221-0.79346-0.65982 0.01669"
+         id="path125" />
+      <path
+         d="m38.925 42.279h3.1656"
+         marker-end="url(#marker2025-3)"
+         id="path127" />
+      <path
+         d="m38.387 42.225s0.24221 0.79346 0.65982-0.01669"
+         id="path129" />
+      <path
+         d="m31.788 37.388s0.24221 0.79346 0.65982-0.01669"
+         id="path131" />
+      <path
+         d="m33.108 37.354s-0.24221-0.79346-0.65982 0.01669"
+         id="path133" />
+      <path
+         d="m33.108 37.354s0.24221 0.79346 0.65982-0.01669"
+         id="path135" />
+      <path
+         d="m34.428 37.321s-0.24221-0.79346-0.65982 0.01669"
+         id="path137" />
+      <path
+         d="m34.428 37.321s0.24221 0.79346 0.65982-0.01669"
+         id="path139" />
+      <path
+         d="m35.747 37.288s-0.24221-0.79346-0.65982 0.01669"
+         id="path141" />
+      <path
+         d="m35.747 37.288s0.24221 0.79346 0.65982-0.01669"
+         id="path143" />
+      <path
+         d="m37.067 37.254s-0.24221-0.79346-0.65982 0.01669"
+         id="path145" />
+      <path
+         d="m37.067 37.254s0.24221 0.79346 0.65982-0.01669"
+         id="path147" />
+      <path
+         d="m38.387 37.221s-0.24221-0.79346-0.65982 0.01669"
+         id="path149" />
+      <path
+         d="m38.925 37.274h3.1656"
+         marker-end="url(#marker2025-92)"
+         id="path151" />
+      <path
+         d="m38.387 37.221s0.24221 0.79346 0.65982-0.01669"
+         id="path153" />
+      <path
+         d="m26.51 37.521s0.24221 0.79346 0.65982-0.01669"
+         id="path155" />
+      <path
+         d="m27.83 37.488s-0.24221-0.79346-0.65982 0.01669"
+         id="path157" />
+      <path
+         d="m27.83 37.488s0.24221 0.79346 0.65982-0.01669"
+         id="path159" />
+      <path
+         d="m29.149 37.454s-0.24221-0.79346-0.65982 0.01669"
+         id="path161" />
+      <path
+         d="m29.149 37.454s0.24221 0.79346 0.65982-0.01669"
+         id="path163" />
+      <path
+         d="m30.469 37.421s-0.24221-0.79346-0.65982 0.01669"
+         id="path165" />
+      <path
+         d="m30.469 37.421s0.24221 0.79346 0.65982-0.01669"
+         id="path167" />
+      <path
+         d="m31.788 37.388s-0.24221-0.79346-0.65982 0.01669"
+         id="path169" />
+      <path
+         d="m30.469 42.426s0.24221 0.79346 0.65982-0.01669"
+         id="path171" />
+      <path
+         d="m31.788 42.392s-0.24221-0.79346-0.65982 0.01669"
+         id="path173" />
+      <path
+         d="m25.19 52.194s0.24221 0.79346 0.65982-0.01669"
+         id="path175" />
+      <path
+         d="m26.51 52.161s-0.24221-0.79346-0.65982 0.01669"
+         id="path177" />
+      <path
+         d="m26.51 52.161s0.24221 0.79346 0.65982-0.01669"
+         id="path179" />
+      <path
+         d="m27.83 52.128s-0.24221-0.79346-0.65982 0.01669"
+         id="path181" />
+      <path
+         d="m27.83 52.128s0.24221 0.79346 0.65982-0.01669"
+         id="path183" />
+      <path
+         d="m29.149 52.094s-0.24221-0.79346-0.65982 0.01669"
+         id="path185" />
+      <path
+         d="m29.149 52.094s0.24221 0.79346 0.65982-0.01669"
+         id="path187" />
+      <path
+         d="m30.469 52.061s-0.24221-0.79346-0.65982 0.01669"
+         id="path189" />
+      <path
+         d="m30.469 52.061s0.24221 0.79346 0.65982-0.01669"
+         id="path191" />
+      <path
+         d="m31.788 52.027s-0.24221-0.79346-0.65982 0.01669"
+         id="path193" />
+      <path
+         d="m44.627 37.107s0.24221 0.79346 0.65982-0.01669"
+         id="path195" />
+      <path
+         d="m45.947 37.074s-0.24221-0.79346-0.65982 0.01669"
+         id="path197" />
+      <path
+         d="m45.947 37.074s0.24221 0.79346 0.65982-0.01669"
+         id="path199" />
+      <path
+         d="m47.267 37.04s-0.24221-0.79346-0.65982 0.01669"
+         id="path201" />
+      <path
+         d="m47.267 37.04s0.24221 0.79346 0.65982-0.01669"
+         id="path203" />
+      <path
+         d="m48.586 37.007s-0.24221-0.79346-0.65982 0.01669"
+         id="path205" />
+      <path
+         d="m48.586 37.007s0.24221 0.79346 0.65982-0.01669"
+         id="path207" />
+      <path
+         d="m49.906 36.974s-0.24221-0.79346-0.65982 0.01669"
+         id="path209" />
+      <path
+         d="m49.906 36.974s0.24221 0.79346 0.65982-0.01669"
+         id="path211" />
+      <path
+         d="m51.226 36.94s-0.24221-0.79346-0.65982 0.01669"
+         id="path213" />
+      <path
+         d="m51.764 36.994h3.1656"
+         marker-end="url(#marker2025-39)"
+         id="path215" />
+      <path
+         d="m51.226 36.94s0.24221 0.79346 0.65982-0.01669"
+         id="path217" />
+      <path
+         d="m44.51 42.205s0.24221 0.79346 0.65982-0.01669"
+         id="path219" />
+      <path
+         d="m45.83 42.172s-0.24221-0.79346-0.65982 0.01669"
+         id="path221" />
+      <path
+         d="m45.83 42.172s0.24221 0.79346 0.65982-0.01669"
+         id="path223" />
+      <path
+         d="m47.15 42.138s-0.24221-0.79346-0.65982 0.01669"
+         id="path225" />
+      <path
+         d="m47.15 42.138s0.24221 0.79346 0.65982-0.01669"
+         id="path227" />
+      <path
+         d="m48.469 42.105s-0.24221-0.79346-0.65982 0.01669"
+         id="path229" />
+      <path
+         d="m48.469 42.105s0.24221 0.79346 0.65982-0.01669"
+         id="path231" />
+      <path
+         d="m49.789 42.072s-0.24221-0.79346-0.65982 0.01669"
+         id="path233" />
+      <path
+         d="m49.789 42.072s0.24221 0.79346 0.65982-0.01669"
+         id="path235" />
+      <path
+         d="m51.109 42.038s-0.24221-0.79346-0.65982 0.01669"
+         id="path237" />
+      <path
+         d="m51.647 42.092h3.1656"
+         marker-end="url(#marker2025-59)"
+         id="path239" />
+      <path
+         d="m51.109 42.038s0.24221 0.79346 0.65982-0.01669"
+         id="path241" />
+      <path
+         d="m44.651 46.882s0.24221 0.79346 0.65982-0.01669"
+         id="path243" />
+      <path
+         d="m45.97 46.849s-0.24221-0.79346-0.65982 0.01669"
+         id="path245" />
+      <path
+         d="m45.97 46.849s0.24221 0.79346 0.65982-0.01669"
+         id="path247" />
+      <path
+         d="m47.29 46.816s-0.24221-0.79346-0.65982 0.01669"
+         id="path249" />
+      <path
+         d="m47.29 46.816s0.24221 0.79346 0.65982-0.01669"
+         id="path251" />
+      <path
+         d="m48.61 46.782s-0.24221-0.79346-0.65982 0.01669"
+         id="path253" />
+      <path
+         d="m48.61 46.782s0.24221 0.79346 0.65982-0.01669"
+         id="path255" />
+      <path
+         d="m49.929 46.749s-0.24221-0.79346-0.65982 0.01669"
+         id="path257" />
+      <path
+         d="m49.929 46.749s0.24221 0.79346 0.65982-0.01669"
+         id="path259" />
+      <path
+         d="m51.249 46.716s-0.24221-0.79346-0.65982 0.01669"
+         id="path261" />
+      <path
+         d="m51.788 46.769h3.1656"
+         marker-end="url(#marker2025-1)"
+         id="path263" />
+      <path
+         d="m51.249 46.716s0.24221 0.79346 0.65982-0.01669"
+         id="path265" />
+      <path
+         d="m44.651 51.887s0.24221 0.79346 0.65982-0.01669"
+         id="path267" />
+      <path
+         d="m45.97 51.854s-0.24221-0.79346-0.65982 0.01669"
+         id="path269" />
+      <path
+         d="m45.97 51.854s0.24221 0.79346 0.65982-0.01669"
+         id="path271" />
+      <path
+         d="m47.29 51.82s-0.24221-0.79346-0.65982 0.01669"
+         id="path273" />
+      <path
+         d="m47.29 51.82s0.24221 0.79346 0.65982-0.01669"
+         id="path275" />
+      <path
+         d="m48.61 51.787s-0.24221-0.79346-0.65982 0.01669"
+         id="path277" />
+      <path
+         d="m48.61 51.787s0.24221 0.79346 0.65982-0.01669"
+         id="path279" />
+      <path
+         d="m49.929 51.754s-0.24221-0.79346-0.65982 0.01669"
+         id="path281" />
+      <path
+         d="m49.929 51.754s0.24221 0.79346 0.65982-0.01669"
+         id="path283" />
+      <path
+         d="m51.249 51.72s-0.24221-0.79346-0.65982 0.01669"
+         id="path285" />
+      <path
+         d="m51.788 51.774h3.1656"
+         marker-end="url(#marker2025-33)"
+         id="path287" />
+      <path
+         d="m51.249 51.72s0.24221 0.79346 0.65982-0.01669"
+         id="path289" />
+      <path
+         d="m44.604 57.172s0.24221 0.79346 0.65982-0.01669"
+         id="path291" />
+      <path
+         d="m45.924 57.139s-0.24221-0.79346-0.65982 0.01669"
+         id="path293" />
+      <path
+         d="m45.924 57.139s0.24221 0.79346 0.65982-0.01669"
+         id="path295" />
+      <path
+         d="m47.243 57.106s-0.24221-0.79346-0.65982 0.01669"
+         id="path297" />
+      <path
+         d="m47.243 57.106s0.24221 0.79346 0.65982-0.01669"
+         id="path299" />
+      <path
+         d="m48.563 57.072s-0.24221-0.79346-0.65982 0.01669"
+         id="path301" />
+      <path
+         d="m48.563 57.072s0.24221 0.79346 0.65982-0.01669"
+         id="path303" />
+      <path
+         d="m49.883 57.039s-0.24221-0.79346-0.65982 0.01669"
+         id="path305" />
+      <path
+         d="m49.883 57.039s0.24221 0.79346 0.65982-0.01669"
+         id="path307" />
+      <path
+         d="m51.202 57.005s-0.24221-0.79346-0.65982 0.01669"
+         id="path309" />
+      <path
+         d="m51.741 57.059h3.1656"
+         marker-end="url(#marker2025-594)"
+         id="path311" />
+      <path
+         d="m51.202 57.005s0.24221 0.79346 0.65982-0.01669"
+         id="path313" />
+      <path
+         d="m21.866 67.349h42.937"
+         marker-end="url(#Arrow1Lend)"
+         id="path315" />
+    </g>
+    <text
+       x="65.462593"
+       y="67.975807"
+       font-size="2.8222px"
+       letter-spacing="0px"
+       word-spacing="0px"
+       style="font-size:2.82220006px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;stroke-width:0.26458001"
+       xml:space="preserve"
+       id="text321"><tspan
+         x="65.462593"
+         y="67.975807"
+         font-size="2.8222px"
+         id="tspan319"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11665654px;font-family:'CMU Serif';-inkscape-font-specification:'CMU Serif';stroke-width:0.26458001">Código</tspan></text>
+    <text
+       x="40.197708"
+       y="30.253229"
+       font-size="10.583px"
+       letter-spacing="0px"
+       word-spacing="0px"
+       style="font-size:10.58300018px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;stroke-width:0.26458001"
+       xml:space="preserve"
+       id="text325"><tspan
+         x="40.197708"
+         y="30.253229"
+         font-size="2.8222px"
+         id="tspan323"
+         style="font-size:2.11665644px;stroke-width:0.26458001;-inkscape-font-specification:'CMU Serif';font-family:'CMU Serif';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal">Barreira</tspan></text>
+  </g>
+</svg>
