@@ -1,11 +1,11 @@
 \chapter{Fundamentação Teórica}
 
-Este capítulo apresenta uma breve introdução sobre os conceitos tocados neste
-trabalho. Primeiro, é abordado as partes do \textit{pipeline} de um compilador
+Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
+trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
 de maneira a entender, ao menos superficialmente, os passos de compilação.
 Em seguida, discute-se como o compilador GCC apresenta esses tópicos implementados,
-além do seu uso clássico do processo de compilação de um programa. Por fim, é
-apresentado alguns conceitos e ferramentas básicas sobre Computação Paralela.
+além do seu uso clássico do processo de compilação de um programa. Por fim, são
+apresentados alguns conceitos e algoritmos básicos sobre Computação Paralela.
 
 \begin{section}{Compiladores}
 
@@ -20,10 +20,13 @@ na qual o código fonte do programa a ser compilado foi originalmente escrito;
 Compiladores são grandes projetos destinados a tradução de códigos fonte
 entre distintas linguagens de programação. Normalmente, compiladores traduzem
 linguagens de alto nível, como C, para linguagens mais próximas da máquina,
-como a linguagem de montagem, embora isso não seja uma regra.
+como a linguagem de montagem, embora isso não seja uma regra pois existem
+compiladores cuja única tarefa é realizar uma tradução entre duas linguagens
+de alto nível.
+
 Compiladores também costumam otimizar
 o código que passam por eles, aplicando diversas heurísticas de
-maneira a acelerar o código a ser produzido, substituindo trechos de código por 
+maneira a acelerar o código a ser produzido, substituindo trechos de código por
 outros mais eficientes, reordenando as instruções do programa, etc.
 
 Por serem programas extremamente grandes, existe um grande interesse em evitar
@@ -34,8 +37,8 @@ compiladores \citep{redhat} \citep{llvm}, conforme ilustrado na Figura \ref{fig:
 
 \begin{itemize}
     \item Um \textit{Front End} para cada Linguagem Fonte.
-	É neste módulo que é executado a análise léxica e sintática, com a
-        finalidade de construir da a Árvore de Sintaxe Abstrata (AST), para que em
+	Neste módulo são executadas as análises léxica e sintática, com a
+        finalidade de construir uma Árvore de Sintaxe Abstrata (AST), para que em
 seguida ela seja convertida para uma Linguagem Intermediária do compilador.
 
     \item Um \textit{Middle End}, responsável por aplicar diversas otimizações
@@ -51,8 +54,8 @@ Porém, essa modularização é opcional: compiladores mais antigos destinados a
 conversão direta entre duas linguagens, como o UNIX C Compiler,  não costumam usar uma linguagem
 intermediária \citep{ritchie1979tour}, além de diversos livros-texto não mencionarem tal módulo, fundindo suas
 funcionalidades com o \textit{Front End} \citep{dragonbook}. Não adotar tal metodologia
-simplifica o projeto, mas dificulta a inserção de suporte à novas
-linguagens de programação. 
+simplifica o projeto, mas dificulta a inserção de suporte a novas
+linguagens de programação.
 
 
 \begin{figure}
@@ -105,16 +108,16 @@ linguagens de programação.
 
 \begin{subsection}{\textit{Front End}}
 
-Um \textit{Front End} é o módulo responsável por interagir diretamente com o
+Um \textit{Front End} é um módulo responsável por interagir diretamente com o
 código escrito na Linguagem Fonte a ser compilado. Ele costuma ser único
 para cada Linguagem Fonte, ou seja, para inserir suporte a uma nova
 Linguagem Alvo, basta implementar um novo \textit{Front End}, mas é 
 possível que algumas classes sejam
-compartilhadas, como no caso de um compilador que suporte ambos C e C++. 
+compartilhadas, como no caso de um compilador que dê suporte ambos C e C++. 
 
 
-Como primeiro passo, \textit {Front End} realize uma análise
-léxica e sintática, com a finalidade de gerar AST e verificar
+Como primeiro passo, \textit {Front End} realiza uma análise
+léxica e sintática, com a finalidade de gerar uma AST e verificar
 se o texto dado como entrada realmente pertence à linguagem.
 Estes dois analisadores se comunicam constantemente, conforme ilustrado na Figura
 \ref{fig:lexico_sintatico}.
@@ -211,10 +214,10 @@ para o \textit{Middle End} do compilador.
  Linguagens Intermediárias do compilador, com a finalidade de efetuar
 otimizações no código e possíveis checagens de erro que possam ser
 postergadas até essa fase. Essas linguagens devem ser projetadas
-de maneira a capturar a semântica da Linguagem Alvo, na qual o programa original foi
+de maneira a capturar a semântica da Linguagem Fonte, na qual o programa original foi
 escrito.
 Existem várias representações convenientes para a Linguagem Intermediária,
-mas destaca-se para fins de otimização 
+mas destaca-se para fins de otimização
 a \textit{Three-Address Code}, que normalmente é usada em conjunto com
 a \textit{Static Single Assignment} (SSA).
 
@@ -321,11 +324,10 @@ Considerando o contexto de um compilador capaz de compilar
 diversas linguagens para os mais variados alvos, é exatamente
 no \textit{Middle End} onde é alocado maior parte do tempo
 gasto na implementação de otimizações, pois isto implica gerar um código mais
-eficiente para todas as Linguagens Alvo suportadas pelo
-compilador.
+eficiente para todas as Linguagens Alvo cujo o compilador dê suporte.
 
 Como o \textit{Front End} já traduziu todo o código para a linguagem
-intermediária, então é perfeitamente possível marcar o inicio de
+intermediária, então é perfeitamente possível marcar o início de
 todas as funções do código. Com isto, é possível particionar o
 conjunto das possíveis otimizações em dois conjuntos disjuntos:
 
@@ -345,7 +347,7 @@ Diversas otimizações
 clássicas como Invariante de Laços, Propagação de Constantes,
 Eliminação de Redundância, Eliminação de Subexpressão Comum,
 Propagação de Constantes, e Eliminação de Código Morto são
-classificadas como tal, suportando o argumento de paralelização.
+classificadas como tal, reforçando o argumento de paralelização.
 
 Já esse argumento é válido para as otimizações \textit{Inter-Procedurais}, pela
 própria definição. Estas otimizações são normalmente aplicadas
@@ -371,13 +373,13 @@ algoritmos referentes a essas otimizações são discutidos por
         \node [node]                    (main) {\texttt{main}};
         \node [node, below of = main]        (f) {\texttt{f}};
         \node [node, below of = f]           (g) {\texttt{g}};
-        \node [node, below of = g]           (h) {\texttt{h}};
+        \node [node, right of = f]           (h) {\texttt{h}};
 
         % Draw edges
         \draw[->]    (main)           -- (f);
         \draw[->]    (f)              -- (g);
-        \draw[->]    (g)              -- (h);
-        \draw[->]    (main)      to [out=-30,in=30] (h);
+        \draw[->]    (f)              -- (h);
+        \draw[->]    (main)           -- (h);
     \end{tikzpicture}
     }
     \end{center}
@@ -459,9 +461,9 @@ o código já implementado nas etapas anteriores.
 
 A coleção de compiladores da GNU, também conhecido como GCC, é um projeto
 iniciado por Richard Stallman com a primeira versão disponibilizada ao público
-em Março de 1987. Tal versão apenas suportava a linguagem C, mas já permitia
+em Março de 1987. Tal versão apenas fornecia suporte a linguagem C, mas já permitia
     gerar código para diversas arquiteturas \citep{gcc_first_ver}.
-Hoje, o GCC suporta diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
+Hoje, o GCC oferece suporte a diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
 e várias arquiteturas, como i386, amd64, riscv, arm, ppc, pdp-11. O GCC também
 é um compilador otimizador, ou seja, ele é capaz de alterar o código fornecido
 pelo usuário com a finalidade de gerar código mais eficiente, sem alterar a semântica do programa. Isso é
@@ -488,7 +490,7 @@ facilitar o desenvolvimento dos \textit{Front End} do compilador, mas isso não
 significa que otimizações não possam ser aplicadas aqui.
 
     O GCC possui um mecanismo de substituição de nós em sua representação
-interna, suportando a árvore construída em GENERIC. Esse mecanismo é simples: o
+interna, dando suporte a árvore construída em GENERIC. Esse mecanismo é simples: o
 compilador procura por uma cadeia de nós na árvore, buscando padrões,
 como especificado no arquivo \texttt{gcc/match.pd}, e os substitui pelo o que
 foi instruído na regra de substituição. Esse mecanismo, embora simples, permite
@@ -533,7 +535,7 @@ lista de comandos \citep{rtl}.
 
     A RTL é uma linguagem que visa ser extremamente próxima da linguagem
 de montagem, mas ainda sendo genérica o suficiente a ponto de ser compatível
-com todas as arquiteturas suportadas como Linguagem Alvo do GCC.
+com todas as Linguagem Alvo do GCC.
 Para isso, ela representa uma máquina com infinitos
 registradores, que serão alocados em registradores reais no passo de alocação de
 registradores. Caso a Linguagem Alvo não tenha o número necessário de
@@ -587,8 +589,8 @@ intermediária. Esses passos são divididos em três etapas:
             independente em cada função.
     \end{enumerate}
 
-    Cada otimização esta implementada em algum arquivo especifico do GCC,
-agrupada por quão similar elas são. Por exemplo, o passo de vetorização está implementado
+    Cada otimização está implementada em algum arquivo específico do GCC,
+agrupada por similaridade. Por exemplo, o passo de vetorização está implementado
 em \texttt{gcc/tree-ssa-loop.c}. Cada otimização também deve ser implementada
     herdando e implementando as funções de uma das seguintes classes:
 \texttt{gimple\_opt\_pass}, \texttt{ipa\_opt\_pass\_d}, \texttt{rtl\_opt\_pass},
@@ -811,7 +813,7 @@ enquanto o número de núcleos cresce exponencialmente desde 2008. Isto
 justifica o uso de computação paralela sempre que possível para que
 seja utilizado o máximo dos recursos computacionais disponíveis.
 
-    Nessa seção é discutida alguns conceitos básicos de computação
+    Nessa seção são discutidas alguns conceitos básicos de computação
 paralela e alguns algoritmos úteis na paralelização de programas.
 
 \begin{figure}[ht]
@@ -827,14 +829,14 @@ de um algoritmo é através no conceito de \textit{speedup}. Sejam $T_1$
 o tempo do algoritmo sequencial e $T_n$ o tempo desse algoritmo paralelizado
     com $n$ núcleos de processamento. Então o \textit{speedup} $S_n$
 é dado por:
-    $$ S_n = \frac{T_n}{T_1} $$
+    $$ S_n = \frac{T_1}{T_n} $$
 
 \end{subsection}
 
 
 \begin{subsection}{A Taxonomia de Flynn}
 	Mesmo com a evolução dos processadores \textit{multicore} e
-\textit{manycore}, esses não são as únicas arquiteturas disponíeis para
+\textit{manycore}, esses não são as únicas arquiteturas disponíveis para
 realizar computação paralela.  Michael J. Flynn \citep{pacheco:2011} definiu
 uma taxonomia das arquiteturas, mas vale destaque para duas delas:
 \begin{enumerate}
@@ -878,8 +880,8 @@ dá a um programa a ilusão de que ele tem o monopólio do processador
 \citep{love:2005}. Cada processo tem a sua região de memória privada por
 padrão, e para que processos possam compartilhar memória, isso deve ser 
 explicitado no programa. Um exemplo onde isso pode ser feito é através das
-chamadas \texttt{shmget} do extinto \texttt{System V}, mas que ainda é
-suportado pelo Linux \citep{shmget}.
+chamadas \texttt{shmget} do extinto \texttt{System V}, mas cujo o Linux ainda
+oferece suporte \citep{shmget}.
 
 Cada processo contém pelo menos um fluxo de execução, e cada fluxo de
 execução é chamado de \textit{thread}. Cada \textit{thread} dentro
@@ -891,8 +893,8 @@ comunicação através de uma memória compartilhada.
 
 \begin{subsubsection}{Mecanismos de Sincronização}
 
-	Seja através de auxilio de \textit{hardware}, ou com algoritmos 
-puramente implementados em \textit{software}, o Sistema Operacional 
+	Seja através de auxílio de \textit{hardware}, ou com algoritmos
+puramente implementados em \textit{software}, o Sistema Operacional
 costuma fornecer mecanismos de sincronização para coordenar as várias
 \textit{threads} de um processo, ou até mesmo vários processos.
 
@@ -900,9 +902,9 @@ costuma fornecer mecanismos de sincronização para coordenar as várias
 \citep{dijkstra1965}.  Um semáforo nada mais é que um contador que assume
 valores não negativos com duas operações atômicas: \texttt{P} para
 decrementá-lo, e \texttt{V} para incrementá-lo. Quando o semáforo atinge o
-valor 0, a \textit{thread} que em sequência tentar decrementá-lo será bloqueado. A
-sua execução só será retomada quando o semáforo for novamente incrementado
-por outro processo \citep{semaphore}.
+valor 0, a \textit{thread} que em sequência tentar decrementá-lo será bloqueada. A
+sua execução apenas será retomada quando o semáforo for novamente incrementado
+por outra \textit{thread} \citep{semaphore}.
 
     Semáforos também podem ser utilizados para resolver o problema da
 seção crítica, que é uma seção de código que apenas uma \textit{thread}
@@ -938,7 +940,7 @@ As \textit{threads} bloqueadas somente voltarão a executar quando o
 
         function main()
             for i=1, 3 do
-                call f();
+                call f;
             done
         end
       \end{lstlisting}
@@ -950,9 +952,9 @@ Outro mecanismo de sincronização muito útil são as Barreiras. Uma barreira
 é um ponto no programa onde, assim que a \textit{thread} o executar, ela
 será bloqueada até que todas as \textit{threads} cheguem ao mesmo ponto, como
 ilustrado na Figura \ref{fig:barrier}.
-Isso é bastante útil para evitar com que \textit{threads} avancem na execução
+Isso é bastante útil para evitar que uma \textit{thread} avance na execução
 do código enquanto ela deveria estar aguardando o resultado da computação
-de outras \textit{threads}. Barrerias também costumam receber um parâmetro
+de outras \textit{threads}. As barrerias também costumam receber um parâmetro
 de inicialização indicando quantas \textit{threads} precisam atingir a
 barreira para que todas as \textit{threads} que a atingiu sejam desbloqueadas.
 
@@ -965,8 +967,8 @@ barreira para que todas as \textit{threads} que a atingiu sejam desbloqueadas.
 
 
 Por fim, exceto os semáforos, todos esses mecanismos mencionados acima são
-implementados na biblioteca \texttt{Pthread}. Já o Semáforos, este está
-disponível no Linux através da interface \texttt{semaphore.h}.
+implementados na biblioteca \texttt{Pthread}. Já os semáforos estão disponíveis
+no Linux através da interface \texttt{semaphore.h}.
 
 \end{subsubsection}
 
