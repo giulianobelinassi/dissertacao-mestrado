@@ -1,4 +1,5 @@
 \chapter{Fundamentação Teórica}
+\label{chap:fundamentacao}
 
 Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
 trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
@@ -183,20 +184,31 @@ poderosas requerem algoritmos computacionalmente mais custosos
 \citep{sipser2012}. Existem vários algoritmos para realizar a análise sintática,
 mas destacam-se:
 \begin{itemize}
-    \item LL($k$): Um algoritmo de caráter preditivo, que tenta construir a AST da
-        raiz para as folhas. Seu uso é devido a facilidade de codificação e
-        mensagens de erros mais informativas para o usuário.
+	\item Recursivo Descendente: Um algoritmo de caráter preditivo, que tenta
+	    construir a AST da raiz para as folhas. Uma característica desse algoritmo
+		é a sua facilidade de codificação, que utiliza chamadas de funções para
+		armazenar o contexto atual e progredir na análise conforme as regras da
+		gramática. Seu uso é devido a facilidade de codificação e mensagens de
+		erro mais informativas para o usuário.
+
+    \item LL($k$): Outro algoritmo de caráter preditivo, que tenta construir a AST da
+        raiz para as folhas. Aqui o algoritmo usa uma máquina de estados em conjunto
+		com uma pilha para armazenar o contexto atual. Sua codificação é mais
+		complexa que o anterior, e as mensagens de erro costumam ser mais precárias.
 
     \item LR($k$): Um algoritmo que tenta construir a AST das folhas para a raiz.
-          Sua codificação é mais complicada e as mensagens de erro são mais
-          precárias, porém conseguem processar gramáticas mais complexas que
+		  Assim como o LL($k$), este algoritmo também utiliza uma máquina de estados
+		  em conjunto com uma pilha, e sua codificação é mais complicada.
+          Porém, esse algoritmo consegue processar gramáticas mais complexas que
           o LL($k$), conforme proposto por \cite{knuth1965translation}. 
           Outra vantagem interessante é a existência de
           \textit{softwares} como o
           \texttt{Bison}\footnote{https://www.gnu.org/software/bison/}, capaz
           de gerar um analisador LR($1$) a partir da especificação da gramática.
 \end{itemize}
-	A complexidade destes dois algoritmos é $O(n)$, onde $n$ é o tamanho da entrada.
+	A complexidade os analisadores LL($k$) e LR($k$) é $O(n)$, onde $n$ 
+	é o tamanho da entrada. Já o Recursivo Descendente a complexidade pode variar
+	dependendo da implementação.
     Por fim, uma descrição mais detalhada do funcionamento destes algoritmos
 pode ser encontrada em \citep{appel2004modern}.
 
@@ -729,7 +741,7 @@ para a linguagem intermediária, otimização, tradução para a Linguagem Alvo,
 e encapsulamento no arquivo objeto), para em seguida eles sejam ligados por um
 linkeditor como o LD. Aqui nenhuma otimização é aplicada observando o programa
 como um todo, ou como as funções interagem entre si entre dois arquivos distintos,
-gerando possívelmente um código suboptimal. Usualmente, cada um desses arquivos
+gerando possivelmente um código suboptimal. Usualmente, cada um desses arquivos
 são compilados em paralelo através do auxilio do Makefile.
 
 
@@ -795,6 +807,8 @@ são compilados em paralelo através do auxilio do Makefile.
 \end{section}
 
 \begin{section}{Computação Paralela}
+\label{sec:parallel_comp}
+
     A Computação Paralela é o ato de coordenar vários fluxos de
 execução operando simultaneamente em um ou mais computadores para
 atingir um objetivo em comum. Ela se tornou uma tendência na
