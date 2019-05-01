@@ -17,20 +17,19 @@
 \chapter{Trabalhos Relacionados}
 \label{chap:related_works}
 
-Boa parte das pesquisa relacionada a paralelismo
-em compiladores é destinada a compiladores que paralelizam.
-% Sinceramente, não entendi o que significa a frase acima (do jeito que está me
-% pareceu uma informação óbvia, mas como era importante mencionar, acredito
-% que está faltando algo)
+Boa parte das pesquisas dedicada a paralelismo
+em compiladores é destinada ao desenvolvimento de compiladores que
+paralelizam o código fonte fornecido automaticamente.
 Há basicamente
 duas áreas de estudo relacionadas a paralelização de compiladores, são
 elas: análise de texto em paralelo e análise de fluxo de dados em paralelo.
 Estes trabalhos são apresentados em ordem cronológica nessa seção.
 
 Dos algoritmos apresentados na Seção \ref{chap:fundamentacao}, o algoritmo
-Recursivo Descendente é o mais simples deles. Este algoritmo foi utilizado por \cite{Lincoln:1970:PPT:987475.987478}
-para propor a paralelização da análise léxica de um compilador
-Fortran por meio da quebra do código fonte em partes menores. Para isso, o algoritmo proposto mapeia informações de final de
+Recursivo Descendente é o mais simples deles. \cite{Lincoln:1970:PPT:987475.987478}
+propôs a paralelização da análise léxica de um compilador
+Fortran por meio da quebra do código fonte em partes menores. Para isso, o algoritmo proposto mapeia
+informações de final de
 linha e de posicionamento de cada caractere e realiza um processamento através de operações em APL.
 Posteriormente, \cite{Krohn:1975:PAC:390015.808414} estendeu o trabalho
 anterior, propondo uma maneira de realizar a análise sintática, a
@@ -38,7 +37,7 @@ tradução para a AST, e a geração
 de código utilizando os registradores vetoriais do supercomputador
 STAR-100. Ambos os artigos não apresentam nenhuma
 análise assintótica para os algoritmos propostos, e tampouco apresentam
-experimentos. 
+experimentos.
 
 Posteriormente, \cite{Mickunas:1978:PCM:800127.804105} propôs uma
 paralelização do algoritmo LR($0$). Sua ideia consiste em quebrar
@@ -62,7 +61,7 @@ C escrito em Modula-2. Sua implementação consiste na execução de um analisad
 em paralelo a um analisador sintático, sendo os \textit{tokens} alimentados
 através de um \textit{pipeline}. O autor também propôs a paralelização de um
 analisador sintático recursivo descendente que, após a sequência de declarações do programa, executa novas \textit{threads}
-para cada expressão da gramática e tem 
+para cada expressão da gramática e tem
 como premissa que qualquer declaração de funções do programa está no
 cabeçalho do
 arquivo. Essa estratégia de granularidade fina necessitou a implementação de
@@ -91,7 +90,7 @@ processadas primeiro. Os experimentos conduzidos pelo autor mostraram
 processadores MicroVAX II em memória compartilhada.
 
 Os artigos apresentados até então não abordam questões relacionadas
-a otimização de código. Isso porque os compiladores naquela época possuiam poucos
+a otimização de código. Isso porque os compiladores naquela época possuíam poucos
 passos de otimização, o que implicava em pouco tempo necessário para fazê-la.
 Mesmo assim, alguns pesquisadores dedicaram-se a estudar esses passos.
 \cite{Lee1994} estudou maneiras de explorar paralelismo na análise de controle
@@ -99,27 +98,35 @@ de fluxo. Como justificativa para esse estudo, os autores afirmam que a maior pa
 do tempo gasto por compiladores otimizadores é com este tipo de análise,
 principalmente nas otimizações Inter Procedurais. 
 A investigação se concentrou em algoritmos que usam o grafo de controle
-de fluxo como entrada. Sabendo que o
-problema geral é NP-difícil, os autores propõem uma heurística de aglutinação
+de fluxo como entrada. Os autores propõe uma heurística de aglutinação
 para particionar tal grafo em regiões conexas e adjacentes de tamanho não maior
-que um certo inteiro $s$. Os experimentos da implementação utilizaram
+que um certo inteiro $s$. O uso da heurística é por razão do problema de
+de particionamento ser NP-difícil.
+Os experimentos da implementação utilizaram
 8 processadores do computador iPSC/2 em memória distribuída, e 
 obtiveram \textit{speedups} variando de
 $2.8 \times$ até $6.5\times$. Os autores argumentaram que o \textit{speedup} foi
 limitado devido as características dos programas no teste: os arquivos consistiam
 de várias funções pequenas, o que normalmente é considerado uma boa prática de
-programação. Uma outra forma de explorar o paralelismo nessas estruturas
-foi proposta por \cite{kramer1994combining}.
-%qual a diferença desse último em relação ao anterior?
+programação.
+
+Uma outra forma de explorar o paralelismo utilizando um Grafo Dirigido Acíclico
+foi proposta por \cite{kramer1994combining}. O autor mostra formas de propagar
+em paralelo as informações nesse grafo explorando seus caminhos independentes,
+e mostra uma maneira de transformar um Grafo de Controle de Fluxo com laços em
+um Grafo de Controle de Fluxos acíclico equivalente. Os experimentos realizados
+pelos autores apenas mostram oportunidades de paralelismo encontrada pelo
+algoritmo.
 
 Após estes resultados, houve um aparente hiato nas pesquisas relacionadas a
-compilação em paralelo, aparentemente causado pelo fato de um compilador ser
-um programa muito complexo, e dos processadores daquela época ainda serem, em sua grande
-maioria, sequenciais. Uma década depois, houve uma explosão de processadores
+compilação em paralelo. As possíveis razões são a complexidade de um compilador
+como programa, e o modelo dos processadores daquela época, que ainda eram
+majoritariamente sequenciais. Uma década depois, houve uma explosão de processadores
 paralelos e do poder computacional como um todo, como apresentado na Seção
-\ref{sec:parallel_comp}. Este ganho computacional levou às empresas a propor soluções mais eficazes para
-gerar código mais eficiente. Embora não diretamente relacionado a compiladores paralelos,
-algumas estruturas propostas neste período acabam tocando nesse tópico.
+\ref{sec:parallel_comp}. Este ganho computacional levou às empresas a propor soluções
+ainda mais complexas para
+gerar código mais eficiente. Embora apresentadas como maneiras de otimizar o código
+dado como entrada, há relação nessas soluções com paralelismo em compiladores.
 
 \cite{whoprgoogle} propôs uma alteração no
 compilador GCC com a finalidade
@@ -145,8 +152,9 @@ A Figura \ref{fig:whopr_build} retrata este processo. Essa proposta foi implemen
 no GCC \citep{glek2010optimizing} com o nome de
 \textit{Link Time Optimization} (LTO). A granularidade
 escolhida na etapa LGEN foi paralelismo por arquivo. Já na LTRANS a granularidade
-escolhida foram partições do arquivo objeto, o que possibilitou, como consequência, a otimização de
-funções de um arquivo em paralelo. Os autores testaram essa implementação com o
+escolhida foram partições do arquivo objeto, o que possibilitou, como
+consequência, a otimização de funções de um arquivo em paralelo. Os autores
+testaram essa implementação com o
 código fonte do Mozilla Firefox e do GCC, e relataram que o GCC construiu
 binários menores e mais rápidos. Os autores relataram que essa implementação tornou
 o processo de autocompilação do GCC duas vezes mais lenta,
