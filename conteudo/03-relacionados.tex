@@ -17,26 +17,27 @@
 \chapter{Trabalhos Relacionados}
 \label{chap:related_works}
 
-Nesta seção é discutido trabalhos relacionados a paralelização de compiladores.
-É importante mencionar que boa parte das pesquisa relacionada a paralelismo
-em compiladores é destinada a compiladores que paralelizam. Há basicamente
+Boa parte das pesquisa relacionada a paralelismo
+em compiladores é destinada a compiladores que paralelizam.
+% Sinceramente, não entendi o que significa a frase acima (do jeito que está me
+% pareceu uma informação óbvia, mas como era importante mencionar, acredito
+% que está faltando algo)
+Há basicamente
 duas áreas de estudo relacionadas a paralelização de compiladores, são
-elas: análise de texto em paralelo, e análise de fluxo de dados em paralelo.
-Estes trabalhos também são abordados nessa seção, em ordem cronológica.
+elas: análise de texto em paralelo e análise de fluxo de dados em paralelo.
+Estes trabalhos são apresentados em ordem cronológica nessa seção.
 
 Dos algoritmos apresentados na Seção \ref{chap:fundamentacao}, o algoritmo
-Recursivo Descendente é o mais simples deles. \cite{Lincoln:1970:PPT:987475.987478}
-propôs uma maneira de paralelizar a análise léxica de um compilador
-Fortran simplesmente quebrando o código fonte em partes, mapeando as
-informações de final de
-linha e a posição de cada caractere, e realizando o processamento
-através de operações em APL.
+Recursivo Descendente é o mais simples deles. Este algoritmo foi utilizado por \cite{Lincoln:1970:PPT:987475.987478}
+para propor a paralelização da análise léxica de um compilador
+Fortran por meio da quebra do código fonte em partes menores. Para isso, o algoritmo proposto mapeia informações de final de
+linha e de posicionamento de cada caractere e realiza um processamento através de operações em APL.
 Posteriormente, \cite{Krohn:1975:PAC:390015.808414} estendeu o trabalho
 anterior, propondo uma maneira de realizar a análise sintática, a
 tradução para a AST, e a geração
 de código utilizando os registradores vetoriais do supercomputador
-STAR-100. Ambos os artigos também não apresentam nenhuma
-análise assintótica para os algoritmos propostos, e também não apresentam
+STAR-100. Ambos os artigos não apresentam nenhuma
+análise assintótica para os algoritmos propostos, e tampouco apresentam
 experimentos. 
 
 Posteriormente, \cite{Mickunas:1978:PCM:800127.804105} propôs uma
@@ -45,36 +46,36 @@ arbitrariamente a entrada em vários segmentos e executar um analisador em paral
 em cada um destes segmentos. Estes analisadores (exceto o primeiro,
 que executa no inicio da entrada) são modificados na tentativa de
 evitar conflitos, uma vez que modificar a ordem de inicio da análise
-pode impossibilitar distinguir entre o prefixo e o sufixo de uma fase.
+pode impossibilitar a distinção entre o prefixo e o sufixo de uma fase.
 Quando um conflito é detectado, o analisador envia a sequência de
-\textit{tokens} lido até então ao analisador à sua esquerda,
+\textit{tokens} lida até então ao analisador à sua esquerda,
 retorna ao estado inicial, e reinicia a sua análise.
 No termino da análise, cada analisador envia o resultado para o analisador
-a sua esquerda, acumulando o resultando no primeiro analisador.
+a sua esquerda, acumulando o resultando no primeiro.
 Os autores não mostraram experimentos ou
 análise assintótica do algoritmo proposto. \cite{Pennello:1978:FMA:512760.512786}
 implementou essa estratégia em um compilador Pascal, mas seus experimentos foram
 realizados em um computador paralelo simulado.
 
 \cite{vandevoorde1988parallel} paralelizou o \textit{Titan C compiler}, um compilador
-C escrito em Modula-2. Sua implementação utiliza um analisador léxico executando
-paralelamente ao analisador sintático, e os \textit{tokens} são alimentados
-através de um \textit{pipeline}. Ele também propôs uma paralelização de um
-analisador sintático recursivo descendente, executando novas \textit{threads}
-para cada expressão da gramática após a sequência de declarações do programa,
-usando como premissa que qualquer declaração de funções do programa está no
+C escrito em Modula-2. Sua implementação consiste na execução de um analisador léxico
+em paralelo a um analisador sintático, sendo os \textit{tokens} alimentados
+através de um \textit{pipeline}. O autor também propôs a paralelização de um
+analisador sintático recursivo descendente que, após a sequência de declarações do programa, executa novas \textit{threads}
+para cada expressão da gramática e tem 
+como premissa que qualquer declaração de funções do programa está no
 cabeçalho do
 arquivo. Essa estratégia de granularidade fina necessitou a implementação de
 uma maneira de controlar o paralelismo, onde foi utilizado o conceito de
-WorkCrews \citep{vandevoorde1988workcrews}, limitando o número máximo de
+WorkCrews \citep{vandevoorde1988workcrews} que limita o número máximo de
 \textit{threads} em execução simultânea. O autor relata um ganho de 10\% no
 uso do \textit{pipeline} entre o analisador léxico e sintático, e um
 \textit{speedup} de até $3.1\times$ utilizando 5 processadores MicroVax II em
-memória compartilhada.  Entretanto, o compilador não possui estágios de
-otimização e o autor não discute como paralelizar um otimizador.
+memória compartilhada. Entretanto, tal compilador não possui estágios de
+otimização, e assim, métodos de paralelização de um otimizador não foram discutidos neste trabalho.
 
 De maneira similar, \cite{wortman1992} construiu um compilador de Modula-2+
-paralelo. A estratégia proposta é utilizar um analisador léxico capaz de
+paralelo. A estratégia consiste em utilizar um analisador léxico capaz de
 encontrar funções no código fonte e prosseguir com a compilação em paralelo
 nesse nível, gerando uma tarefa para cada função. Para solucionar problemas
 relacionados a chamada de funções e
@@ -82,79 +83,81 @@ acesso a símbolos ainda não definidos, o autor propõe o uso de
 uma lógica ternária na tabela de símbolos, especificando um estado
 ``\textit{Doesn't know yet}'' (Ainda não visto), e propõe três estratégias para
 implementar essa funcionalidade. Em seguida, o autor propõe o uso de
-um número fixo de \textit{threads} trabalhadoras, e o uso de uma fila de
+um número fixo de \textit{threads} trabalhadoras, e também o uso de uma fila de
 prioridade produtor consumidor, onde as \textit{threads} deverão retirar o trabalho.
-O uso de uma fila de prioridade permite com que as funções mais longas sejam
+O uso de uma fila de prioridade permite que as funções mais longas sejam
 processadas primeiro. Os experimentos conduzidos pelo autor mostraram
 \textit{speedups} variando de $1.5\times$ até $6\times$ utilizando 8
 processadores MicroVAX II em memória compartilhada.
 
-Deve ser destacado que os artigos até então não abordam questões relacionadas
-a otimização de código. Isso porque os compiladores até então haviam poucos
+Os artigos apresentados até então não abordam questões relacionadas
+a otimização de código. Isso porque os compiladores naquela época possuiam poucos
 passos de otimização, o que implicava em pouco tempo necessário para fazê-la.
 Mesmo assim, alguns pesquisadores dedicaram-se a estudar esses passos.
 \cite{Lee1994} estudou maneiras de explorar paralelismo na análise de controle
-de fluxo. Os autores argumentam que os compiladores otimizadores gastam a maior
-parte do tempo realizando tais análises, principalmente nas otimizações Inter
-Procedurais. A análise se concentra em algoritmos que usam o grafo de controle
-de fluxo como entrada, sendo assim os autores propõem uma heurística de aglutinação
+de fluxo. Como justificativa para esse estudo, os autores afirmam que a maior parte
+do tempo gasto por compiladores otimizadores é com este tipo de análise,
+principalmente nas otimizações Inter Procedurais. 
+A investigação se concentrou em algoritmos que usam o grafo de controle
+de fluxo como entrada. Sabendo que o
+problema geral é NP-difícil, os autores propõem uma heurística de aglutinação
 para particionar tal grafo em regiões conexas e adjacentes de tamanho não maior
-que um certo inteiro $s$, já que o
-problema geral é NP-difícil. Os autores experimentam sua implementação utilizando
+que um certo inteiro $s$. Os experimentos da implementação utilizaram
 8 processadores do computador iPSC/2 em memória distribuída, e 
-relatam \textit{speedups} variando de
-$2.8 \times$ até $6.5\times$. Os autores relataram que o \textit{speedup} foi
-limitado pela característica dos programas no teste: os arquivos consistiam
+obtiveram \textit{speedups} variando de
+$2.8 \times$ até $6.5\times$. Os autores argumentaram que o \textit{speedup} foi
+limitado devido as características dos programas no teste: os arquivos consistiam
 de várias funções pequenas, o que normalmente é considerado uma boa prática de
 programação. Uma outra forma de explorar o paralelismo nessas estruturas
 foi proposta por \cite{kramer1994combining}.
+%qual a diferença desse último em relação ao anterior?
 
 Após estes resultados, houve um aparente hiato nas pesquisas relacionadas a
-compilação em paralelo. Uma causa possível é o fato de um compilador ser
-um programa muito complexo, e os processadores até então ainda serem, em sua grande
+compilação em paralelo, aparentemente causado pelo fato de um compilador ser
+um programa muito complexo, e dos processadores daquela época ainda serem, em sua grande
 maioria, sequenciais. Uma década depois, houve uma explosão de processadores
-paralelos e poder computacional como um todo, como apresentado na Seção
-\ref{sec:parallel_comp}, o que levou a empresas propor soluções mais eficazes para
+paralelos e do poder computacional como um todo, como apresentado na Seção
+\ref{sec:parallel_comp}. Este ganho computacional levou às empresas a propor soluções mais eficazes para
 gerar código mais eficiente. Embora não diretamente relacionado a compiladores paralelos,
-algumas estruturas propostas acabam tocando nesse tópico.
+algumas estruturas propostas neste período acabam tocando nesse tópico.
 
 \cite{whoprgoogle} propôs uma alteração no
 compilador GCC com a finalidade
 de possibilitar otimizações no programa como um todo. A alteração consiste
 em construir um grafo de chamadas de função em relação a todo o programa,
 ao contrário do modelo clássico, em que cada módulo é compilado independentemente.
-Esse processo consiste em três etapas:
+Esse processo é composto por três etapas:
 \begin{enumerate}
     \item \textit{Local Generation } (LGEN). Cada função do programa é compilado
         na Linguagem Intermediária, em conjunto com o grafo de chamadas de função.
-        Esse estágio pode executar em paralelo.
+        Esse estágio pode ser executado em paralelo.
 
     \item \textit{Whole Program Analysis} (WPA). O grafo de chamadas de função global
-        é construído, e é decidido quais otimizações efetuar. Essa estágio
+        é construído e as otimizações a serem efetuadas são selecionadas. Esse estágio
         deve ser executado sequencialmente.
 
     \item \textit{Local Transformations} (LTRANS). Todas as decisões aplicadas na
-        etapa 2 são implementadas localmente, e o código objeto final é gerado.
+        etapa 2 são implementadas localmente e o código objeto final é gerado.
         Esse estágio pode executar em paralelo.
 \end{enumerate}
 
 A Figura \ref{fig:whopr_build} retrata este processo. Essa proposta foi implementada
 no GCC \citep{glek2010optimizing} com o nome de
 \textit{Link Time Optimization} (LTO). A granularidade
-escolhida na etapa LGEN foi paralelismo por arquivo, já na LTRANS a granularidade
-escolhida são partições do arquivo objeto, e por consequência é possível otimizar
+escolhida na etapa LGEN foi paralelismo por arquivo. Já na LTRANS a granularidade
+escolhida foram partições do arquivo objeto, o que possibilitou, como consequência, a otimização de
 funções de um arquivo em paralelo. Os autores testaram essa implementação com o
 código fonte do Mozilla Firefox e do GCC, e relataram que o GCC construiu
-binários menores e mais rápidos. Os autores relataram que esse processo tornou
+binários menores e mais rápidos. Os autores relataram que essa implementação tornou
 o processo de autocompilação do GCC duas vezes mais lenta,
 mas que também houve um ganho de 20 minutos na compilação do Firefox. Em todos os
 casos relatados, os passos de otimização Intra Procedural consumiu mais tempo.
 \cite{livska2014optimizing} completa a análise dessa funcionalidade.
-Um dos problemas que surgem é o uso elevado de memória para carregar o grafo de
-chamadas de função global, necessário na fase WPA, chega a 12Gb na compilação do
-Chromium e 15Gb na compilação do Kernel Linux. A maior crítica a esse processo
-era o tempo necessário para recompilar todo o programa quando uma simples alteração
-era efetuada em um único arquivo, inviabilizando um desenvolvimento incremental.
+Um dos problemas encontrados foi o uso elevado de memória para carregar o grafo de
+chamadas de função global necessário na fase WPA, que atingiu 12Gb na compilação do
+Chromium e 15Gb na compilação do Kernel Linux. A maior crítica desse processo
+foi o tempo necessário para recompilar todo o programa quando uma simples alteração
+era efetuada em um único arquivo, o que inviabilizava um desenvolvimento incremental.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -243,10 +246,10 @@ Considerando o alto uso de memória e tempo de compilação nos casos relatados
 acima, \cite{Johnson:2017:TSI:3049832.3049845} propôs o ThinLTO. A ideia é
 considerar apenas parte do grafo global a cada vez, evitando carregá-lo
 completamente na memória; e postergar ao máximo aplicar as otimizações possíveis,
-realizando apenas análises de maneira sequencial, e aplicando-as no 
+realizando apenas análises de maneira sequencial e aplicando-as no 
 \textit{backend} em paralelo.
 Os autores relataram um \textit{speedup} de até $15\times$ quando comparado a
-implementação do LTO original do Clang, e até $4\times$ quando comparado a
+implementação do LTO original do Clang e até $4\times$ quando comparado a
 implementação do LTO do GCC. Os autores também relataram uma diminuição considerável
 no consumo de memória quando comparado ao LTO do GCC: Redução de 2.9Gb para 1Gb
 na compilação do Clang, 10.8Gb para 1.0Gb no Chromium, e permitiu melhores otimizações no
@@ -258,7 +261,7 @@ também melhorou significativamente quando comparado ao LTO original,
 mas permaneceu pior em todos os casos quando comparado ao processo clássico de
 compilação.
 
-Houve também um renascimento nas pesquisas de análise sintática em paralelo.
+Houve também nas pesquisas um renascimento de análise sintática em paralelo.
 \cite{Barenghi:2015:PPM:2839536.2840146} encontrou uma maneira de explorar
 a propriedade de Análise Local em Gramáticas com Precedência de Operadores.
 Isso permitiu a construção de um gerador de analisadores sintáticos
