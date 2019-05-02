@@ -21,6 +21,10 @@ de paralelismo, e quais problemas devem ser atacados em trabalhos futuros.
 Espera-se utilizar os resultados do item 1.
 \end{enumerate}
 
+A primeira contribuição será enviada ao GCC também como uma contribuição
+ao projeto. O projeto de paralelização foi submetido para o GSoC 2019,
+conforme o Apendice 1.
+
 
 \section{Paralelização do GCC com \textit{threads}}
 
@@ -48,7 +52,7 @@ Como a alteração no Make é razoavelmente complicada e o \textit{script} propo
 havia sérios problemas de estabilidade, foi desenvolvido uma outra maneira
 de replicar os resultados.
 
-Como desenvolvido e disponibilizado publicamente por \cite{gcctimer}, essa
+Como desenvolvido e publicado por \cite{gcctimer}, essa
 ferramenta é capaz de coletar e exibir dados referente ao tempo de compilação
 de cada arquivo no GCC, incluindo os testes gerados pelo GNU Autotools.
 A ferramenta funciona da seguinte forma: há um programa escrito em C chamado
@@ -67,13 +71,75 @@ no arquivo por razão de escrita simultânea no arquivo.
 
 Em seguida, foi codificado um programa em \textit{Python} para análise dos
 resultados. Esse programa é responsável por gerar os gráficos conforme
-mostrado na Figura \ref{fig:analysis_classical}. Em um dos eixos há o 
+mostrado na Figura \ref{fig:analysis_classical}. Em um dos eixos há o
 tempo de execução, no outro há
 o trabalho do Makefile. Para construir tal gráfico é utilizado a técnica
 de coloração em grafos de intervalos, que pode ser resolvido otimamente
 em $O(n \log n)$, onde $n$ é o número de arquivos, embora o algoritmo
 implementado seja $O(n^2)$.
 
+\subsection{Inverstigação do Tempo Consumido na Compilação}
+
+Uma investigação foi conduzida com a finalidade de encontrar o gargalo
+principal no processo de compilação do GCC. Todos os testes efetuados foram
+executados em um computador com um AMD Opteron 6376 (64 núcleos) executando
+o Debian 9.
+
+Novamente na Figura \ref{fig:analysis_classical}, é possível notar dois
+itens, independente da quantidade de execuções do experimento:
+
+\begin{itemize}
+    \item A existência de arquivos como o \texttt{gimple-match.c}, que
+        geram um gargalo no paralelismo do GCC.
+
+    \item Várias etapas sequẽnciais executadas pelo GNU Autoconf.
+\end{itemize}
+
+O arquvio \texttt{gimple-match.c} é gerado automaticamente compilando
+o arquivo \texttt{match.pd} para C. Na versão 9.0.1 do GCC, o arquivo
+gerado contém exatamente 99329 linhas de código. Espera-se que o tempo
+de compilação do \texttt{gimple-match.c} diminua, junto com todo o
+processo de compilação, ao paralelizar o GCC com \textit{threads}.
+
+Analisando o tempo necessário para compilar o arquivo \texttt{gimple-match.c},
+nota-se que:
+\begin{itemize}
+    \item São necessários em média 76 segundos para compilar tal arquivo.
+
+    \item 91\% desse tempo (69 segundos) são utilizados na etapa de otimização
+        e geração de código final.
+
+    \item 8\% desse tempo (6 segundos) são utilizados na etapa de análise léxica
+        e sintática.
+
+    \item O outro 1\% está distribuído em diversas partes do compilador.
+\end{itemize}
+Todos estes dados foram obtidos autocompilando o GCC 9.0.1, e utilizando a 
+ferramenta de \textit{profiling} incorporada
+no GCC através das flags \texttt{-ftime-report} \texttt{-ftime-report-details}.
+
+Como as otimizações do GCC são divididas em IPA, GIMPLE e RTL, é necessário
+executar uma granularidade mais fina na análise. Com uma simples alteração
+no GCC, foi possível separar a etapa IPA das demais. Bastou embrulhar a função
+\texttt{ipa\_passes()} e \texttt{expand\_all\_functions()} com duas\textit{timevars}.
+Assim, os dados são:
+\begin{itemize}
+    \item 75\% do tempo total de compilação (57s) é gasto nos passos de otimização
+        Intra Procedural e geração de código.
+
+    \item 11\% do tempo total de compilação (11s) é gasto para realizar as IPA.
+\end{itemize}
+Sendo assim, o principal candidato a paralelização é a função \texttt{expand\_all\_functions()}.
+Entretanto, para realizar tal paralelização, será necessário documentar e remover diversas
+variáveis globais do GCC de maneira que seja possível realizar paralelismo com \textit{threads}.
+
+\subsection{\textit{Speedup} Esperado}
+
+Conforme analisado acima, se paralelizarmos as etapas de otmização Intra Procedural e Geração de
+Código, é possível paralelizar 75\% do tempo total. Sendo assim, seja $p$ o número de processadores
+utilizados. Assumindo \textit{speedup} linear, o ganho máximo será:
+
+$$ T_n = \frac{1}{4} T_1 + \frac{3}{4n}T_1 $$
 
 \begin{figure}[ht]
  \centering
