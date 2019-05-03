@@ -2,37 +2,38 @@
 % automaticamente a referência para o próprio documento, conforme as normas
 % sugeridas da USP
 \begin{resumo}{port}
-Elemento obrigatório, constituído de uma sequência de frases concisas e
-objetivas, em forma de texto.  Deve apresentar os objetivos, métodos empregados,
-resultados e conclusões.  O resumo deve ser redigido em parágrafo único, conter
-no máximo 500 palavras e ser seguido dos termos representativos do conteúdo do
-trabalho (palavras-chave). Deve ser precedido da referência do documento.
-Texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto.
-Texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto texto texto texto texto texto texto texto texto texto texto texto
-texto texto.
+    Compiladores são grandes programas destinados a tradução de
+    códigos fonte entre linguagens de programação distintas, e 
+    atualmente estão sendo 
+    paralelizados para melhor utilizar os recursos dos processadores
+    \textit{manycore} através de técnicas de compilação como o LTO.
+    Entretanto tal técnica costuma desacelerar o processo de desenvolvimento
+    incremental de programas de computador, e pode gerar binários menos eficientes 
+    que o processo
+    clássico de compilação em alguns casos. Esse trabalho propõe uma
+    alternativa ao LTO, explorando melhor o paralelismo no
+    processo clássico de compilação através de paralelismo interno em um compilador,
+    e discute técnicas de que podem
+    ser empregadas para o paralelismo em compiladores no geral. 
+    Para validar os resultados, algumas das técnicas discutidas são implementadas no 
+    GCC, e são realizadas análises no tempo total de compilação do projeto GCC
+    e arquivos separados através de técnicas de inferência estatística.
 \end{resumo}
 
 % O resumo é obrigatório, em português e inglês. Este comando também gera
 % automaticamente a referência para o próprio documento, conforme as normas
 % sugeridas da USP
 \begin{resumo}{eng}
-Elemento obrigatório, elaborado com as mesmas características do resumo em
-língua portuguesa. De acordo com o Regimento da Pós-Graduação da USP (Artigo
-99), deve ser redigido em inglês para fins de divulgação. É uma boa ideia usar
-o sítio \url{www.grammarly.com} na preparação de textos em inglês.
-Text text text text text text text text text text text text text text text text
-text text text text text text text text text text text text text text text text
-text text text text text text text text text text text text text text text text
-text text text text text text text text text text text text.
-Text text text text text text text text text text text text text text text text
-text text text text text text text text text text text text text text text text
-text text text.
+Compilers are huge software destinated to translate the source code between
+distinct programming languages, and currently they are being parallelized to better
+use multicore resources using compiling techniques such as LTO. This technique
+usually slows down the process of interactively software development, and can
+sometimes generate less efficient binaries when compared to the classical
+compilation process. This thesis proposes an alternative to LTO by
+better exploring the parallelism in the classical compilation method by
+parallelizing the compiler internals, with a discussion of techniques that can
+be deployed to parallelize compilers in general. To validate the obtained
+results, some of the techniques discussed here are implemented in GCC, and
+analyses are performed in the total compilation time of the GCC project and
+separated files using statistical inference techniques.
 \end{resumo}
