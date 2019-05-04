@@ -471,14 +471,14 @@ o código já implementado nas etapas anteriores.
 A coleção de compiladores da GNU, também conhecido como GCC, é um projeto
 iniciado por Richard Stallman com a primeira versão disponibilizada ao público
 em Março de 1987. Tal versão apenas fornecia suporte a linguagem C, mas já permitia
-    gerar código para diversas arquiteturas \citep{gcc_first_ver}.
-Hoje, o GCC oferece suporte a diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
+gerar código para diversas arquiteturas \citep{gcc_first_ver}.
+Hoje, o GCC fornece suporte a diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
 e várias arquiteturas, como i386, amd64, riscv, arm, ppc, pdp-11. O GCC também
 é um compilador otimizador, ou seja, ele é capaz de alterar o código fornecido
 pelo usuário com a finalidade de gerar código mais eficiente, sem alterar a semântica do programa. Isso é
 possível por conta das várias Linguagens Intermediárias implementadas no
-GCC. São estas: GENERIC, GIMPLE, e RTL. O compilador executa vários
-passos de otimização em cada uma dessas linguagens intermediárias.
+GCC: GENERIC, GIMPLE, e RTL, onde, em cada uma delas, o compilador executa vários
+passos de otimização.
 
 \begin{subsection}{GENERIC}
 
@@ -486,12 +486,15 @@ passos de otimização em cada uma dessas linguagens intermediárias.
 funções do programa através de árvores. Tal linguagem é um superconjunto
 das funcionalidades e atributos que cada Linguagem Fonte contém, por exemplo, atributos
 como \texttt{volatile} de C e C++ contém uma representação nessa linguagem.
-Outras funcionalidades são: Chamadas de função, declaração de variáveis, classes,
+Outras funcionalidades são: chamadas de função; declaração de variáveis, classes,
 funções, expressões, entre outros \citep{generic}.
+%Essa parte de outras funcionalidades, não sei se separei certo, mas não estava claro a enumeração
 
     Essa linguagem contém uma representação mais próxima de como o programa foi
 escrito pelo programador, ou seja, raramente são feitas modificações nas expressões,
-que aqui estão representadas como originalmente. Sendo assim, essa linguagem
+que aqui estão representadas como originalmente.
+% Não entendi "que aqui estão representadas como originalmente"
+Sendo assim, essa linguagem
 intermediária não se enquadra nas categorias de \textit{Three Address Code},
 ou \textit{Static Single Assignment}. O objetivo principal dessa linguagem
 é facilitar a tradução para a próxima linguagem intermediária, a GIMPLE, e assim
@@ -507,7 +510,7 @@ com que diversas simplificações matemáticas sejam implementadas no código, o
 que pode significar uma melhora de até $10\times$ em casos particulares
 \citep{sinatan}.
 
-    Por fim, cada um dos \textit{Front End} do GCC é responsável por traduzir o
+    Por fim, cada \textit{Front End} do GCC é responsável por traduzir o
 código fonte para esta linguagem intermediária. Para visualizar um programa
 nessa representação, basta compilá-lo utilizando o atributo
 \texttt{-fdump-tree-original}.
@@ -526,7 +529,7 @@ intermediaria é baseada na linguagem SIMPLE, do compilador McCAT \citep{gimple}
 grande parte das otimizações livre de arquitetura são aplicadas, e portanto o
 GIMPLE fornece uma \textit{Application Programming Interface} (API) detalhada
 para efetuar alterações no código, incluindo a representação em forma SSA para análise
-de fluxo, que os passos de otimização deverão utilizar.
+de fluxo que os passos de otimização deverão utilizar.
 
     Por fim, o compilador pode ser instruído a escrever o código em
 GIMPLE através da opção \texttt{-fdump-tree-gimple}, ou então usando
