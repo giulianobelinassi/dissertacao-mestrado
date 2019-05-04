@@ -7,21 +7,21 @@ de maneira a entender, ao menos superficialmente, os passos de compilação.
 Em seguida, discute-se como o compilador GCC apresenta esses tópicos implementados,
 além do seu uso clássico do processo de compilação de um programa. Por fim, são
 apresentados alguns conceitos e algoritmos básicos sobre Computação Paralela.
+%tá lindo
 
 \begin{section}{Compiladores}
 
 Para evitar confusões a respeito das diferentes linguagens que um compilador
 trabalha em seus muitos estágios, vamos adotar a seguinte nomenclatura:
-Denote como \textit{Linguagem Fonte} como sendo a linguagem
+Denote \textit{Linguagem Fonte} como sendo a linguagem
 na qual o código fonte do programa a ser compilado foi originalmente escrito;
 \textit{Linguagem Intermediária} uma das linguagens internas do compilador; e
 \textit{Linguagem Alvo} a linguagem na qual o compilador deverá gerar código.
 
-
 Compiladores são grandes projetos destinados a tradução de códigos fonte
 entre distintas linguagens de programação. Normalmente, compiladores traduzem
 linguagens de alto nível, como C, para linguagens mais próximas da máquina,
-como a linguagem de montagem, embora isso não seja uma regra pois existem
+como a linguagem de montagem - embora isso não seja uma regra pois existem
 compiladores cuja única tarefa é realizar uma tradução entre duas linguagens
 de alto nível.
 
@@ -39,8 +39,8 @@ compiladores \citep{redhat} \citep{llvm}, conforme ilustrado na Figura \ref{fig:
 \begin{itemize}
     \item Um \textit{Front End} para cada Linguagem Fonte.
 	Neste módulo são executadas as análises léxica e sintática, com a
-        finalidade de construir uma Árvore de Sintaxe Abstrata (AST), para que em
-seguida ela seja convertida para uma Linguagem Intermediária do compilador.
+        finalidade de construir uma Árvore de Sintaxe Abstrata(AST), para que, em
+seguida, ela seja convertida para uma Linguagem Intermediária do compilador.
 
     \item Um \textit{Middle End}, responsável por aplicar diversas otimizações
 independentes de arquitetura no código já convertido para a Linguagem Intermediária.
@@ -52,7 +52,7 @@ como alocação de registradores.
 \end{itemize}
 
 Porém, essa modularização é opcional: compiladores mais antigos destinados a fazer uma
-conversão direta entre duas linguagens, como o UNIX C Compiler,  não costumam usar uma linguagem
+conversão direta entre duas linguagens, como o UNIX C Compiler, não costumam usar uma linguagem
 intermediária \citep{ritchie1979tour}, além de diversos livros-texto não mencionarem tal módulo, fundindo suas
 funcionalidades com o \textit{Front End} \citep{dragonbook}. Não adotar tal metodologia
 simplifica o projeto, mas dificulta a inserção de suporte a novas
@@ -114,7 +114,7 @@ código escrito na Linguagem Fonte a ser compilado. Ele costuma ser único
 para cada Linguagem Fonte, ou seja, para inserir suporte a uma nova
 Linguagem Alvo, basta implementar um novo \textit{Front End}, mas é 
 possível que algumas classes sejam
-compartilhadas, como no caso de um compilador que dê suporte ambos C e C++. 
+compartilhadas, como no caso de um compilador que dê suporte tanto para C quanto para C++. 
 
 
 Como primeiro passo, \textit {Front End} realiza uma análise
@@ -174,8 +174,8 @@ sejam bastante eficientes.
 
     Em sequência, o Analisador Sintático entra em cena. O analisador sintático é
 responsável por gerar a Árvore de Sintaxe Abstrata (AST), inspecionando a
-sequência de \textit{tokens} fornecido pelo Analisador Léxico. Neste processo,
-ele certifica-se que o código fonte respeita a gramática da linguagem,
+sequência de \textit{tokens} fornecida pelo Analisador Léxico. Neste processo,
+ele certifica-se de que o código fonte respeita a gramática da linguagem,
 apontando erros caso contrário.
 
     Analisadores Sintáticos se apoiam nas gramáticas não ambíguas que geram uma
@@ -198,22 +198,22 @@ mas destacam-se:
 
     \item LR($k$): Um algoritmo que tenta construir a AST das folhas para a raiz.
 		  Assim como o LL($k$), este algoritmo também utiliza uma máquina de estados
-		  em conjunto com uma pilha, e sua codificação é mais complicada.
-          Porém, esse algoritmo consegue processar gramáticas mais complexas que
+		  em conjunto com uma pilha. Apesar de sua codificação ser mais complicada,
+          esse algoritmo consegue processar gramáticas mais complexas que
           o LL($k$), conforme proposto por \cite{knuth1965translation}. 
           Outra vantagem interessante é a existência de
           \textit{softwares} como o
           \texttt{Bison}\footnote{https://www.gnu.org/software/bison/}, capaz
           de gerar um analisador LR($1$) a partir da especificação da gramática.
 \end{itemize}
-	A complexidade os analisadores LL($k$) e LR($k$) é $O(n)$, onde $n$ 
+	A complexidade dos analisadores LL($k$) e LR($k$) é $O(n)$, onde $n$ 
 	é o tamanho da entrada. Já o Recursivo Descendente a complexidade pode variar
 	dependendo da implementação.
     Por fim, uma descrição mais detalhada do funcionamento destes algoritmos
 pode ser encontrada em \citep{appel2004modern}.
 
     Uma vez gerada a AST, é possível fazer verificações extras de semântica
-relacionada a linguagem de programação, e em seguida essa AST normalmente é
+relacionada a linguagem de programação. Em seguida, essa AST normalmente é
 traduzida para uma linguagem intermediária, onde serão feitas otimizações
 independentes da linguagem alvo no código. Por fim, o controle é passado
 para o \textit{Middle End} do compilador.
@@ -222,7 +222,7 @@ para o \textit{Middle End} do compilador.
 
 \begin{subsection}{\textit{Middle End}}
 
-    O \textit{Middle End} é responsável por trabalhar nas uma ou mais
+    O \textit{Middle End} é responsável por trabalhar em uma ou mais
  Linguagens Intermediárias do compilador, com a finalidade de efetuar
 otimizações no código e possíveis checagens de erro que possam ser
 postergadas até essa fase. Essas linguagens devem ser projetadas
@@ -235,7 +235,6 @@ a \textit{Static Single Assignment} (SSA).
 
 \begin{subsubsection}{\textit{Three-Address Code}}
 
-
 Nesta representação, expressões como $a*x + b$ são
 representadas como:
 $$ t_1 = a*x$$
@@ -244,31 +243,30 @@ $$ t_2 = t_1 + b $$
 ou seja, todas as expressões são transformadas em uma sequência de expressões
 contendo apenas dois operandos e uma operação de atribuição. Para isso,
 novas variáveis são declaradas para conter os valores intermediários
-possibilitando também a remoção de sub-expressões em comum.  Também nesta
-linguagem, laços e o fluxo de código são transformados em uma sequência de
+possibilitando também a remoção de sub-expressões em comum. Também nesta
+linguagem, fluxo de código e laços são transformados em uma sequência de
 \texttt{if} e \texttt{goto} para facilitar a construção de um grafo de
 controle de fluxo, possibilitando análises nessa estrutura.
-
 Esta representação é demasiada útil por facilitar o processo de alocação
-de registradores por representar com fidelidade a maneira de como os processadores
-operam instruções aritméticas \citep{lattner2002llvm}.
+de registradores, uma vez que nela, a maneira de como os processadores
+operam instruções aritméticas é representada com fidelidade\citep{lattner2002llvm}.
 
 \end{subsubsection}
 \begin{subsubsection}{\textit{Static Single Assignment}}
 
 O \textit{Static Single Assignment} (SSA) é uma linguagem intermediária
 onde uma variável é atribuída uma única vez. Sendo assim, toda vez que
-uma variável no código original é modificada, na representação SSA é necessário criar uma
+uma variável no código original é modificada, é necessário criar na representação SSA uma
 nova variável para registrar essa atribuição. Isto facilita diversas
-otimizações no controle de fluxo do programa, e possibilita a remoção
+otimizações no controle de fluxo do programa, assim como possibilita a remoção
 de variáveis não utilizadas ou que não serão mais utilizadas em um
 trecho de código, processo conhecido como \textit{Liveness Analysis}.
 
 \vspace*{-0.5cm}
-Entretanto, isso pode gerar um problema quando essa representação é
-    usada em conjunto com um fluxo de execução, como \texttt{if-else}. Considere o código
+Entretanto, quando essa representação é
+    usada em conjunto com um fluxo de execução, como \texttt{if-else}, isso pode gerar um problema. Considere o código
 na Figura \ref{fig:code_normal}. Neste código há dois valores possíveis para
-$a$ quando a expressão $u = a*v$ for executada, sendo assim, é necessário
+$a$ quando a expressão $u = a*v$ for executada, sendo necessário
 anotar qual versão de $a$ utilizar. A solução é introduzir uma
 função $\phi$, que seleciona a variável corretamente utilizando a informação
 do arco usado para se chegar no bloco contendo a sentença com a função $\phi$,
