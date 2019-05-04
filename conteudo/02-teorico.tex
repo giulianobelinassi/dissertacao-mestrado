@@ -331,10 +331,10 @@ gasta em processamento, poupa esforços de otimização, desenvolvimento,
 entre outros.
 
 Considerando o contexto de um compilador capaz de compilar
-diversas linguagens para os mais variados alvos, é exatamente
-no \textit{Middle End} onde é alocado maior parte do tempo
-gasto na implementação de otimizações, pois isto implica gerar um código mais
-eficiente para todas as Linguagens Alvo cujo o compilador dê suporte.
+diversas linguagens para os mais variados alvos, o \textit{Middle End} é
+exatamente onde maior parte do tempo gasto na implementação de otimizações é
+alocado, pois isto implica gerar um código mais
+eficiente para todas as Linguagens Alvo cujo o compilador dá suporte.
 
 Como o \textit{Front End} já traduziu todo o código para a linguagem
 intermediária, então é perfeitamente possível marcar o início de
@@ -356,10 +356,10 @@ funções podem ser processadas em paralelo.
 Diversas otimizações
 clássicas como Invariante de Laços, Propagação de Constantes,
 Eliminação de Redundância, Eliminação de Subexpressão Comum,
-Propagação de Constantes, e Eliminação de Código Morto são
+Propagação de Constantes e Eliminação de Código Morto são
 classificadas como tal, reforçando o argumento de paralelização.
 
-Já esse argumento é válido para as otimizações \textit{Inter-Procedurais}, pela
+Esse argumento também é válido para as otimizações \textit{Inter-Procedurais} pela
 própria definição. Estas otimizações são normalmente aplicadas
 utilizando algoritmos em grafos:
 Cada rotina é representado como um vértice, e existe um arco de $f$
@@ -419,11 +419,11 @@ algoritmos referentes a essas otimizações são discutidos por
   \label{fig:call_graph}
 \end{figure}
 
-
+%Eu achei a frase seguinte meio confusa, tentei consertar, mas veja se não modifiquei o significado.
     Após todo esse processo de otimização, o código nesta linguagem ainda
-pode ainda sofrer transformações para outras Linguagens
+pode sofrer transformações de outras Linguagens
 Intermediárias para algo que seja mais próximo do
-\textit{hardware}-alvo, no caso da compilação ter como alvo código de máquina.
+\textit{hardware}-alvo (nos casos em que a compilação tem como alvo o código de máquina).
 Finalmente, após essa sequência de transformações, o controle é
 passado ao \textit{Back End} do compilador, onde ele será transformado na
 Linguagem Alvo.
@@ -435,23 +435,22 @@ Linguagem Alvo.
 \begin{subsection}{\textit{Back End}}
     O \textit{Back End} é responsável pela geração do código final na
 Linguagem Alvo, além otimizações dependentes
-de arquitetura. Sendo assim, ele também deve efetuar otimizações referente
-a  seleção de instruções mais eficazes e alocação registradores
+da arquitetura. Sendo assim, ele também deve efetuar otimizações referentes
+a seleção de instruções mais eficazes e alocação registradores
 da melhor maneira possível para as variáveis do programa, caso a linguagem alvo
 seja a Linguagem de Montagem.
 
     Existem diversas técnicas para selecionar instruções. Uma estratégia possível
-é  utilizar uma abordagem de substituição de macros, onde as instruções são substituídas
+é utilizar uma abordagem de substituição de macros, onde as instruções são substituídas
 observando localmente cada linha de código da Linguagem Intermediária. Esta estratégia
 tem a vantagem de realizar uma tradução rápida e de fácil implementação, mas que gera
-código ineficiente. 
+código ineficiente.
 
-    Outra maneiras incluem identificar padrões a partir de uma árvore
+Outras maneiras incluem identificar padrões a partir de uma árvore
 construída, e selecionar a construção que minimiza uma função custo, seja através de uma
 heurística, ou usando \textit{Programação Dinâmica}. 
-
-	Também é possível implementar tal tradução utilizando as mesmas técnicas de
-análise léxica e sintática empregados no \textit{Front End}, desde que a
+Também é possível implementar tal tradução utilizando as mesmas técnicas de
+análise léxica e sintática empregadas no \textit{Front End}, desde que a
 Linguagem Intermediária tenha sido projetada considerando tal fato, conforme
 sugerido por \cite{glanville1978}. 
 
