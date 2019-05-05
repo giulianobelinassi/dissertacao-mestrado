@@ -444,7 +444,7 @@ observando localmente cada linha de código da Linguagem Intermediária. Esta es
 tem a vantagem de realizar uma tradução rápida e de fácil implementação, mas que gera
 código ineficiente.
 
-    Outra maneiras incluem identificar padrões a partir de uma árvore
+    Outras maneiras incluem identificar padrões a partir de uma árvore
 construída, e selecionar a construção que minimiza uma função custo, seja através de uma
 heurística, ou usando \textit{Programação Dinâmica}.
 
@@ -471,12 +471,12 @@ A coleção de compiladores da GNU, também conhecido como GCC, é um projeto
 iniciado por Richard Stallman com a primeira versão disponibilizada ao público
 em Março de 1987. Tal versão apenas fornecia suporte a linguagem C, mas já permitia
     gerar código para diversas arquiteturas \citep{gcc_first_ver}.
-Hoje, o GCC oferece suporte a diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
+Hoje, o GCC fornece suporte a diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
 e várias arquiteturas, como i386, amd64, riscv, arm, ppc, pdp-11. O GCC também
 é um compilador otimizador, ou seja, ele é capaz de alterar o código fornecido
 pelo usuário com a finalidade de gerar código mais eficiente, sem alterar a semântica do programa. Isso é
 possível por conta das várias Linguagens Intermediárias implementadas no
-GCC. São estas: GENERIC, GIMPLE, e RTL. O compilador executa vários
+GCC: GENERIC, GIMPLE, e RTL. O compilador executa vários
 passos de otimização em cada uma dessas linguagens intermediárias.
 
 \begin{subsection}{GENERIC}
@@ -485,12 +485,12 @@ passos de otimização em cada uma dessas linguagens intermediárias.
 funções do programa através de árvores. Tal linguagem é um superconjunto
 das funcionalidades e atributos que cada Linguagem Fonte contém, por exemplo, atributos
 como \texttt{volatile} de C e C++ contém uma representação nessa linguagem.
-Outras funcionalidades são: Chamadas de função, declaração de variáveis, classes,
+Outras funcionalidades são: chamadas de função, declaração de variáveis, classes,
 funções, expressões, entre outros \citep{generic}.
 
     Essa linguagem contém uma representação mais próxima de como o programa foi
-escrito pelo programador, ou seja, raramente são feitas modificações nas expressões,
-que aqui estão representadas como originalmente. Sendo assim, essa linguagem
+escrito pelo programador, ou seja, não são feitas modificações nas expressões
+Sendo assim, essa linguagem
 intermediária não se enquadra nas categorias de \textit{Three Address Code},
 ou \textit{Static Single Assignment}. O objetivo principal dessa linguagem
 é facilitar a tradução para a próxima linguagem intermediária, a GIMPLE, e assim
@@ -506,7 +506,7 @@ com que diversas simplificações matemáticas sejam implementadas no código, o
 que pode significar uma melhora de até $10\times$ em casos particulares
 \citep{sinatan}.
 
-    Por fim, cada um dos \textit{Front End} do GCC é responsável por traduzir o
+    Por fim, cada \textit{Front End} do GCC é responsável por traduzir o
 código fonte para esta linguagem intermediária. Para visualizar um programa
 nessa representação, basta compilá-lo utilizando o atributo
 \texttt{-fdump-tree-original}.
@@ -525,7 +525,7 @@ intermediaria é baseada na linguagem SIMPLE, do compilador McCAT \citep{gimple}
 grande parte das otimizações livre de arquitetura são aplicadas, e portanto o
 GIMPLE fornece uma \textit{Application Programming Interface} (API) detalhada
 para efetuar alterações no código, incluindo a representação em forma SSA para análise
-de fluxo, que os passos de otimização deverão utilizar.
+de fluxo que os passos de otimização deverão utilizar.
 
     Por fim, o compilador pode ser instruído a escrever o código em
 GIMPLE através da opção \texttt{-fdump-tree-gimple}, ou então usando
@@ -543,18 +543,19 @@ lista de comandos \citep{rtl}.
 
     A RTL é uma linguagem que visa ser extremamente próxima da linguagem
 de montagem, mas ainda sendo genérica o suficiente a ponto de ser compatível
-com todas as Linguagem Alvo do GCC.
+com todas as Linguagens Alvo do GCC.
 Para isso, ela representa uma máquina com infinitos
-registradores, que serão alocados em registradores reais no passo de alocação de
-registradores. Caso a Linguagem Alvo não tenha o número necessário de
+registradores, que serão alocados em registradores reais no passo correspondente.
+Caso a arquitetura alvo não tenha o número necessário de
 registradores, as variáveis deverão ser guardadas em memória. Por exemplo,
-no caso do i386, elas deverão ser salvas na pilha.
+no caso do i386, elas deverão ser salvas na pilha. Esse processo é conhecido
+como \textit{Register Spilling}.
 
-    Essa linguagem é a última etapa antes da geração do código final. O
-\textit{Back end} transformará essa linguagem no código final buscando
-uma sequencia de instruções em RTL, e realizando a substituição por uma
-sequência de instruções da Linguagem Alvo. Essa escolha segue um sistema
-de custos, na qual o compilador procura escolher uma sequencia de instruções
+    Essa é a última Linguagem Indermediária antes da geração do código final. O
+\textit{Back end} transformará o código nessa linguagem para a Linguagem Alvo
+substituindo uma sequência de instruções em RTL por uma sequência de instruções
+na Linguagem Alvo. Essa escolha segue um sistema
+de custos no qual o compilador procura escolher uma sequencia de instruções
 que minimiza a soma do custo total da tradução.
 
     Na arquitetura i386, as regras de substituição estão implementadas
@@ -576,14 +577,13 @@ intermediária. Esses passos são divididos em três etapas:
             chamada de $g$ a partir de $f$, é inserido um arco de $f$ à $g$.
             Com isso o compilador pode decidir eliminar funções que não são
             utilizadas no programa simplesmente descartando a função do
-            código, ou então decidir que uma função precisa ser tornada
+            código, ou então decidir que uma função precisa ser convertida para
             \texttt{inline}, como programado em \texttt{pass\_ipa\_inline}.
 
         \item \textbf{GIMPLE} - Após a etapa IPA, são executados os passos
             de otimização do GIMPLE. Tais passos são executados em cada
             função de maneira independente, ou seja, são otimizações
             Intra Procedurais.
-
             Existem diversas otimizações que são aplicadas nesse passo.
             Por exemplo, aqui é aplicado a \texttt{pass\_vectorize},
             que tenta vetorizar um laço, a \texttt{pass\_parallelize\_loops},
@@ -600,11 +600,10 @@ intermediária. Esses passos são divididos em três etapas:
     Cada otimização está implementada em algum arquivo específico do GCC,
 agrupada por similaridade. Por exemplo, o passo de vetorização está implementado
 em \texttt{gcc/tree-ssa-loop.c}. Cada otimização também deve ser implementada
-    herdando e implementando as funções de uma das seguintes classes:
+herdando e implementando as funções de uma das seguintes classes:
 \texttt{gimple\_opt\_pass}, \texttt{ipa\_opt\_pass\_d}, \texttt{rtl\_opt\_pass},
-    \texttt{simple\_ipa\_opt\_pass}, como ilustrado na Figura \ref{fig:opt_uml}.
-
-    Por fim, a ordem que as otimizações são feitas estão
+\texttt{simple\_ipa\_opt\_pass}, como ilustrado na Figura \ref{fig:opt_uml}.
+Por fim, a ordem que as otimizações são feitas estão
 especificadas no arquivo \texttt{gcc/passes.def}.
 
 \begin{figure}
@@ -672,7 +671,7 @@ especificadas no arquivo \texttt{gcc/passes.def}.
 \begin{subsection}{GNU Toolchain e o Processo Clássico de Compilação}
 
     Um \textit{toolchain} é um conjunto de ferramentas que são ligadas em
-uma cascata para o desenvolvimento de \textit{software}. Normalmente o
+cascata para o desenvolvimento de \textit{software}. Normalmente o
 \textit{toolchain} consiste em um compilador, um montador e um linkeditor,
 mas também pode conter mais ferramentas, como um \textit{debugger}.
 
@@ -682,19 +681,20 @@ conhecido como GNU \textit{toolchain}. São parte desse toolchain:
     \item \textit{Binutils}, um conjunto de ferramentas contendo o linkeditor
 LD, o montador AS, e outras ferramentas\footnote{\url{https://www.gnu.org/software/binutils/}}.
 
-    \item O driver \texttt{gcc}, providenciando os compiladores \texttt{cc1},
+    \item O driver \texttt{gcc}, responsável por chamar os compiladores \texttt{cc1},
         \texttt{cc1plus}, \texttt{f951} para C, C++ e Fortran, respectivamente,
-        e responsável por chamar as ferramentas do \textit{Toolchain}.
+        e também responsável por interagir com as demais ferramentas do 
+        \textit{Toolchain}.
 
     \item A biblioteca \texttt{glibc}.
 
     \item O \textit{debugger} GDB.
 \end{itemize}
 
-As ferramentas acima interagem umas com as outras da seguinte forma: Primeiro, o código na
-Linguagem Fonte é compilado usando o GCC para a linguagem de máquina. Em seguida, o código
-é montado utilizando o AS, onde é construído um arquivo objeto, para que então o linkeditor
-LD colete todos os arquivos objetos gerados, gerando o binário especificado. A Figura
+As ferramentas acima interagem umas com as outras da seguinte forma: primeiro, o código na
+Linguagem Fonte é compilado usando o GCC para a linguagem de máquina, em seguida, o código
+é montado utilizando o AS (que constrói o arquivo objeto) e por fim o linkeditor
+LD coleta todos os arquivos objetos gerados, construindo o binário especificado. A Figura
 \ref{fig:gnu_toolchain} retrata esse processo.
 
 
@@ -734,13 +734,13 @@ em conjunto com uma ferramenta que controla a geração de arquivos objetos e ex
 como o GNU Make, como ilustrado na Figura \ref{fig:classical_build}. Aqui cada arquivo
 é compilado individualmente, passando por todos os processos da compilação (tradução
 para a linguagem intermediária, otimização, tradução para a Linguagem Alvo,
-e encapsulamento no arquivo objeto), para em seguida eles sejam ligados por um
-linkeditor como o LD. Aqui nenhuma otimização é aplicada observando o programa
-como um todo, ou como as funções interagem entre si entre dois arquivos distintos,
-gerando possivelmente um código suboptimal. Usualmente, cada um desses arquivos
-são compilados em paralelo através do auxilio do Makefile.
+e encapsulamento no arquivo objeto), para que em seguida eles sejam ligados por um
+linkeditor como o LD.
 
-
+Neste processo, não é possível aplicar otimizações observando o programa como
+um todo, pois o compilador não tem informações sobre as funções que estão em
+outros arquivos. Sendo assim, todas as otimizações são aplicadas localmente
+usando apenas o contexto do arquivo.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -808,10 +808,10 @@ são compilados em paralelo através do auxilio do Makefile.
     A Computação Paralela é o ato de coordenar vários fluxos de
 execução operando simultaneamente em um ou mais computadores para
 atingir um objetivo em comum. Ela se tornou uma tendência na
-computação contemporânea por conta dos processadores \textit{multicore}
-e \textit{manycore}, que hoje podem ser adquiridos facilmente e são
-produzidos com um custo menor do que um processador de apenas um
-núcleo de igual desempenho.
+computação contemporânea por conta da facilidade de aquisição
+e custo de produção reduzido dos processadores \textit{multicore}
+e \textit{manycore}, em relação a um processador de igual desempenho
+com apenas um núcleo.
 
     Para ilustrar a evolução dos processadores \textit{multicore}, \cite{42years}
     publicou um gráfico mostrando o número
@@ -846,12 +846,12 @@ o tempo do algoritmo sequencial e $T_n$ o tempo desse algoritmo paralelizado
 
 \begin{subsection}{A Taxonomia de Flynn}
 	Mesmo com a evolução dos processadores \textit{multicore} e
-\textit{manycore}, esses não são as únicas arquiteturas disponíveis para
-realizar computação paralela.  Michael J. Flynn \citep{pacheco:2011} definiu
+\textit{manycore}, estas não são as únicas arquiteturas disponíveis para
+realizar computação paralela. Michael J. Flynn \citep{pacheco:2011} definiu
 uma taxonomia das arquiteturas, mas vale destaque para duas delas:
 \begin{enumerate}
     \item \textbf{SIMD} - \textit{Single Instruction, Multiple Data}. Isso se refere
-        a processadores vetoriais que permite com que uma operação seja executada em
+        a processadores vetoriais que permitem que uma operação seja executada simultâneamente em
         todos os elementos de um vetor simultâneamente. Alguns exemplos são as
         instruções SSE da Intel, e também as \textit{Graphics Processing Units} (GPU),
         embora essa última não seja considerada uma arquitetura puramente SIMD.
@@ -859,7 +859,7 @@ uma taxonomia das arquiteturas, mas vale destaque para duas delas:
     \item \textbf{MIMD} - \textit{Multiple Instruction, Multiple Data}. Isso se refere
         aos sistemas \textit{multicore} independentes, capazes de executar tarefas
         de maneira assíncrona. Aqui estão localizados ambas as arquiteturas de memória
-        compartilhada e memória distribuida.
+        compartilhada e memória distribuída.
 \end{enumerate}
 \end{subsection}
 
@@ -881,7 +881,7 @@ das abstrações que ele fornece.
 um programa por vez. Com isto em mente, os desenvolvedores
 de Sistemas Operacionais criaram uma série de abstrações para que fosse
 possível dar a ilusão ao usuário que vários programas estavam executando
-ao mesmo tempo. Embora isso não seja mais um fato já que hoje os processadores
+ao mesmo tempo. Embora isso não seja mais um fato, já que hoje os processadores
 são capazes de executar vários fluxos de execução simultaneamente, essa
 é a principal motivação do conceito de Processos e \textit{Threads}.
 
@@ -903,13 +903,13 @@ comunicação através de uma memória compartilhada.
 
 \begin{subsubsection}{Mecanismos de Sincronização}
 
-	Seja através de auxílio de \textit{hardware}, ou com algoritmos
+	Seja através de auxílio do \textit{hardware}, ou com algoritmos
 puramente implementados em \textit{software}, o Sistema Operacional
 costuma fornecer mecanismos de sincronização para coordenar as várias
 \textit{threads} de um processo, ou até mesmo vários processos.
 
     Um dos mecanismos mais famosos são os \textit{Semáforos}
-\citep{dijkstra1965}.  Um semáforo nada mais é que um contador que assume
+\citep{dijkstra1965}. Um semáforo nada mais é que um contador que assume
 valores não negativos com duas operações atômicas: \texttt{P} para
 decrementá-lo, e \texttt{V} para incrementá-lo. Quando o semáforo atinge o
 valor 0, a \textit{thread} que em sequência tentar decrementá-lo será bloqueada. A
@@ -984,29 +984,29 @@ no Linux através da interface \texttt{semaphore.h}.
 
 \begin{subsubsection}{O Problema do Produtor-Consumidor}
     Uma estrutura de dados muito útil em computação paralela
-é uma fila que seja completamente \textit{Thread-safe}, ou seja,
+é uma fila completamente \textit{Thread-safe}, ou seja,
 que várias \textit{threads} possam inserir e remover dados dessa
 fila simultaneamente sem o risco de perda de dados. Essa fila
 pode ser usada na comunicação entre as \textit{threads}, por
-exemplo, uma insere trabalho na fila, outra retira trabalho da
+exemplo: uma insere trabalho na fila, outra retira trabalho da
 fila. Isso permite com que \textit{pipelines}, ou escalonamento
-dinâmico de trabalho, sejam implementados.
+dinâmico de trabalho sejam implementados.
 
 Para implementar essa fila, são necessários dois semáforos e um
 \textit{mutex}. Um semáforo deve ser inicializado com o tamanho máximo
 da fila, e na inserção de um dado, esse semáforo deve ser decrementado
-para que quando a fila estiver cheia, as \textit{threads} que tentarem
+para que, quando a fila estiver cheia, as \textit{threads} que tentarem
 inserir nela sejam bloqueadas. O outro semáforo deve ser iniciado com
 0, indicando que a fila está vazia, e incrementado quando um item for
 inserido na fila. Esse semáforo tem a finalidade de
 bloquear as \textit{threads} que tentarem remover elementos dessa
 fila quando ela estiver vazia. Assim que dados forem inseridos ou removidos
-da fila, as \textit{threads} são devidamente acordadas. Isso evita gasto
-desnecessário de ciclos de processamento, evitando utilizar uma técnica
+da fila, as \textit{threads} são devidamente ``despertadas''. Isso evita gasto
+desnecessário de ciclos de processamento por não utilizar uma técnica
 chamada \textit{espera ocupada}. Por fim, um \textit{Mutex} deve ser
 utilizado para evitar problemas de concorrência ao incrementar e
 decrementar os apontadores de inicio e fim da fila. Uma implementação
-está apresentada na Figura \ref{fig:prod_consumer}.
+é apresentada na Figura \ref{fig:prod_consumer}.
 
 \begin{figure}
       \begin{lstlisting}[
