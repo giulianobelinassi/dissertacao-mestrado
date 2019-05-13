@@ -88,8 +88,20 @@ principal no processo de compilação do GCC. Todos os testes efetuados foram
 executados em um computador com um AMD Opteron 6376 (64 núcleos) executando
 o Debian 9.
 
-Novamente na Figura \ref{fig:analysis_classical}, é possível notar dois
-itens, independente da quantidade de execuções do experimento:
+Primeiro, foi executado um experimento com respeito ao tempo de compilação
+do GCC com o LTO habilitado, e outro desabilitado. Em ambos os experimentos,
+desabilitamos o processo de \textit{bootstrap} do compilador. Para o caso LTO,
+utilizamos no máximo 64 \textit{threads} através da diretiva de compilação
+\texttt{-flto=64} para permitir o uso de paralelismo nesse método. Como
+é possível concluir comparando as Figuras \ref{fig:analysis_lto} e \ref{fig:analysis_classical},
+o LTO consome cerca de 1 minuto a mais para compilar todo o programa
+(mais de 200s do LTO, contra pouco mais de 140s sem o LTO). Sendo assim,
+desabilitar o LTO mesmo que ele forneça um grau maior de paralelismo é
+mais vantajoso caso o objetivo seja compilar mais rapidamente.
+
+Analisando o paralelismo do processo clássico na Figura \ref{fig:analysis_classical},
+é possível notar dois itens, independente da quantidade de
+execuções do experimento:
 
 \begin{itemize}
     \item A existência de arquivos como o \texttt{gimple-match.c}, que
@@ -155,7 +167,7 @@ devido a mecanismos de sincronização necessários para implementar o paralelis
 \subsection{Arquitetura da Paralelização}
 
 A arquitetura da paralelização que será implementada no GCC é similar ao
-implementado por \cite{wortman1992}. Serão executadas um número fixo de
+descrito por \cite{wortman1992}: serão executadas um número fixo de
 \textit{threads} trabalhadoras de acordo com o número de processadores
 disponíveis no computador.
 Assim que o IPA finalizar o plano de
@@ -164,19 +176,17 @@ onde as \textit{threads} trabalhadoras retirarão o trabalho.
 Cada \textit{thread} será responsável por executar todas as passagens
 de otimização do GIMPLE em uma função retirada da fila produtor-consumidor.
 Sendo assim, duas \textit{threads} processarão duas funções distintas.
-Uma ilustração deste processo está retratado na Figura \ref{paralelizacao}
+Uma ilustração deste processo está retratado na Figura \ref{fig:paralelizacao}.
+Em seguida, será avaliado o \textit{speedup} ao paralelizar o GIMPLE, e
+será decidido qual outro problema abordar: paralelização das demais
+passagens RTL, ou uma tentativa de paralelizar o IPA.
 
 \begin{figure}[ht]
  \centering
  \includegraphics[width=\textwidth]{paralelizacao.pdf}
  \caption{Esquema de paralelização dos passos de otimização.}
- \label{fig:42years}
+ \label{fig:paralelizacao}
 \end{figure}
-
-Em seguida, será avaliado o \textit{speedup} ao paralelizar o GIMPLE, e
-será decidido qual outro problema abordar: Paralelização das demais
-passagens RTL, ou uma tentativa de paralelizar o IPA.
-
 \subsection{Experimentos e Metodologia}
 
 Para validar os resultados obtidos, serão executados dois experimentos:
@@ -246,8 +256,15 @@ Uma ilustração desse calendário está representado na Figura \ref{fig:gantt}.
 \begin{figure}[ht]
  \centering
  \includegraphics[scale=0.6, angle=-90]{gcc_timer_classic.pdf}
- \caption{Tempo corrido na compilação do GCC em um processador de 64 núcleos. Sem \textit{Bootstrap}}
+ \caption{Tempo corrido na compilação do GCC em um processador de 64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
  \label{fig:analysis_classical}
+\end{figure}
+
+\begin{figure}[ht]
+ \centering
+ \includegraphics[scale=0.6, angle=-90]{lto.pdf}
+    \caption{Tempo corrido na compilação do GCC em um processador de 64 núcleos. \textbf{Com} LTO, sem \textit{Bootstrap}.}
+ \label{fig:analysis_lto}
 \end{figure}
 
 

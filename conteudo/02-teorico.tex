@@ -1005,58 +1005,59 @@ da fila, as \textit{threads} são devidamente ``despertadas''. Isso evita gasto
 desnecessário de ciclos de processamento por não utilizar uma técnica
 chamada \textit{espera ocupada}. Por fim, um \textit{Mutex} deve ser
 utilizado para evitar problemas de concorrência ao incrementar e
-decrementar os apontadores de inicio e fim da fila. Uma implementação
-é apresentada na Figura \ref{fig:prod_consumer}.
+decrementar os apontadores de inicio e fim da fila.
+%Uma implementação
+%é apresentada na Figura \ref{fig:prod_consumer}.
 
-\begin{figure}
-      \begin{lstlisting}[
-        language=pseudocode,
-        style=pseudocode,
-        style=wider,
-        functions={},
-        specialidentifiers={extern, call, async, int, class, mod, semaphore_t, mutex_t},
-      ]
-        class Fifo
-            int buffer[];
-            int size;
-            int head, tail;
-            semaphore_t full, empty;
-            mutex_t lock
-
-            function init(n)
-                buffer = allocate_memory(n);
-                head, tail = 0;
-                sem_init(empty, n);
-                sem_init(full, 0);
-                mutex_init(lock);
-                size = n;
-            end
-
-            function push(element)
-                sem_p(empty);
-                mutex_lock(lock);
-                buffer[head] = element;
-                head = head + 1 mod size;
-                mutex_unlock(lock);
-                sem_v(full);
-            end
-
-            function pop()
-                sem_p(full);
-                mutex_lock(lock);
-                ret = buffer[tail];
-                tail = tail + 1 mod size;
-                mutex_unlock(lock);
-                sem_v(empty)
-
-                return ret;
-            end
-        end 
-
-      \end{lstlisting}
-      \caption{Uma implementação do Produtor-Consumidor.}
-      \label{fig:prod_consumer}
-\end{figure}
+%\begin{figure}
+%      \begin{lstlisting}[
+%        language=pseudocode,
+%        style=pseudocode,
+%        style=wider,
+%        functions={},
+%        specialidentifiers={extern, call, async, int, class, mod, semaphore_t, mutex_t},
+%      ]
+%        class Fifo
+%            int buffer[];
+%            int size;
+%            int head, tail;
+%            semaphore_t full, empty;
+%            mutex_t lock
+%
+%            function init(n)
+%                buffer = allocate_memory(n);
+%                head, tail = 0;
+%                sem_init(empty, n);
+%                sem_init(full, 0);
+%                mutex_init(lock);
+%                size = n;
+%            end
+%
+%            function push(element)
+%                sem_p(empty);
+%                mutex_lock(lock);
+%                buffer[head] = element;
+%                head = head + 1 mod size;
+%                mutex_unlock(lock);
+%                sem_v(full);
+%            end
+%
+%            function pop()
+%                sem_p(full);
+%                mutex_lock(lock);
+%                ret = buffer[tail];
+%                tail = tail + 1 mod size;
+%                mutex_unlock(lock);
+%                sem_v(empty)
+%
+%                return ret;
+%            end
+%        end 
+%
+%      \end{lstlisting}
+%      \caption{Uma implementação do Produtor-Consumidor.}
+%      \label{fig:prod_consumer}
+%\end{figure}
 
 \end{subsubsection}
 
