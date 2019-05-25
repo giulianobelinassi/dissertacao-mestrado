@@ -3,7 +3,7 @@
 
 Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
 trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
-de maneira a entender, ao menos superficialmente, os passos de compilação.
+de maneira a entender os passos de compilação.
 Em seguida, discute-se como o compilador GCC apresenta esses tópicos implementados,
 além do seu uso no processo de compilação de um programa. Por fim, são
 apresentados alguns conceitos e algoritmos básicos sobre Computação Paralela.
@@ -223,7 +223,7 @@ para o \textit{Middle End} do compilador.
 
     O \textit{Middle End} é responsável por trabalhar em uma ou mais
  Linguagens Intermediárias do compilador, com a finalidade de efetuar
-otimizações no código e possíveis checagens de erro que possam ser
+otimizações no código e possíveis verificações de erro que possam ser
 postergadas até essa fase. Essas linguagens devem ser projetadas
 de maneira a capturar a semântica da Linguagem Fonte, na qual o programa original foi
 escrito.
@@ -237,14 +237,14 @@ a \textit{Static Single Assignment} (SSA).
 Nesta representação, expressões como $a*x + b$ são
 representadas como:
 $$ t_1 = a*x$$
-\vspace*{-1cm}
+\vspace{-1cm}
 $$ t_2 = t_1 + b $$
 ou seja, todas as expressões são transformadas em uma sequência de expressões
 contendo apenas dois operandos e uma operação de atribuição. Para isso,
 novas variáveis são declaradas para conter os valores intermediários
 possibilitando também a remoção de sub-expressões em comum. Também nesta
 linguagem, fluxo de código e laços são transformados em uma sequência de
-\texttt{if} e \texttt{goto} para facilitar a construção de um grafo de
+\texttt{if}s e \texttt{goto}s para facilitar a construção de um grafo de
 controle de fluxo, possibilitando análises nessa estrutura.
 
 Esta representação é demasiada útil por facilitar o processo de alocação
@@ -262,7 +262,6 @@ otimizações no controle de fluxo do programa, assim como possibilita a remoç�
 de variáveis não utilizadas ou que não serão mais utilizadas em um
 trecho de código, processo conhecido como \textit{Liveness Analysis}.
 
-\vspace*{-0.5cm}
 Entretanto, quando essa representação é
 usada em conjunto com um fluxo de execução, como \texttt{if-else}, isso pode gerar um problema. Considere o código
 na Figura \ref{fig:code_normal}. Neste código há dois valores possíveis para
@@ -367,33 +366,12 @@ Cada rotina é representado como um vértice, e existe um arco de $f$
 \ref{fig:call_graph}. Construir tal grafo pode ser
 um desafio dependendo da linguagem de programação, principalmente
 quando se utiliza orientação a objetos devido a possibilidade de
-sobrescrita de métodos. Por fim, mais detalhes a respeito dos 
+sobrescrita de métodos. Por fim, mais detalhes a respeito dos
 algoritmos referentes a essas otimizações são discutidos por
 \cite{khedker2009data}.
 
 \begin{figure}[ht]
 \centering
-  \begin{subfigure}[b]{0.40\textwidth}
-    \tikzstyle{line} = [draw, -latex]
-    \tikzstyle{node} = [draw, circle]
-    \begin{center}
-    \scalebox{0.8}{
-    \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
-        % Place nodes
-        \node [node]                    (main) {\texttt{main}};
-        \node [node, below of = main]        (f) {\texttt{f}};
-        \node [node, below of = f]           (g) {\texttt{g}};
-        \node [node, right of = f]           (h) {\texttt{h}};
-
-        % Draw edges
-        \draw[->]    (main)           -- (f);
-        \draw[->]    (f)              -- (g);
-        \draw[->]    (f)              -- (h);
-        \draw[->]    (main)           -- (h);
-    \end{tikzpicture}
-    }
-    \end{center}
-  \end{subfigure}
   \begin{subfigure}[b]{0.40\textwidth}
       \begin{lstlisting}[
         language=pseudocode,
@@ -414,6 +392,27 @@ algoritmos referentes a essas otimizações são discutidos por
             call $h$
         end
       \end{lstlisting}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.40\textwidth}
+    \tikzstyle{line} = [draw, -latex]
+    \tikzstyle{node} = [draw, circle]
+    \begin{center}
+    \scalebox{1.0}{
+    \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
+        % Place nodes
+        \node [node]                    (main) {\texttt{main}};
+        \node [node, below of = main]        (f) {\texttt{f}};
+        \node [node, below of = f]           (g) {\texttt{g}};
+        \node [node, right of = f]           (h) {\texttt{h}};
+
+        % Draw edges
+        \draw[->]    (main)           -- (f);
+        \draw[->]    (f)              -- (g);
+        \draw[->]    (f)              -- (h);
+        \draw[->]    (main)           -- (h);
+    \end{tikzpicture}
+    }
+    \end{center}
   \end{subfigure}
   \caption{Um programa e seu respectivo grafo de chamada de funções}
   \label{fig:call_graph}
@@ -439,26 +438,99 @@ da melhor maneira possível para as variáveis do programa, caso a linguagem alv
 seja a Linguagem de Montagem.
 
     Existem diversas técnicas para selecionar instruções. Uma estratégia possível
-é utilizar uma abordagem de substituição de macros, onde as instruções são substituídas
+é substituição de macros, onde as instruções são substituídas
 observando localmente cada linha de código da Linguagem Intermediária. Esta estratégia
 tem a vantagem de realizar uma tradução rápida e de fácil implementação, mas que gera
-código ineficiente.
+código ineficiente, conforme ilustrado na Figura \ref{fig:macro_exp}. Existem otimizações
+que podem ser aplicadas para melhorar o resultado das instruções geradas, sendo a mais famosa
+delas a \textit{Peephole Optimization}, que tenta remover leituras e escritas desnecessárias
+a memória buscando instruções que se anulam.
 
-    Outras maneiras incluem identificar padrões a partir de uma árvore
-construída, e selecionar a construção que minimiza uma função custo, seja através de uma
-heurística, ou usando \textit{Programação Dinâmica}.
+\begin{figure}
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=15em, text centered, rounded corners, node distance = 1cm and 1cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+    minimum height=2em]
 
-	Também é possível implementar tal tradução utilizando as mesmas técnicas de
-análise léxica e sintática empregadas no \textit{Front End}, desde que a
-Linguagem Intermediária tenha sido projetada considerando tal fato, conforme
-sugerido por \cite{glanville1978}.
+\begin{center}
+\scalebox{0.8}{
+\begin{tikzpicture}
+    % Place nodes
+    \begin{scope}[node distance = 1cm and 5cm]
+    \node [block]                  (c1) {$\textit{fib}_i = \textit{fib}_{i-1} + \textit{fib}_{i-2}$};
+    \node [block, below=of c1]     (c2) {$\textit{fib}_{i-2} = \textit{fib}_{i-1}$};
+    \node [block, below=of c2]     (c3) {$\textit{fib}_{i-1} = \textit{fib}_{i}$};
+    \end{scope}
+
+    \node [block, right=of c1]     (asm1) {\texttt{mov eax, DWORD [ebp-8]} \\ \texttt{mov ebx, DWORD [ebp-12]} \\ \texttt{add eax, ebx} \\ \texttt{mov [ebp-4], eax}  };
+    \node [block, right=of c2]     (asm2) {\texttt{mov eax, DWORD [ebp-8]} \\ \texttt{mov [ebp-12], eax}};
+    \node [block, right=of c3]     (asm3) {\texttt{mov eax, DWORD [ebp-4]} \\ \texttt{mov [ebp-8], eax}};
+
+    % Draw edges
+    \draw[->]    (c1.east)        -- (asm1.west);
+    \draw[->]    (c2.east)        -- (asm2.west);
+    \draw[->]    (c3.east)        -- (asm3.west);
+\end{tikzpicture}
+}
+\end{center}
+
+\caption{Seleção de instruções usando expansão de macros para i386. Sintaxe da Intel.}
+\label{fig:macro_exp}
+\end{figure}
+
+    Uma outra maneira é realizar a seleção de instruções na árvore de expressão.
+Inicialmente desenvolvido como um aperfeiçoamento da técnica de substituição de macros,
+essa técnica busca por padrões na árvore de expressão e substitui pelas instruções
+de acordo com uma regra especificada.
+As primeiras implementações deste método eram heurísticas simples, substituindo os padrões
+conforme eles eram encontrados e não se preocupavam em escolher o melhor conjunto de padrões.
+
+\cite{glanville1978} evoluiu tal método utilizando as mesmas técnicas de análise léxica
+e sintática normalmente empregadas no \textit{Front End}. A partir do algoritmo LR(1),
+Graham conseguiu postergar a emissão de código utilizando a máquina de estados desse
+algoritmo para armazenar um contexto limitado das instruções já vistas. Quando o algoritmo decide
+emitir código, é selecionado o conjunto de instruções que minimiza o custo total do
+contexto atual. Isso permite selecionar instruções em tempo linearmente proporcional ao tamanho
+da expressão e considerar o custo das instruções no momento de emitir o código.
+
+Embora a técnica de Graham-Glanville tenha uma
+complexidade computacional bem atraente, esse método se
+mostrou difícil de implementar na prática devido a quantidade de instruções disponíveis nos
+processadores, resultando em uma máquina de estados com milhares de estados, e
+vários conflitos de ambiguidade. Também é importante notar que esse método não
+é capaz de gerar código com custo ótimo no caso geral, pois uma vez que o
+algoritmo decide emitir as instruções, elas não são mais modificadas
+independentemente das instruções lidas posteriormente \citep{blindell2016instruction}.
+
+Há também técnicas para selecionar instruções de maneira ótima através
+de Programação Dinâmica. A ideia consiste em observar que para minimizar o custo
+de selecionar os padrões na árvore inteira, basta considerar o melhor custo dos filhos
+e tentar selecionar um padrão que minimiza o custo da raiz. Matematicamente, seja
+$P_n$ o conjunto de padrões que são possíveis de aplicar em $n$, o nó atual da árvore.
+Então o custo mínimo $DP[n]$ é:
+\[
+    DP[n] =
+     \begin{cases}
+       \min_{p \in P_n} CUSTO[p]  &\quad\text{se } n \text{ é nó folha.}\\
+       \min_{p \in P_n} CUSTO[p] + \sum_{f \in FILHO[n]} DP[f] &\quad\text{ caso contrário.}\\
+     \end{cases}
+\]
+
+Outra maneira de selecionar instruções é através de Grafos Acíclicos
+Direcionados (DAGs). Sua vantagem é a possibilidade de representar
+subexpressões em comum em uma expressão, mas infelizmente selecionar instruções
+de maneira ótima em um DAG é NP-completo \citep{koes2008near}.  A maioria das
+técnicas empregadas em seleção de instruções utilizando DAGs são gulosas, como
+o caso do \cite{llvm_insn_selection}.
 
 Por fim, uma discussão mais detalhada sobre
 as técnicas de geração de código de máquina é discutida por
 \cite{blindell2016instruction}. Além disso, para
- adicionar suporte a uma nova arquitetura ou linguagem
+adicionar suporte a uma nova arquitetura ou linguagem
 alvo, basta implementar um novo \textit{Back End}, aproveitando todo
 o código já implementado nas etapas anteriores.
+
 \end{subsection}
 
 

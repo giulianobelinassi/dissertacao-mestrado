@@ -2,6 +2,8 @@
 \chapter{Introdução}
 \label{cap:introducao}
 
+\begin{subsection}{Motivação}
+
 Os avanços nos campos tecnológicos e computacionais levaram uma enorme expansão
 dos ecossistemas de \textit{software}. Novos programas são criados para
 suprir as necessidades dos mais diversos domínios, seja através de sistemas web
@@ -16,7 +18,7 @@ Um compilador nada mais é que um \textit{software} que traduz um código em uma
 de programação $A$ para outra linguagem $B$ \citep{dragonbook}.  Compiladores
 são programas enormes, largamente adotados pela indústria e academia, onde muito
 esforço e pesquisa foi e ainda é empregado para que eles produzam código
-eficiente, com destaque a corretude. Existem projetos enormes destinados a desenvolvê-los e
+eficiente, com destaque para a corretude. Existem projetos enormes destinados a desenvolvê-los e
 aprimorá-los, como o Gnu Compiler Collection
 (GCC\footnote{https://gcc.gnu.org/}), capaz de traduzir diversas linguagens
 como C, C++ e Fortran, para linguagem de máquina. Há também outros projetos
@@ -36,6 +38,15 @@ de várias linhas de código escritas em linguagem de montagem para essa
 arquitetura \citep{gao}. Esse problema ganhou visibilidade na imprensa após a falha no
 \textit{Tax Day} de 2018 \citep{tax_failure}.
 
+Compiladores são usados em projetos dos mais variados tamanhos.
+Grandes projetos podem conter milhões de linhas de código, e até mesmo
+construir novas linguagens para facilitar o desenvolvimento de novas
+funcionalidades, e portanto o processo de compilação precisa ser rápido
+para viabilizar o seu desenvolvimento. Logo, muito estudo é aplicado
+para desenvolver algoritmos mais eficientes para eles, além de técnicas
+de computação paralela para aproveitar os recursos dos processadores
+\textit{multicore}, cada vez mais comuns.
+
 %TODO: Deixar essa imagem mais legível
 \begin{figure}[ht]
  \centering
@@ -44,42 +55,30 @@ arquitetura \citep{gao}. Esse problema ganhou visibilidade na imprensa após a f
  \label{fig:github_2017}
 \end{figure}
 
-Compiladores são usados em projetos dos mais variados tamanhos.
-Grandes projetos podem conter milhões de linhas de código, e até mesmo
-construir novas linguagens para facilitar o desenvolvimento de novas
-funcionalidades. Por exemplo, O GCC contém uma linguagem própria para facilitar
-a adição de otimizações na geração de código, que em seguida é
-compilado em um único arquivo C, para (1) aproveitar as otimizações já
-implementadas no próprio compilador, e (2) evitar reescrever várias
-funcionalidades já implementadas. Infelizmente, este processo
+\end{subsection}
+
+\begin{subsection}{O GCC}
+
+O GCC é um compilador de código aberto amplamente usado tanto no meio
+acadêmico quanto na indústria. Por ser um grande projeto, o GCC contém uma
+linguagem própria para facilitar a adição de otimizações na geração de
+código, que em seguida é compilado em um único arquivo C, para (1)
+aproveitar as otimizações já implementadas no próprio compilador, e (2)
+evitar reescrever várias funcionalidades já implementadas. Infelizmente, este processo
 gera um gargalo na compilação do projeto em máquinas \textit{manycore}, pois o
 GCC não é capaz de compilar um arquivo em paralelo de maneira incremental.
 
-Até então, todo o o
-paralelismo na fase de compilação é providenciado ou apenas pelo
-
 Atualmente, todo o paralelismo na fase de compilação é provido pelo GCC de
-duas maneiras distintas: ou pelo GNU Make\footnote{https://www.gnu.org/software/make/}, 
-que apenas fornece uma granularidade a nível dos arquivos; ou através da estrutura do 
+duas maneiras distintas: ou pelo GNU Make\footnote{https://www.gnu.org/software/make/},
+que apenas fornece uma granularidade a nível dos arquivos; ou através da estrutura do
 LTO, que será abordada na Seção \ref{chap:related_works}. Esse gargalo pode parecer uma
 característica peculiar do projeto GCC, mas discussões com a comunidade levaram
 usuários a relatar o mesmo problema em seus projetos. Tal problema pode ser
 mitigado por um compilador que seja capaz de compilar um único arquivo em paralelo
-\citep{mailgcc} \citep{phoronix}.  Outra possível solução seria 
+\citep{mailgcc} \citep{phoronix}.  Outra possível solução seria
 partir o arquivo em arquivos menores e utilizar o esquema de
 paralelismo já existente do GNU Make, mas isto implica em uma modificação na
 estrutura do projeto, o que pode não ser o ideal.
-
-Outro caso interessante é a avaliação de expressões constantes. Compiladores
-modernos são capazes de avaliar código no qual todos os parâmetros são conhecidos
-de antemão, com a finalidade de evitar cálculos em tempo de execução. Essa técnica é
-conhecida como \textit{constant folding} \citep{dragonbook} e tornou-se tornou-se
-tão comum a ponto de o padrão C++1z adicionar algo
-relacionado a isto em sua especificação através do acrônimo \texttt{constexpr}
-\citep{iso148822017}.
-Sendo assim, talvez o compilador seja capaz de paralelizar esse tipo de
-computação, o que implicaria em ganhos para projetos pequenos, com poucos
-arquivos.
 
 Considerando que atualmente há uma tendência para que os processadores sejam
 cada vez mais paralelos, compiladores que usufruam deste recurso poderiam
@@ -88,6 +87,10 @@ necessita recompilação antes de sua execução, economizando recursos no caso 
 computação ser cobrada por hora. Até então, o paralelismo empregado em compiladores
 otimizadores foi consequência de uma estrutura criada para permitir otimizações
 mais agressivas e custosas, como o LTO \citep{glek2010optimizing}.
+
+\end{subsection}
+
+\begin{subsection}{Questões de Pesquisa}
 
 Deve ser observado que nem todos os processos de um compilador podem ser
 paralelizados. Compiladores operam em etapas que podem ser fortemente
@@ -107,3 +110,5 @@ eficientes através de melhorias no paralelismo do processo clássico de compila
 Para validar os resultados, este trabalho inclui a implementação no GCC de algumas das
 técnicas discutidas, além da utilização de técnicas de inferência estatística para
 análises no tempo total de compilação no projeto GCC e arquivos separados.
+
+\end{subsection}
