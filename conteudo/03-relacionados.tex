@@ -17,13 +17,13 @@
 \chapter{Trabalhos Relacionados}
 \label{chap:related_works}
 
-Boa parte das pesquisas dedicada a paralelismo
+Boa parte das pesquisas dedicada ao paralelismo
 em compiladores é destinada ao desenvolvimento de compiladores que
 paralelizam o código fonte fornecido automaticamente.
 Há basicamente
 duas áreas de estudo relacionadas a paralelização de compiladores, são
 elas: análise de texto em paralelo e análise de fluxo de dados em paralelo.
-Estes trabalhos são apresentados em ordem cronológica nessa seção.
+Trabalhos dessas áreas também são apresentados em ordem cronológica nessa seção.
 
 Dos algoritmos apresentados na Seção \ref{chap:fundamentacao}, o algoritmo
 Recursivo Descendente é o mais simples deles. \cite{Lincoln:1970:PPT:987475.987478}
@@ -43,8 +43,8 @@ Posteriormente, \cite{Mickunas:1978:PCM:800127.804105} propôs uma
 paralelização do algoritmo LR($0$). Sua ideia consiste em quebrar
 arbitrariamente a entrada em vários segmentos e executar um analisador em paralelo
 em cada um destes segmentos. Estes analisadores (exceto o primeiro,
-que executa no inicio da entrada) são modificados na tentativa de
-evitar conflitos, uma vez que modificar a ordem de inicio da análise
+que executa no início da entrada) são modificados na tentativa de
+evitar conflitos, uma vez que modificar a ordem de início da análise
 pode impossibilitar a distinção entre o prefixo e o sufixo de uma fase.
 Quando um conflito é detectado, o analisador envia a sequência de
 \textit{tokens} lida até então ao analisador à sua esquerda,
@@ -69,15 +69,15 @@ uma maneira de controlar o paralelismo, onde foi utilizado o conceito de
 WorkCrews \citep{vandevoorde1988workcrews} que limita o número máximo de
 \textit{threads} em execução simultânea. O autor relata um ganho de 10\% no
 uso do \textit{pipeline} entre o analisador léxico e sintático, e um
-\textit{speedup} de até $3.1\times$ utilizando 5 processadores MicroVax II em
+\textit{speedup} de até $3.1\times$ utilizando 5 processadores MicroVAX II em
 memória compartilhada. Entretanto, tal compilador não possui estágios de
 otimização, e assim, métodos de paralelização de um otimizador não foram discutidos neste trabalho.
 
-De maneira similar, \cite{wortman1992} construiu um compilador de Modula-2+
+De maneira similar, \cite{wortman1992} implementou um compilador de Modula-2+
 paralelo. A estratégia consiste em utilizar um analisador léxico capaz de
 encontrar funções no código fonte e prosseguir com a compilação em paralelo
 nesse nível, gerando uma tarefa para cada função. Para solucionar problemas
-relacionados a chamada de funções e
+relacionados à chamada de funções e
 acesso a símbolos ainda não definidos, o autor propõe o uso de
 uma lógica ternária na tabela de símbolos, especificando um estado
 ``\textit{Doesn't know yet}'' (Ainda não visto), e propõe três estratégias para
@@ -93,12 +93,12 @@ Os artigos apresentados até então não abordam questões relacionadas
 a otimização de código. Isso porque os compiladores naquela época possuíam poucos
 passos de otimização, o que implicava em pouco tempo necessário para fazê-la.
 Mesmo assim, alguns pesquisadores dedicaram-se a estudar esses passos.
-\cite{Lee1994} estudou maneiras de explorar paralelismo na análise de controle
+\cite{Lee1994} explorou paralelismo na análise de controle
 de fluxo. Como justificativa para esse estudo, os autores afirmam que a maior parte
 do tempo gasto por compiladores otimizadores é com este tipo de análise,
 principalmente nas otimizações Inter Procedurais. 
 A investigação se concentrou em algoritmos que usam o grafo de controle
-de fluxo como entrada. Os autores propõe uma heurística de aglutinação
+de fluxo como entrada. Os autores propõem uma heurística de aglutinação
 para particionar tal grafo em regiões conexas e adjacentes de tamanho não maior
 que um certo inteiro $s$. O uso da heurística é por razão do problema de
 de particionamento ser NP-difícil.
@@ -106,12 +106,12 @@ Os experimentos da implementação utilizaram
 8 processadores do computador iPSC/2 em memória distribuída, e 
 obtiveram \textit{speedups} variando de
 $2.8 \times$ até $6.5\times$. Os autores argumentaram que o \textit{speedup} foi
-limitado devido as características dos programas no teste: os arquivos consistiam
+limitado devido às características dos programas no teste: os arquivos consistiam
 de várias funções pequenas, o que normalmente é considerado uma boa prática de
 programação.
 
 Uma outra forma de explorar o paralelismo utilizando um Grafo Dirigido Acíclico
-foi proposta por \cite{kramer1994combining}. O autor mostra formas de propagar
+foi proposta por \cite{kramer1994combining}. Os autores mostram formas de propagar
 em paralelo as informações nesse grafo explorando seus caminhos independentes,
 e mostra uma maneira de transformar um Grafo de Controle de Fluxo com laços em
 um Grafo de Controle de Fluxos acíclico equivalente. Os experimentos realizados
@@ -128,14 +128,14 @@ ainda mais complexas para
 gerar código mais eficiente. Embora apresentadas como maneiras de otimizar o código
 dado como entrada, há relação nessas soluções com paralelismo em compiladores.
 
-\cite{whoprgoogle} propôs uma alteração no
+\cite{whoprgoogle} propuseram uma alteração no
 compilador GCC com a finalidade
 de possibilitar otimizações no programa como um todo. A alteração consiste
 em construir um grafo de chamadas de função em relação a todo o programa,
 ao contrário do modelo clássico, em que cada módulo é compilado independentemente.
 Esse processo é composto por três etapas:
 \begin{enumerate}
-    \item \textit{Local Generation } (LGEN). Cada função do programa é compilado
+    \item \textit{Local Generation } (LGEN). Cada função do programa é compilada
         na Linguagem Intermediária, em conjunto com o grafo de chamadas de função.
         Esse estágio pode ser executado em paralelo.
 
@@ -148,7 +148,17 @@ Esse processo é composto por três etapas:
         Esse estágio pode executar em paralelo.
 \end{enumerate}
 
-A Figura \ref{fig:whopr_build} retrata este processo. Essa proposta foi implementada
+A Figura \ref{fig:whopr_build} retrata este processo. Primeiro, cada arquivo é
+compilado para a Linguagem Intermediária do Compilador (no GCC, a GIMPLE), em
+conjunto com o seu Grafo de Chamadas de Função, gerando arquivos objeto
+\texttt{lto\_obj*.o}. Esse passo ocorre em paralelo para cada arquivo. 
+Em sequência, o gcc\_wpa é chamado, unindo todos os grafos
+de chamada de função e decidindo como aplicar cada otimização Inter Procedural para
+cada função do programa. Em seguida, o gcc\_ltrans é chamado para cada partição do
+Grafo de Chamadas de Função, gerando os arquivos objetos para que o LD por
+fim gere o binário final.
+
+Essa proposta foi implementada
 no GCC \citep{glek2010optimizing} com o nome de
 \textit{Link Time Optimization} (LTO). A granularidade
 escolhida na etapa LGEN foi paralelismo por arquivo. Já na LTRANS a granularidade

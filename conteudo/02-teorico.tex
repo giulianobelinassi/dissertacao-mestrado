@@ -561,10 +561,11 @@ Outras funcionalidades são: chamadas de função, declaração de variáveis, c
 funções, expressões, entre outros \citep{generic}.
 
     Essa linguagem contém uma representação mais próxima de como o programa foi
-escrito pelo programador, ou seja, não são feitas modificações nas expressões
+escrito pelo programador, ou seja, não são feitas modificações nas expressões.
 Sendo assim, essa linguagem
 intermediária não se enquadra nas categorias de \textit{Three Address Code},
-ou \textit{Static Single Assignment}. O objetivo principal dessa linguagem
+ou \textit{Static Single Assignment} pois isso demanda modificações no código.
+O objetivo principal dessa linguagem
 é facilitar a tradução para a próxima linguagem intermediária, a GIMPLE, e assim
 facilitar o desenvolvimento dos \textit{Front End} do compilador, mas isso não
 significa que otimizações não possam ser aplicadas aqui.
@@ -627,7 +628,7 @@ como \textit{Register Spilling}.
 \textit{Back end} transformará o código nessa linguagem para a Linguagem Alvo
 substituindo uma sequência de instruções em RTL por uma sequência de instruções
 na Linguagem Alvo. Essa escolha segue um sistema
-de custos no qual o compilador procura escolher uma sequencia de instruções
+de custos no qual o compilador procura escolher uma sequência de instruções
 que minimiza a soma do custo total da tradução.
 
     Na arquitetura i386, as regras de substituição estão implementadas
@@ -807,7 +808,9 @@ como o GNU Make, como ilustrado na Figura \ref{fig:classical_build}. Aqui cada a
 é compilado individualmente, passando por todos os processos da compilação (tradução
 para a linguagem intermediária, otimização, tradução para a Linguagem Alvo,
 e encapsulamento no arquivo objeto), para que em seguida eles sejam ligados por um
-linkeditor como o LD.
+linkeditor como o LD. Através do Make, onde é possível explicitar as dependências de
+um arquivo, a compilação pode ser efeutada em paralelo entre arquivos que não dependem
+uns dos outros.
 
 Neste processo, não é possível aplicar otimizações observando o programa como
 um todo, pois o compilador não tem informações sobre as funções que estão em
@@ -890,7 +893,7 @@ com apenas um núcleo.
 de transistores, núcleos e desempenho de cada núcleo desde 1970,
 apresentado na Figura \ref{fig:42years}.
 Neste gráfico é possível notar que a Lei de Moore ainda se aplica,
-mas a desempenho sequencial dos processadores estão em desaceleração,
+mas a desempenho sequencial dos processadores está em desaceleração,
 enquanto o número de núcleos cresce exponencialmente desde 2008. Isto
 justifica o uso de computação paralela sempre que possível para que
 seja utilizado o máximo dos recursos computacionais disponíveis.
@@ -1054,33 +1057,32 @@ no Linux através da interface \texttt{semaphore.h}.
 
 \end{subsubsection}
 
-\begin{subsubsection}{O Problema do Produtor-Consumidor}
-    Uma estrutura de dados muito útil em computação paralela
-é uma fila completamente \textit{Thread-safe}, ou seja,
-que várias \textit{threads} possam inserir e remover dados dessa
-fila simultaneamente sem o risco de perda de dados. Essa fila
-pode ser usada na comunicação entre as \textit{threads}, por
-exemplo: uma insere trabalho na fila, outra retira trabalho da
-fila. Isso permite com que \textit{pipelines}, ou escalonamento
-dinâmico de trabalho sejam implementados.
-
-Para implementar essa fila, são necessários dois semáforos e um
-\textit{mutex}. Um semáforo deve ser inicializado com o tamanho máximo
-da fila, e na inserção de um dado, esse semáforo deve ser decrementado
-para que, quando a fila estiver cheia, as \textit{threads} que tentarem
-inserir nela sejam bloqueadas. O outro semáforo deve ser iniciado com
-0, indicando que a fila está vazia, e incrementado quando um item for
-inserido na fila. Esse semáforo tem a finalidade de
-bloquear as \textit{threads} que tentarem remover elementos dessa
-fila quando ela estiver vazia. Assim que dados forem inseridos ou removidos
-da fila, as \textit{threads} são devidamente ``despertadas''. Isso evita gasto
-desnecessário de ciclos de processamento por não utilizar uma técnica
-chamada \textit{espera ocupada}. Por fim, um \textit{Mutex} deve ser
-utilizado para evitar problemas de concorrência ao incrementar e
-decrementar os apontadores de inicio e fim da fila.
+%\begin{subsubsection}{O Problema do Produtor-Consumidor}
+%    Uma estrutura de dados muito útil em computação paralela
+%é uma fila completamente \textit{Thread-safe}, ou seja,
+%que várias \textit{threads} possam inserir e remover dados dessa
+%fila simultaneamente sem o risco de perda de dados. Essa fila
+%pode ser usada na comunicação entre as \textit{threads}, por
+%exemplo: uma insere trabalho na fila, outra retira trabalho da
+%fila. Isso permite com que \textit{pipelines}, ou escalonamento
+%dinâmico de trabalho sejam implementados.
+%
+%Para implementar essa fila, são necessários dois semáforos e um
+%\textit{mutex}. Um semáforo deve ser inicializado com o tamanho máximo
+%da fila, e na inserção de um dado, esse semáforo deve ser decrementado
+%para que, quando a fila estiver cheia, as \textit{threads} que tentarem
+%inserir nela sejam bloqueadas. O outro semáforo deve ser iniciado com
+%0, indicando que a fila está vazia, e incrementado quando um item for
+%inserido na fila. Esse semáforo tem a finalidade de
+%bloquear as \textit{threads} que tentarem remover elementos dessa
+%fila quando ela estiver vazia. Assim que dados forem inseridos ou removidos
+%da fila, as \textit{threads} são devidamente ``despertadas''. Isso evita gasto
+%desnecessário de ciclos de processamento por não utilizar uma técnica
+%chamada \textit{espera ocupada}. Por fim, um \textit{Mutex} deve ser
+%utilizado para evitar problemas de concorrência ao incrementar e
+%decrementar os apontadores de inicio e fim da fila.
 %Uma implementação
 %é apresentada na Figura \ref{fig:prod_consumer}.
-
 %\begin{figure}
 %      \begin{lstlisting}[
 %        language=pseudocode,
@@ -1130,8 +1132,8 @@ decrementar os apontadores de inicio e fim da fila.
 %      \caption{Uma implementação do Produtor-Consumidor.}
 %      \label{fig:prod_consumer}
 %\end{figure}
-
-\end{subsubsection}
+%
+%\end{subsubsection}
 
 \end{subsection}
 
