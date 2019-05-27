@@ -503,9 +503,10 @@ vários conflitos de ambiguidade. Também é importante notar que esse método n
 algoritmo decide emitir as instruções, elas não são mais modificadas
 independentemente das instruções lidas posteriormente \citep{blindell2016instruction}.
 
-Há também técnicas para selecionar instruções de maneira ótima através
-de Programação Dinâmica. A ideia consiste em observar que para minimizar o custo
-de selecionar os padrões na árvore inteira, basta considerar o melhor custo dos filhos
+É possível selecionar as instruções de maneira ótima através de Programação
+Dinâmica, conforme proposto por \cite{ripken1977formale}.  A ideia consiste em
+observar que para minimizar o custo de selecionar os padrões na árvore inteira,
+basta considerar o melhor custo dos filhos
 e tentar selecionar um padrão que minimiza o custo da raiz. Matematicamente, seja
 $P_n$ o conjunto de padrões que são possíveis de aplicar em $n$, o nó atual da árvore.
 Então o custo mínimo $DP[n]$ é:
@@ -513,7 +514,7 @@ Então o custo mínimo $DP[n]$ é:
     DP[n] =
      \begin{cases}
        \min_{p \in P_n} CUSTO[p]  &\quad\text{se } n \text{ é nó folha.}\\
-       \min_{p \in P_n} CUSTO[p] + \sum_{f \in FILHO[n]} DP[f] &\quad\text{ caso contrário.}\\
+       \min_{p \in P_n} CUSTO[p] + \sum_{f \in FILHO[p]} DP[f] &\quad\text{ caso contrário.}\\
      \end{cases}
 \]
 
