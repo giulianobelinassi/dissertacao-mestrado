@@ -93,7 +93,7 @@ Os artigos apresentados até então não abordam questões relacionadas
 a otimização de código. Isso porque os compiladores naquela época possuíam poucos
 passos de otimização, o que implicava em pouco tempo necessário para fazê-la.
 Mesmo assim, alguns pesquisadores dedicaram-se a estudar esses passos.
-\cite{Lee1994} explorou paralelismo na análise de controle
+\cite{Lee1994} estudaram paralelismo na análise de controle
 de fluxo. Como justificativa para esse estudo, os autores afirmam que a maior parte
 do tempo gasto por compiladores otimizadores é com este tipo de análise,
 principalmente nas otimizações Inter Procedurais. 
@@ -151,7 +151,7 @@ Esse processo é composto por três etapas:
 A Figura \ref{fig:whopr_build} retrata este processo. Primeiro, cada arquivo é
 compilado para a Linguagem Intermediária do Compilador (no GCC, a GIMPLE), em
 conjunto com o seu Grafo de Chamadas de Função, gerando arquivos objeto
-\texttt{lto\_obj*.o}. Esse passo ocorre em paralelo para cada arquivo. 
+\texttt{lto\_obj*.o}. Esse passo ocorre em paralelo para cada arquivo.
 Em sequência, o gcc\_wpa é chamado, unindo todos os grafos
 de chamada de função e decidindo como aplicar cada otimização Inter Procedural para
 cada função do programa. Em seguida, o gcc\_ltrans é chamado para cada partição do
@@ -293,4 +293,16 @@ em arquivos grandes, e pouco mais de $4\times$ no analisador Lua. O algoritmo
 paralelo foi comparado com os gerados pelo analisador sintático \textit{Bison},
 que apenas gera código sequencial.
 
-
+Atualmente, os compiladores são \textit{softwares} bem mais complexos que
+aqueles apresentados por \cite{vandevoorde1988workcrews} e \cite{wortman1992},
+havendo muito mais passos de otimização, enquanto houve pouquíssima ou nenhuma
+adição de complexidade nos tópicos de análise léxica, sintática, e geração de
+código o que esses trabalhos procuraram explorar. Já os trabalhos de
+\cite{Lee1994} e \cite{kramer1994combining} são relevantes por mostrar
+estratégias de paralelização de otimizações Inter Procedurais, entretanto elas
+não são a maioria das otimizações implementadas nos compiladores. Por outro
+lado, o LTO e o ThinLTO não foram projetados para serem usadas em
+desenvolvimento incremental, além de gerar binários menos eficientes em alguns
+casos. Efetuando a paralelização do compilador internamente (usando
+\textit{threads}, por exemplo) a estrutura original do compilador é preservada,
+evitando esse problema.
