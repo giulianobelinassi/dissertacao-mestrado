@@ -5,21 +5,20 @@ Neste capítulo é apresentado um plano de trabalho que será executado
 após o período de qualificação, bem como resultados esperados.
 Este trabalho tem o objetivo de trazer duas contribuições:
 \begin{enumerate}
+    \item Uma revisão sobre o que pode ser feito para acelerar o
+processo clássico de compilação em máquinas \textit{manycore} através
+de paralelismo, e quais problemas devem ser atacados em trabalhos futuros.
+
     \item Uma opção no compilador GCC para que ele seja
 capaz de compilar um único arquivo em paralelo sem utilizar a
 estrutura do LTO. Isso é útil para desenvolvedores que trabalham
 com grandes softwares iterativamente, pois deve minimizar
 gargalos gerados por arquivos grandes e cobrir os casos onde o LTO gera
-binário menos eficientes que o processo clássico de compilação, fornecendo assim
-uma alternativa ao LTO.
+binários menos eficientes, fornecendo assim uma alternativa a essa tecnologia.
 Este trabalho se concentra em paralelizar os passos de otimização Intra Procedural
 a nível de funções, ou seja, duas análises executarão em paralelo em funções
-distintas, evitando adentrar em paralelizar a análise de fluxo de dados.
-
-    \item Uma revisão sobre o que pode ser feito para acelerar o
-processo clássico de compilação em máquinas \textit{manycore} através
-de paralelismo, e quais problemas devem ser atacados em trabalhos futuros.
-Espera-se utilizar os resultados do item 1.
+distintas, evitando adentrar em paralelizar a análise de fluxo de dados. Espera-se
+utilizar as informações do item 1 para realizar um estudo de caso.
 \end{enumerate}
 O primeiro item será enviada ao GCC como uma contribuição ao \textit{software}
 livre. O projeto de paralelização foi submetido e aprovado para o GSoC 2019,
@@ -31,7 +30,7 @@ conforme o Apêndice \ref{ap:gsoc}.
 Nesta subseção é apresentado o estado atual do projeto de paralelização
 do GCC com \textit{threads}. O GCC foi escolhido como candidato para
 paralelização pois a comunidade demonstrou grande interesse no projeto,
-conforme discutido na Seção \ref{cap:introducao}, e também devio a familiaridade
+conforme discutido na Seção \ref{cap:introducao}, e também devido a familiaridade
 do autor com o projeto, já tendo previamente contribuído com este. Sendo assim,
 utilizar outro compilador como o Clang para implementar o projeto demandaria
 estudos sobre a estrutura do projeto e convencimento da comunidade das possíveis
@@ -44,11 +43,11 @@ Como atestado por \cite{PR84402}, há um gargalo de paralelismo dentro do
 próprio GCC por conta de arquivos grandes. Outro gargalo também foi relatado
 por \cite{mailgcc} em outro projeto interno. Uma das soluções para este
 problema é melhorar o paralelismo dentro do GCC, tornando possível fazer
-com que a compilação utilize mais núcleos de processamento.
-Nesta discussão, foi proposto uma maneira de visualizar o problema de
+com que a compilação destes arquivos utilize mais núcleos de processamento.
+Nesta discussão, foi proposta uma maneira de visualizar o problema de
 paralelismo através de um gráfico gerado por dados de um GNU Make modificado.
 Como a alteração no Make é razoavelmente complicada e o \textit{script} proposto
-possuía sérios problemas de estabilidade, foi desenvolvido uma outra maneira
+possuía sérios problemas de estabilidade, foi desenvolvida uma outra maneira
 de replicar os resultados.
 
 Como desenvolvido e publicado por \cite{gcctimer}, a ferramenta aqui proposta
@@ -69,17 +68,20 @@ de texto. Houve cautela para que não haja mistura de linhas
 no arquivo por razão de escrita simultânea no arquivo. Há também um \textit{script}
 em \textit{Bash} para reproduzir os resultados facilmente.
 
-Em seguida, foi codificado um programa em \textit{Python} para análise dos
-resultados. Esse programa é responsável por gerar os gráficos conforme
+Também é disponibilizado pelo autor um programa em \textit{Python} para análise dos
+resultados, responsável por gerar os gráficos conforme
 mostrado na Figura \ref{fig:analysis_classical}. Em um dos eixos há o
 tempo de execução, no outro há
-o trabalho do Makefile. Para construir o gráfico, considera-se que
-dois intervalos que se interseccionam apenas podem ser executados em
-trabalhos distintos do Make, sendo assim, utiliza-se a técnica
-de coloração em grafos de intervalos, que pode ser resolvido otimamente
-em $O(n \log p)$, onde $n$ é o número de arquivos e $p$ é o número de
-cores, embora o algoritmo
-implementado seja $O(np)$.
+o trabalho do Makefile. Para construir o gráfico, é utilizado a técnica
+de coloração de grafos de intervalos: cada nó representa um intervalo de
+tempo, e é adicionado uma aresta entre esses nós caso haja intersecção nos
+intervalos. Em seguida, é executado um algoritmo guloso de coloração a
+partir do tempo de inicio. Como o grafo é de intervalos, esse algoritmo
+garante que a quantidade de cores utilizadas é a menor possível. Isso dá
+uma boa estimativa de como os trabalhos foram distribuidos pelo Makefile.
+Do ponto de vista de complexidade, isso garante que os gráficos podem ser
+gerados em em $O(n \log p)$, onde $n$ é o número de arquivos e $p$ é o número de
+cores, embora o algoritmo implementado seja $O(np)$.
 
 \subsection{Investigação do Tempo Consumido na Compilação}
 
@@ -136,7 +138,7 @@ no GCC através das flags \texttt{-ftime-report} \texttt{-ftime-report-details}.
 Como as otimizações do GCC são divididas em IPA, GIMPLE e RTL, é necessário
 executar uma granularidade mais fina na análise. Com uma simples alteração
 no GCC, foi possível separar a etapa IPA das demais. Bastou embrulhar as funções
-\texttt{ipa\_passes()} e \texttt{expand\_all\_functions()} com duas\textit{timevars}
+\texttt{ipa\_passes()} e \texttt{expand\_all\_functions()} com duas \textit{timevars}
 distintas. Assim, os seguintes dados foram obtidos:
 \begin{itemize}
     \item 75\% do tempo total de compilação (57s) é gasto nos passos de otimização
@@ -176,7 +178,7 @@ onde as \textit{threads} trabalhadoras retirarão o trabalho.
 Cada \textit{thread} será responsável por executar todas as passagens
 de otimização do GIMPLE em uma função retirada da fila produtor-consumidor.
 Sendo assim, duas \textit{threads} processarão duas funções distintas.
-Uma ilustração deste processo está retratado na Figura \ref{fig:paralelizacao}.
+Esse processo está retratado na Figura \ref{fig:paralelizacao}.
 Em seguida, será avaliado o \textit{speedup} ao paralelizar o GIMPLE, e
 será decidido qual outro problema abordar: paralelização das demais
 passagens RTL, ou uma tentativa de paralelizar o IPA.
@@ -217,7 +219,7 @@ As atividades serão dispostas pelos próximos meses na seguinte forma:
 	do GCC, sendo assim os passos GIMPLE e RTL serão separados para que seja
 	possível paralelizar os passos GIMPLE.
 
-	\item Remover estados globais: O GCC têm muitos estados globais referentes
+	\item Remover estados globais: O GCC tem muitos estados globais referentes
 	aos passos GIMPLE que deverão ser adaptados para a paralelização.
 
 	\item Paralelizar o GIMPLE: Será adicionado código para que os passos do
@@ -226,6 +228,9 @@ As atividades serão dispostas pelos próximos meses na seguinte forma:
 	\item Avaliar a paralelização do RTL e IPA: Dependendo do ganho obtido
 	na etapa anterior, será avaliado o ganho em paralelizar os passos IPA ou
 	o RTL.
+
+    \item Escrita de um Artigo Científico. Tempo destinado a escrita de um
+        artigo a respeito dos resultados do trabalho.
 
 	\item Escrita da Dissertação: Tempo destinado a escrita do texto final da
         dissertação.
@@ -244,7 +249,8 @@ Uma ilustração desse calendário está representado na Figura \ref{fig:gantt}.
     \ganttbar[progress=0]{Paralelizar o GIMPLE}{2019-07}{2019-09} \ganttnewline
     \ganttmilestone{Experimentos}{2019-09} \ganttnewline
     \ganttgroup[progress=0]{Avaliar a paralelização do RTL e IPA}{2019-10}{2019-12} \ganttnewline
-    \ganttgroup[progress=0]{Escrita da Tese}{2019-12}{2020-02} \ganttnewline
+    \ganttgroup[progress=0]{Escrita da Tese}{2019-11}{2020-02} \ganttnewline
+    \ganttbar[progress=0]{Escrita do Artigo}{2019-11}{2020-01} \ganttnewline
     \ganttmilestone{Submissão}{2020-02}
   \end{ganttchart}
 
@@ -252,20 +258,28 @@ Uma ilustração desse calendário está representado na Figura \ref{fig:gantt}.
 \end{figure}
 
 
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+    \includegraphics[width=0.9\paperheight]{gcc_timer_classic_crop.pdf}
+    \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:analysis_classical}
+%\end{figure}
+\end{landscape}
 
-\begin{figure}[ht]
- \centering
- \includegraphics[scale=0.6, angle=-90]{gcc_timer_classic.pdf}
- \caption{Tempo corrido na compilação do GCC em um processador de 64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
- \label{fig:analysis_classical}
-\end{figure}
-
-\begin{figure}[ht]
- \centering
- \includegraphics[scale=0.6, angle=-90]{lto.pdf}
-    \caption{Tempo corrido na compilação do GCC em um processador de 64 núcleos. \textbf{Com} LTO, sem \textit{Bootstrap}.}
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+ \includegraphics[width=0.9\paperheight]{lto_crop.pdf}
+    \captionof{figure}{Tempo corrido na compilação do GCC em um processador de 64 núcleos. \textbf{Com} LTO, sem \textit{Bootstrap}.}
  \label{fig:analysis_lto}
-\end{figure}
+%\end{figure}
+\end{landscape}
 
 
 %%%%%
