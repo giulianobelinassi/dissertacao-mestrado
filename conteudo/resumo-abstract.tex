@@ -10,10 +10,8 @@
     processo de desenvolvimento incremental de programas de computador, e pode
     gerar código menos eficiente que o processo clássico de compilação em
     alguns casos. Esse trabalho apresenta uma visão geral sobre o estado da
-    arte de paralelismo em compiladores, propõe uma alternativa ao LTO,
-    explorando melhor o paralelismo no processo clássico de compilação através
-    de paralelismo interno em um compilador, e discute técnicas de que podem
-    ser empregadas para o paralelismo em compiladores no geral.  Para validar
+    arte de paralelismo em compiladores, e propõe uma alternativa ao LTO explorando
+    paralelismo interno em um compilador, com \textit{threads}. Para validar
     os resultados, algumas das técnicas discutidas são implementadas no GCC, e
     são realizadas análises no tempo total de compilação do projeto GCC e
     arquivos separados através de técnicas de inferência estatística.
@@ -24,17 +22,15 @@
 % sugeridas da USP
 \begin{resumo}{eng}
 Compilers are huge software destinated to translate the source code between
-distinct programming languages, and currently they are being parallelized
-to better use multicore resources using compiling techniques such as (Link
-Time Optimization) LTO. This technique usually slows down the process of
-interactively software development, and can sometimes generate less
-efficient code when compared to the classical compilation process. This
-thesis presents a general vision of the state of art about parallelism in compilers
-and proposes an alternative to LTO by better exploring the parallelism
-in the classical compilation method by parallelizing the compiler
-internals, with a discussion of techniques that can be deployed to
-parallelize compilers in general. To validate the obtained results, some of
-the techniques discussed here are implemented in GCC, and analyses are
-performed in the total compilation time of the GCC project and separated
-files using statistical inference techniques.
+distinct programming languages, and currently, they are being parallelized to
+better use multicore resources using compiling techniques such as Link Time
+Optimization (LTO). This technique usually slows down the process of
+interactively software development, and can sometimes generate less efficient
+code when compared to the classical compilation process. This thesis presents a
+general vision of the state of art about parallelism in compilers and proposes
+an alternative to LTO by better exploring parallelism in compiler internals,
+through threads. To
+validate the obtained results, some of the techniques discussed here are
+implemented in GCC, and analyses are performed in the total compilation time of
+the GCC project and separated files using statistical inference techniques.
 \end{resumo}

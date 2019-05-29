@@ -20,7 +20,7 @@ a nível de funções, ou seja, duas análises executarão em paralelo em funç�
 distintas, evitando adentrar em paralelizar a análise de fluxo de dados. Espera-se
 utilizar as informações do item 1 para realizar um estudo de caso.
 \end{enumerate}
-O primeiro item será enviada ao GCC como uma contribuição ao \textit{software}
+O segundo item será enviado ao GCC como uma contribuição ao \textit{software}
 livre. O projeto de paralelização foi submetido e aprovado para o GSoC 2019,
 conforme o Apêndice \ref{ap:gsoc}.
 
@@ -80,7 +80,7 @@ partir do tempo de inicio. Como o grafo é de intervalos, esse algoritmo
 garante que a quantidade de cores utilizadas é a menor possível. Isso dá
 uma boa estimativa de como os trabalhos foram distribuidos pelo Makefile.
 Do ponto de vista de complexidade, isso garante que os gráficos podem ser
-gerados em em $O(n \log p)$, onde $n$ é o número de arquivos e $p$ é o número de
+gerados em $O(n \log p)$, onde $n$ é o número de arquivos e $p$ é o número de
 cores, embora o algoritmo implementado seja $O(np)$.
 
 \subsection{Investigação do Tempo Consumido na Compilação}
@@ -92,7 +92,7 @@ o Debian 10 (\textit{Testing}).
 
 Primeiro, foi executado um experimento com respeito ao tempo de compilação
 do GCC com o LTO habilitado, e outro desabilitado. Em ambos os experimentos,
-desabilitamos o processo de \textit{bootstrap} do compilador. Para o caso LTO,
+o processo de \textit{bootstrap} do compilador foi desabilitado. Para o caso LTO,
 utilizamos no máximo 64 \textit{threads} através da diretiva de compilação
 \texttt{-flto=64} para permitir o uso de paralelismo nesse método. Como
 é possível concluir comparando as Figuras \ref{fig:analysis_lto} e \ref{fig:analysis_classical},
@@ -214,6 +214,27 @@ tempo de compilação utilizando a estrutura LTO, também utilizando as mesmas t
 
 As atividades serão dispostas pelos próximos meses na seguinte forma:
 
+\begin{figure}
+
+  \centering
+
+  \begin{ganttchart}{2019-05}{2020-3}
+    \gantttitlecalendar{year,month=shortname} \ganttnewline
+    \ganttgroup[progress=0]{Paralelização do GIMPLE}{2019-05}{2019-09} \ganttnewline
+    \ganttbar[progress=0]{Separar GIMPLE e RTL}{2019-05}{2019-05} \ganttnewline
+    \ganttbar[progress=0]{Remover estados Globais}{2019-05}{2019-07} \ganttnewline
+    \ganttbar[progress=0]{Paralelizar o GIMPLE}{2019-07}{2019-09} \ganttnewline
+    \ganttmilestone{Experimentos}{2019-09} \ganttnewline
+    \ganttgroup[progress=0]{Avaliar a paralelização do RTL e IPA}{2019-10}{2019-12} \ganttnewline
+    \ganttgroup[progress=0]{Escrita da Tese}{2019-11}{2020-02} \ganttnewline
+    \ganttbar[progress=0]{Escrita do Artigo}{2019-11}{2019-12} \ganttnewline
+    \ganttbar[progress=0]{Escrita do Tese}{2019-12}{2020-02} \ganttnewline
+    \ganttmilestone{Submissão}{2020-02}
+  \end{ganttchart}
+
+  \caption{Cronograma das Atividades.\label{fig:gantt}}
+\end{figure}
+
 \begin{itemize}
 	\item Separar GIMPLE e RTL: O RTL tem dependências com o \textit{Back End}
 	do GCC, sendo assim os passos GIMPLE e RTL serão separados para que seja
@@ -235,28 +256,8 @@ As atividades serão dispostas pelos próximos meses na seguinte forma:
 	\item Escrita da Dissertação: Tempo destinado a escrita do texto final da
         dissertação.
 \end{itemize}
-Uma ilustração desse calendário está representado na Figura \ref{fig:gantt}.
-
-\begin{figure}
-
-  \centering
-
-  \begin{ganttchart}{2019-05}{2020-3}
-    \gantttitlecalendar{year,month=shortname} \ganttnewline
-    \ganttgroup[progress=0]{Paralelização do GIMPLE}{2019-05}{2019-09} \ganttnewline
-    \ganttbar[progress=0]{Separar GIMPLE e RTL}{2019-05}{2019-05} \ganttnewline
-    \ganttbar[progress=0]{Remover estados Globais}{2019-05}{2019-07} \ganttnewline
-    \ganttbar[progress=0]{Paralelizar o GIMPLE}{2019-07}{2019-09} \ganttnewline
-    \ganttmilestone{Experimentos}{2019-09} \ganttnewline
-    \ganttgroup[progress=0]{Avaliar a paralelização do RTL e IPA}{2019-10}{2019-12} \ganttnewline
-    \ganttgroup[progress=0]{Escrita da Tese}{2019-11}{2020-02} \ganttnewline
-    \ganttbar[progress=0]{Escrita do Artigo}{2019-11}{2020-01} \ganttnewline
-    \ganttmilestone{Submissão}{2020-02}
-  \end{ganttchart}
-
-  \caption{Cronograma das Atividades.\label{fig:gantt}}
-\end{figure}
-
+Uma ilustração da distribuição dessas tarefas no tempo está representada na
+Figura \ref{fig:gantt}.
 
 \begin{landscape}
 %\begin{figure}[ht]

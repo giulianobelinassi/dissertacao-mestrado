@@ -11,7 +11,7 @@ apresentados alguns conceitos e algoritmos básicos sobre Computação Paralela.
 \begin{section}{Compiladores}
 
 Para evitar confusões a respeito das diferentes linguagens que um compilador
-trabalha em seus muitos estágios, vamos adotar a seguinte nomenclatura:
+trabalha em seus muitos estágios, é adotado a seguinte nomenclatura neste trabalho:
 Denote \textit{Linguagem Fonte} como sendo a linguagem
 na qual o código fonte do programa a ser compilado foi originalmente escrito;
 \textit{Linguagem Intermediária} uma das linguagens internas do compilador; e
@@ -46,7 +46,7 @@ independentes de arquitetura no código já convertido para a Linguagem Intermed
 
     \item Um \textit{Back End} para cada linguagem alvo, responsável por converter a linguagem intermediária
 na linguagem alvo. Aqui outras otimizações específicas da linguagem alvo são realizadas,
-como alocação de registradores.
+como alocação de registradores e seleção de instruções.
 
 \end{itemize}
 
@@ -111,7 +111,7 @@ linguagens de programação.
 Um \textit{Front End} é um módulo responsável por interagir diretamente com o
 código escrito na Linguagem Fonte a ser compilado. Ele costuma ser único
 para cada Linguagem Fonte, ou seja, para inserir suporte a uma nova
-Linguagem Alvo, basta implementar um novo \textit{Front End}, mas é
+Linguagem Fonte, basta implementar um novo \textit{Front End}, mas é
 possível que algumas classes sejam
 compartilhadas, como no caso de um compilador que dê tanto para C quanto para e C++.
 
@@ -171,7 +171,7 @@ existência de algoritmos para minimização de estados de um autômato
 como o \texttt{Flex}\footnote{https://www.gnu.org/software/flex/}
 sejam bastante eficientes.
 
-    Em sequência, o Analisador Sintático entra em cena. O analisador sintático é
+    Em conjunto com o Analisador Léxico, o analisador sintático é
 responsável por gerar a Árvore de Sintaxe Abstrata (AST), inspecionando a
 sequência de \textit{tokens} fornecida pelo Analisador Léxico. Neste processo,
 ele certifica-se de que o código fonte respeita a gramática da linguagem,
@@ -213,7 +213,7 @@ pode ser encontrada em \citep{appel2004modern}.
 
     Uma vez gerada a AST, é possível fazer verificações extras de semântica
 relacionada a linguagem de programação. Em seguida, essa AST normalmente é
-traduzida para uma linguagem intermediária, onde serão feitas otimizações
+traduzida para uma Linguagem Intermediária, onde serão feitas otimizações
 independentes da linguagem alvo no código. Por fim, o controle é passado
 para o \textit{Middle End} do compilador.
 
@@ -418,7 +418,7 @@ algoritmos referentes a essas otimizações são discutidos por
   \label{fig:call_graph}
 \end{figure}
     Após todo esse processo de otimização, o código nesta linguagem ainda
-pode ainda sofrer transformações para outras Linguagens
+pode sofrer transformações para outras Linguagens
 Intermediárias para algo que seja mais próximo do
 \textit{hardware}-alvo (nos casos em que a compilação tem como alvo código de máquina).
 Finalmente, após essa sequência de transformações, o controle é
@@ -479,31 +479,35 @@ a memória buscando instruções que se anulam.
 \label{fig:macro_exp}
 \end{figure}
 
-    Uma outra maneira é realizar a seleção de instruções na árvore de expressão.
-Inicialmente desenvolvido como um aperfeiçoamento da técnica de substituição de macros,
-essa técnica busca por padrões na árvore de expressão e substitui pelas instruções
-de acordo com uma regra especificada.
-As primeiras implementações deste método eram heurísticas simples, substituindo os padrões
-conforme eles eram encontrados e não se preocupavam em escolher o melhor conjunto de padrões.
+Uma outra maneira é realizar a seleção de instruções através de uma
+representação em árvore da Linguagem Intermediária.  Inicialmente
+desenvolvida como um aperfeiçoamento da técnica de substituição de macros,
+essa técnica busca por padrões na árvore e as substitui pelas instruções de
+acordo com uma regra especificada.  As primeiras implementações deste
+método eram heurísticas simples, substituindo os padrões conforme eles eram
+encontrados, sem se preocupar em escolher o melhor conjunto de padrões.
 
-\cite{glanville1978} evoluiu tal método utilizando as mesmas técnicas de análise léxica
-e sintática normalmente empregadas no \textit{Front End}. A partir do algoritmo LR(1),
-Graham conseguiu postergar a emissão de código utilizando a máquina de estados desse
-algoritmo para armazenar um contexto limitado das instruções já vistas. Quando o algoritmo decide
-emitir código, é selecionado o conjunto de instruções que minimiza o custo total do
-contexto atual. Isso permite selecionar instruções em tempo linearmente proporcional ao tamanho
-da expressão e considerar o custo das instruções no momento de emitir o código.
+\cite{glanville1978} evoluiu tal método utilizando as mesmas técnicas de
+análise léxica e sintática normalmente empregadas no \textit{Front End}. A
+partir do algoritmo LR(1), Graham conseguiu postergar a emissão de código
+utilizando a máquina de estados desse algoritmo para armazenar um contexto
+limitado das instruções já vistas. Quando o algoritmo decide emitir código,
+é selecionado o conjunto de instruções que minimiza o custo total do
+contexto atual. Isso permite selecionar instruções em tempo linearmente
+proporcional ao tamanho da expressão e considerar o custo das instruções no
+momento de emitir o código.
 
-Embora a técnica de Graham-Glanville tenha uma
-complexidade computacional bem atraente, esse método se
-mostrou difícil de implementar na prática devido a quantidade de instruções disponíveis nos
-processadores, resultando em uma máquina de estados com milhares de estados, e
-vários conflitos de ambiguidade. Também é importante notar que esse método não
-é capaz de gerar código com custo ótimo no caso geral, pois uma vez que o
-algoritmo decide emitir as instruções, elas não são mais modificadas
-independentemente das instruções lidas posteriormente \citep{blindell2016instruction}.
+Embora a técnica de Graham-Glanville tenha uma complexidade computacional bem
+atraente, esse método se mostrou difícil de implementar na prática devido a
+quantidade de instruções disponíveis nos processadores, resultando em uma
+máquina de estados com milhares de estados, e vários conflitos de ambiguidade.
+Também é importante notar que esse método não é capaz de gerar código com custo
+ótimo no caso geral, pois uma vez que o algoritmo decide emitir as instruções,
+elas não serão mais modificadas independentemente das instruções lidas
+posteriormente \citep{blindell2016instruction}.
 
-É possível selecionar as instruções de maneira ótima através de Programação
+Ainda considerando a seleção de instruções em uma representação em árvore,
+é possível selecionar as instruções de maneira ótima através de Programação
 Dinâmica, conforme proposto por \cite{ripken1977formale}.  A ideia consiste em
 observar que para minimizar o custo de selecionar os padrões na árvore inteira,
 basta considerar o melhor custo dos filhos
@@ -518,8 +522,8 @@ Então o custo mínimo $DP[n]$ é:
      \end{cases}
 \]
 
-Outra maneira de selecionar instruções é através de Grafos Acíclicos
-Direcionados (DAGs). Sua vantagem é a possibilidade de representar
+Outra maneira de selecionar instruções é através de uma representação em 
+Grafos Acíclicos Direcionados (DAGs). Sua vantagem é a possibilidade de representar
 subexpressões em comum em uma expressão, mas infelizmente selecionar instruções
 de maneira ótima em um DAG é NP-completo \citep{koes2008near}.  A maioria das
 técnicas empregadas em seleção de instruções utilizando DAGs são gulosas, como
@@ -590,7 +594,8 @@ nessa representação, basta compilá-lo utilizando o atributo
 \begin{subsection}{GIMPLE}
 
 O GIMPLE é outra linguagem intermediária do GCC, basicamente consistindo na
-conversão de GENERIC para \textit{Three Address Code}. Assim como o
+conversão de GENERIC para \textit{Three Address Code}, havendo ainda um passo
+posterior adicionando uma representação SSA a esta linguagem. Assim como o
 GENERIC, a GIMPLE também é geral o suficiente para representar os atributos
 de todas as Linguagens Fonte de cada \textit{Front End}.  Essa linguagem
 intermediaria é baseada na linguagem SIMPLE, do compilador McCAT \citep{gimple}.
@@ -799,7 +804,7 @@ LD coleta todos os arquivos objetos gerados, construindo o binário especificado
 \end{tikzpicture}
 }
 \end{center}
-\caption{Etapas de Compilação.}
+\caption{Etapas de compilação.}
 \label{fig:gnu_toolchain}
 \end{figure}
 

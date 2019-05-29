@@ -2,7 +2,7 @@
 \chapter{Introdução}
 \label{cap:introducao}
 
-\begin{subsection}{Motivação}
+\begin{section}{Motivação}
 
 Os avanços nos campos tecnológicos e computacionais levaram uma enorme expansão
 dos ecossistemas de \textit{software}. Novos programas são criados para
@@ -55,9 +55,9 @@ de computação paralela para aproveitar os recursos dos processadores
  \label{fig:github_2017}
 \end{figure}
 
-\end{subsection}
+\end{section}
 
-\begin{subsection}{O GCC}
+\begin{section}{O GCC}
 
 O GCC é um compilador de código aberto amplamente usado tanto no meio
 acadêmico quanto na indústria. Por ser um grande projeto, o GCC contém uma
@@ -84,13 +84,14 @@ Considerando que atualmente há uma tendência para que os processadores sejam
 cada vez mais paralelos, compiladores que usufruam deste recurso poderiam
 reduzir o tempo de compilação de um projeto, ou de uma suíte de testes que
 necessita recompilação antes de sua execução, economizando recursos no caso da
-computação ser cobrada por hora. Até então, o paralelismo empregado em compiladores
-otimizadores foi consequência de uma estrutura criada para permitir otimizações
-mais agressivas e custosas, como o LTO \citep{glek2010optimizing}.
+computação ser cobrada por hora. Até então, o paralelismo empregado internamente
+em compiladores otimizadores foi consequência de uma estrutura criada para
+permitir otimizações mais agressivas e custosas, como o LTO
+\citep{glek2010optimizing}.
 
-\end{subsection}
+\end{section}
 
-\begin{subsection}{Questões de Pesquisa}
+\begin{section}{Questões de Pesquisa}
 
 Deve ser observado que nem todos os processos de um compilador podem ser
 paralelizados. Compiladores operam em etapas que podem ser fortemente
@@ -102,13 +103,32 @@ em grafos, cujo paralelismo é um desafio \citep{lumsdaine2007challenges}.
 
 % TODO: Deixar as questões de pesquisa mais detalhadas, e talvez colocar em outra
 % subseção.
-Sendo assim, existe interesse em pesquisas que apontem onde exatamente um compilador
-pode tirar vantagem de paralelismo, e esta é a questão de pesquisa que este
-trabalho aborda. Portanto, esse trabalho propõe uma alternativa ao LTO com foco
-em desenvolvimento incremental, cobrindo os casos onde o LTO produz binários menos
+Sendo assim, esse trabalho concentra-se em duas questões de pesquisas:
+\begin{description}
+    \item[\textit{QP1}] - Em que pontos um compilador pode usufruir de paralelismo?
+
+    \item[\textit{QP2}] - Qual é o ganho de desempenho ao paralelizar internamente um compilador?
+\end{description}
+essas questões de pesquisa visam propor uma alternativa ao LTO com foco
+em desenvolvimento incremental, e também cobrindo os casos onde o LTO produz binários menos
 eficientes através de melhorias no paralelismo do processo clássico de compilação.
 Para validar os resultados, este trabalho inclui a implementação no GCC de algumas das
 técnicas discutidas, além da utilização de técnicas de inferência estatística para
 análises no tempo total de compilação no projeto GCC e arquivos separados.
 
-\end{subsection}
+Este trabalho está dividido nos seguintes capítulos: no Capítulo
+\ref{chap:fundamentacao}, são apresentados conceitos teóricos como parte da
+Teoria de Compiladores e Computação Paralela para que seja possível
+compreender as questões acerca do trabalho.  Em sequência, o Capítulo
+\ref{chap:related_works} contém uma apresentação dos trabalhos relacionados
+a paralelismo de compiladores até o estado da
+arte nesse tópico, além de uma breve discussão sobre seus pontos positivos
+e negativos. Por fim, o Capítulo \ref{chap:proposta} apresenta uma visão geral
+do trabalho de fato, com uma análise de tempo consumido que permitiu
+identificar quais pontos necessitam de melhorias, além da
+proposta do trabalho, que contempla a arquitetura de paralelismo e o
+planejamento de sua implementação.
+
+
+
+\end{section}
