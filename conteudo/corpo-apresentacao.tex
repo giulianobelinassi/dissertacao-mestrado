@@ -1,38 +1,38 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title[The shortened title]{The full title, which may be quite,\\ quite long indeed}
-\subtitle{The (optional) subtitle}
+\title[The shortened title]{Tópicos em Paralelização de Compiladores:\\ um estudo de caso no GCC}
+%\subtitle{The (optional) subtitle}
 
-\author[Authors Name]{Authors Name}
+\author[Authors Name]{Giuliano Belinassi}
 
-\institute[USP]{\textbf{Workshop Name} \\ Computer Science Department \\ IME USP}
-%\institute[USP]{\textbf{Orientador:} \\ Computer Science Department \\ IME USP}
+%\institute[USP]{\textbf{Workshop Name} \\ Computer Science Department \\ IME USP}
+\institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departmentamento de Ciência da Computação \\ IME USP}
 
-\date{Month and day, year}
+\date{17 de Junho de 2019}
 
 % Coloca a imagem no fundo da página de título
-\bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
+%\bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
 
 % Logotipos no rodapé da página de título
-\logos{
-  \hfil\hfil\includegraphics[width=.1\textwidth]{usp-logo}\hfil%
-  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{interscity-logo}}\hfil%
-  \raisebox{-.033\paperheight}{\includegraphics[width=.07\textwidth,trim=0 230 0 0,clip]{ime-logo}}\hfil\hfil
-}
-
 %\logos{
 %  \hfil\hfil\includegraphics[width=.1\textwidth]{usp-logo}\hfil%
+%  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{interscity-logo}}\hfil%
+%  \raisebox{-.033\paperheight}{\includegraphics[width=.07\textwidth,trim=0 230 0 0,clip]{ime-logo}}\hfil\hfil
+%}
+%
+\logos{
+  \hfil\hfil\includegraphics[width=.1\textwidth]{usp-logo}\hfil%
 %  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{interscity-logo}}\hfil%
 %  \raisebox{-.00517\paperheight}{\includegraphics[height=.057\paperheight]{cnpq-logo}}\hfil%
 %  \raisebox{-.0342\paperheight}{\includegraphics[height=.1035\paperheight]{capes-logo}}\hfil%
 %  \includegraphics[height=.044\paperheight]{fapesp-logo}\hfil\hfil
-%}
+}
 
 % Usado para criar o qrcode com o endereço da apresentação
-\presentationurl{http://interscity.org}
+%\presentationurl{http://interscity.org}
 
 % Inclui o qrcode no sumário da apresentação
-\includeqrcodeintoc
+%\includeqrcodeintoc
 
 % O slide de sumário pode ser dividido em colunas; o parâmetro
 % determina após qual o número da seção fazer a quebra de coluna
@@ -50,7 +50,7 @@
 \customtitlepage
 
 % Slide com o qrcode
-\showqrcode
+%\showqrcode
 
 \begin{frame}{Overview}
   \overview
@@ -58,28 +58,79 @@
 
 \section{Introduction}
 
-\begin{frame}{Context}
+\begin{frame}{Definições}
   \begin{itemize}
-    \item The copyright compromise seeked to balance public and private interests
-    \item Nowadays, changes to the law and technological advances all but destroyed this balance
+    \item Compiladores são programas destinados a converter um programa de uma linguagem $A$ para outra linguagem $B$
+        \begin{itemize}
+            \item Nessa apresentação, $A$ é uma linguagem de alto nível (C, C++, Go) e $B$ é a linguagem de montagem
+        \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Definições}
+  Um compilador normalmente é dividido em três etapas
+  \begin{itemize}
+    \item \textit{Front End}
+        \begin{itemize}
+            \item Responsável por interagir com o programa na linguagem $A$
+            \item Exemplo: converte um código C para uma representação interna em árvores
+        \end{itemize}
+    \item \textit{Middle End}
+        \begin{itemize}
+            \item Responsável por efetuar \textit{otimizações independentes de arquitetura} no código original
+        \end{itemize}
+    \item \textit{Back End}
+        \begin{itemize}
+            \item Responsável por \textit{traduzir} a representação interna para $B$
+            \item Otimização dependentes de arquitetura, geração de código
+        \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Definições}
+    Existem dois conjuntos de otimização que podem ser aplicadas em uma função do código:
+  \begin{itemize}
+    \item \textit{Intra Procedural}
+        \begin{itemize}
+            \item Podem ser aplicadas sem observar as interações com as demais funções
+        \end{itemize}
+    \item \textit{Inter Procedural}
+        \begin{itemize}
+            \item É necessário analisar as iterações com as demais funções
+        \end{itemize}
     \item[]
-    \item As a reaction, the free software movement was created
-    \begin{itemize}
-      \item Return to sharing (of source code) and to collaboration (exchange of ideas and team work)
-      \item Formalization with the GNU project
-      \item Only really possible when there are favourable conditions for source code exchange
-      \begin{itemize}
-        \item as highlighted by the growth that accompanied the Internet boom
-      \end{itemize}
-    \end{itemize}
+    \item Note que estes dois conjuntos são disjuntos (intersecção é vazia)
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Contexto}
+  \begin{itemize}
+    \item Compiladores-Otimizadores são softwares enormes e complexos
+        \begin{itemize}
+            \item exemplos ainda com desenvolvimento ativo: GCC (1987), Clang (2007)
+        \end{itemize}
+    \item 
+    \item Uso de recursos de programação como \texttt{templates}
+
   \end{itemize}
 
 \end{frame}
 
 \begin{frame}[plain]
-  \includegraphics[width=\textwidth]{interscity-logo}
+    \includegraphics[width=0.9\paperwidth]{gcc_timer_classic_crop.pdf}
+    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:analysis_classical}
 \end{frame}
 
+\begin{frame}[plain]
+    \includegraphics[width=0.9\paperwidth]{sensors-crop.pdf}
+    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:analysis_classical}
+
+\end{frame}
 \begin{frame}[standout]
   This is a problem!
 \end{frame}
