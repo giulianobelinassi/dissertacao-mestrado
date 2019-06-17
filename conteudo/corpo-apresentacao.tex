@@ -73,6 +73,7 @@
     \item \textit{Front End}
         \begin{itemize}
             \item Responsável por interagir com o programa na linguagem $A$
+            \item Análise Léxica e Sintática
             \item Exemplo: converte um código C para uma representação interna em árvores
         \end{itemize}
     \item \textit{Middle End}
@@ -217,6 +218,63 @@
     Usando \texttt{Makefiles}
 \end{frame}
 
+\begin{frame}{Processo de Compilação Clássico}
+\begin{figure}
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=6em, text centered, rounded corners, node distance=1cm and 2cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=1cm,
+    minimum height=2em]
+\begin{center}
+\scalebox{0.7}{
+\begin{tikzpicture}
+    % Place nodes
+    \node [block]                         (make)   {Makefile};
+    \coordinate[below=of make]            (c);
+    \node [block, left=of c]              (fonte1) {fonte1.c};
+    \node [block, right=of fonte1]        (fonte2) {fonte2.cpp};
+    \node [block, right=of fonte2]        (fonte3) {fonte3.f90};
+
+    \node [block, below=of fonte1]        (gcc)      {gcc};
+    \node [block, below=of fonte2]        (g++)      {g++};
+    \node [block, below=of fonte3]        (gfortran) {gfortran};
+
+    \node [block, below=of gcc]           (objeto1) {objeto1.o};
+    \node [block, below=of g++]           (objeto2) {objeto2.o};
+    \node [block, below=of gfortran]      (objeto3) {objeto3.o};
+
+    \node [block, below=of objeto2]       (ld) {LD};
+
+    \node [block, below=of ld]            (bin) {Executável};
+
+    % Draw edges
+    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
+    \draw[->]    (make.south)   -- (fonte2.north);
+    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
+
+    \draw[->]    (fonte1.south)   -- (gcc.north);
+    \draw[->]    (fonte2.south)   -- (g++.north);
+    \draw[->]    (fonte3.south)   -- (gfortran.north);
+
+    \draw[->]    (gcc.south)   -- (objeto1.north);
+    \draw[->]    (g++.south)   -- (objeto2.north);
+    \draw[->]    (gfortran.south)   -- (objeto3.north);
+
+    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]ld.north);
+    \draw[->]    (objeto2.south)   -- (ld.north);
+    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]ld.north);
+
+    \draw[->]    (ld.south)   -- (bin.north);
+
+
+\end{tikzpicture}
+}
+\end{center}
+\caption{Processo clássico de compilação de um programa.}
+\label{fig:classical_build}
+\end{figure}
+\end{frame}
+
 \begin{frame}
     Paralelismo com Makefile
     \includegraphics[width=0.9\paperwidth]{gcc_timer_classic_crop.pdf}
@@ -236,6 +294,96 @@
 \begin{frame}[standout]
     Usando o \texttt{LTO}
 \end{frame}
+
+\begin{frame}{Processo de Compilação Usando o LTO}
+
+\begin{figure}
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=6em, text centered, rounded corners, node distance=1cm and 1cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex, node distance=1cm and 1cm, auto]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+    minimum height=2em]
+\begin{center}
+\scalebox{0.6}{
+\begin{tikzpicture}
+    % Place nodes
+    \node [block]                         (make)   {Makefile};
+    \coordinate[below=of make]            (c);
+    \node [block, left=of c]              (fonte1) {fonte1.c};
+    \node [block, right=of fonte1]        (fonte2) {fonte2.cpp};
+    \node [block, right=of fonte2]        (fonte3) {fonte3.f90};
+
+    \node [block, below=of fonte1]        (gcc)      {gcc};
+    \node [block, below=of fonte2]        (g++)      {g++};
+    \node [block, below=of fonte3]        (gfortran) {gfortran};
+
+    \node [block, below=of gcc]           (objeto1) {lto\_obj1.o};
+    \node [block, below=of g++]           (objeto2) {lto\_obj2.o};
+    \node [block, below=of gfortran]      (objeto3) {lto\_obj3.o};
+
+    \node [block, below=of objeto2]       (gcc_lto) {gcc\_lto1};
+
+    \node [block, right=of fonte3]       (gcc_wpa) {gcc\_wpa};
+    \coordinate[below=of gcc_wpa]            (c2);
+
+    \node [block, left=of c2, right=of gfortran]            (gcc_ltrans1) {gcc\_ltrans};
+    \node [block, right=of gcc_ltrans1]   (gcc_ltrans2) {gcc\_ltrans};
+    \node [block, right=of gcc_ltrans2]   (gcc_ltrans3) {gcc\_ltrans};
+
+    \node [block, below=of gcc_ltrans1]   (obj1) {obj1.o};
+    \node [block, below=of gcc_ltrans2]   (obj2) {obj2.o};
+    \node [block, below=of gcc_ltrans3]   (obj3) {obj3.o};
+
+    \node [block, below=of obj2]   (ld) {LD};
+
+	\node [block, below=of ld]  (bin) {Executável};
+
+
+    \coordinate[right=of objeto3, left=of obj1]    (c3) at (8.2, -5);
+
+    % Draw edges
+    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
+    \draw[->]    (make.south)   -- (fonte2.north);
+    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
+
+    \draw[->]    (fonte1.south)   -- (gcc.north);
+    \draw[->]    (fonte2.south)   -- (g++.north);
+    \draw[->]    (fonte3.south)   -- (gfortran.north);
+
+    \draw[->]    (gcc.south)   -- (objeto1.north);
+    \draw[->]    (g++.south)   -- (objeto2.north);
+    \draw[->]    (gfortran.south)   -- (objeto3.north);
+
+    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]gcc_lto.north);
+    \draw[->]    (objeto2.south)   -- (gcc_lto.north);
+    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]gcc_lto.north);
+
+    \draw        (gcc_lto.east)   to [out=0, in=-90] (c3);
+    \draw[->]    (c3.north)       to [out=90, in=180] (gcc_wpa.west);
+
+    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans1.north);
+    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans2.north);
+    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans3.north);
+
+    \draw[->]    (gcc_ltrans1.south)   -- (obj1.north);
+    \draw[->]    (gcc_ltrans2.south)   -- (obj2.north);
+    \draw[->]    (gcc_ltrans3.south)   -- (obj3.north);
+
+    \draw[->]    (obj1.south)   -- ([xshift=-0.7em]ld.north);
+    \draw[->]    (obj2.south)   -- (ld.north);
+    \draw[->]    (obj3.south)   -- ([xshift=+0.7em]ld.north);
+
+	\draw[->]    (ld.south)   -- (bin.north);
+
+
+\end{tikzpicture}
+}
+\end{center}
+\caption{Compilação de um programa utilizando LTO.}
+\label{fig:whopr_build}
+\end{figure}
+\end{frame}
+
 
 \begin{frame}
     Paralelismo com LTO
@@ -306,7 +454,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
         \item Estudo do gargalo na compilação do GCC usando o \texttt{gimple-match.c}
             \begin{itemize}
                 \item São necessários em média 76 segundos para compilar tal arquivo
-                \item 75\% ($57s$) é gasto em otimizações Intra Prodecurais e Geração de código
+                \item 75\% ($57s$) é gasto em otimizações Intra Procedurais e Geração de código
                 \item 11\% ($11s$) é gasto nas otimizações Inter Procedurais
                 \item 8\% ($6s$) é gasto na análise léxica e sintática
                 \item 1\% está distribuído em diversas partes do compilador
@@ -425,154 +573,22 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
 
 \appendix
 
-\begin{frame}{Processo de Compilação Clássico}
-\begin{figure}
-\tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=1cm and 2cm, auto, minimum height=2em]
-\tikzstyle{line} = [draw, -latex]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=1cm,
-    minimum height=2em]
-\begin{center}
-\scalebox{0.7}{
-\begin{tikzpicture}
-    % Place nodes
-    \node [block]                         (make)   {Makefile};
-    \coordinate[below=of make]            (c);
-    \node [block, left=of c]              (fonte1) {fonte1.c};
-    \node [block, right=of fonte1]        (fonte2) {fonte2.cpp};
-    \node [block, right=of fonte2]        (fonte3) {fonte3.f90};
-
-    \node [block, below=of fonte1]        (gcc)      {gcc};
-    \node [block, below=of fonte2]        (g++)      {g++};
-    \node [block, below=of fonte3]        (gfortran) {gfortran};
-
-    \node [block, below=of gcc]           (objeto1) {objeto1.o};
-    \node [block, below=of g++]           (objeto2) {objeto2.o};
-    \node [block, below=of gfortran]      (objeto3) {objeto3.o};
-
-    \node [block, below=of objeto2]       (ld) {LD};
-
-    \node [block, below=of ld]            (bin) {Executável};
-
-    % Draw edges
-    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
-    \draw[->]    (make.south)   -- (fonte2.north);
-    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
-
-    \draw[->]    (fonte1.south)   -- (gcc.north);
-    \draw[->]    (fonte2.south)   -- (g++.north);
-    \draw[->]    (fonte3.south)   -- (gfortran.north);
-
-    \draw[->]    (gcc.south)   -- (objeto1.north);
-    \draw[->]    (g++.south)   -- (objeto2.north);
-    \draw[->]    (gfortran.south)   -- (objeto3.north);
-
-    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]ld.north);
-    \draw[->]    (objeto2.south)   -- (ld.north);
-    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]ld.north);
-
-    \draw[->]    (ld.south)   -- (bin.north);
-
-
-\end{tikzpicture}
-}
-\end{center}
-\caption{Processo clássico de compilação de um programa.}
-\label{fig:classical_build}
-\end{figure}
-\end{frame}
-
-\begin{frame}{Processo de Compilação Usando o LTO}
-
-\begin{figure}
-\tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=1cm and 1cm, auto, minimum height=2em]
-\tikzstyle{line} = [draw, -latex]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
-    minimum height=2em]
-\begin{center}
-\scalebox{0.6}{
-\begin{tikzpicture}
-    % Place nodes
-    \node [block]                         (make)   {Makefile};
-    \coordinate[below=of make]            (c);
-    \node [block, left=of c]              (fonte1) {fonte1.c};
-    \node [block, right=of fonte1]        (fonte2) {fonte2.cpp};
-    \node [block, right=of fonte2]        (fonte3) {fonte3.f90};
-
-    \node [block, below=of fonte1]        (gcc)      {gcc};
-    \node [block, below=of fonte2]        (g++)      {g++};
-    \node [block, below=of fonte3]        (gfortran) {gfortran};
-
-    \node [block, below=of gcc]           (objeto1) {lto\_obj1.o};
-    \node [block, below=of g++]           (objeto2) {lto\_obj2.o};
-    \node [block, below=of gfortran]      (objeto3) {lto\_obj3.o};
-
-    \node [block, below=of objeto2]       (gcc_lto) {gcc\_lto1};
-
-    \node [block, right=of fonte3]       (gcc_wpa) {gcc\_wpa};
-    \coordinate[below=of gcc_wpa]            (c2);
-
-    \node [block, left=of c2, right=of gfortran]            (gcc_ltrans1) {gcc\_ltrans};
-    \node [block, right=of gcc_ltrans1]   (gcc_ltrans2) {gcc\_ltrans};
-    \node [block, right=of gcc_ltrans2]   (gcc_ltrans3) {gcc\_ltrans};
-
-    \node [block, below=of gcc_ltrans1]   (obj1) {obj1.o};
-    \node [block, below=of gcc_ltrans2]   (obj2) {obj2.o};
-    \node [block, below=of gcc_ltrans3]   (obj3) {obj3.o};
-
-    \node [block, below=of obj2]   (ld) {LD};
-
-	\node [block, below=of ld]   (bin) {Executável};
-
-    % Draw edges
-    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
-    \draw[->]    (make.south)   -- (fonte2.north);
-    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
-
-    \draw[->]    (fonte1.south)   -- (gcc.north);
-    \draw[->]    (fonte2.south)   -- (g++.north);
-    \draw[->]    (fonte3.south)   -- (gfortran.north);
-
-    \draw[->]    (gcc.south)   -- (objeto1.north);
-    \draw[->]    (g++.south)   -- (objeto2.north);
-    \draw[->]    (gfortran.south)   -- (objeto3.north);
-
-    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]gcc_lto.north);
-    \draw[->]    (objeto2.south)   -- (gcc_lto.north);
-    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]gcc_lto.north);
-
-    \draw[->]    (gcc_lto.east)   to [out=0, in=180] (gcc_wpa.west);
-
-    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans1.north);
-    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans2.north);
-    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans3.north);
-
-    \draw[->]    (gcc_ltrans1.south)   -- (obj1.north);
-    \draw[->]    (gcc_ltrans2.south)   -- (obj2.north);
-    \draw[->]    (gcc_ltrans3.south)   -- (obj3.north);
-
-    \draw[->]    (obj1.south)   -- ([xshift=-0.7em]ld.north);
-    \draw[->]    (obj2.south)   -- (ld.north);
-    \draw[->]    (obj3.south)   -- ([xshift=+0.7em]ld.north);
-
-	\draw[->]    (ld.south)   -- (bin.north);
-
-
-\end{tikzpicture}
-}
-\end{center}
-\caption{Compilação de um programa utilizando LTO.}
-\label{fig:whopr_build}
-\end{figure}
+\begin{frame}{Teorema do Limite Central}
+    \begin{itemize}
+        \item Seja $(X_1, X_2, \dots, X_n)$ amostras de uma variável aleatória $X$ com média
+            $\mu$ e desvio padrão $\sigma$. Então
+            $$ Z = \frac{\overline{X} - \mu}{\sigma / \sqrt{n}} \sim N(0, 1)$$
+        \item Ou seja, a distribuição do erro $e = \overline{X} - \mu$ segue uma distribuição $N(0, \sigma^2/n)$
+        \item Problema: não sei ao certo o valor de $\sigma$ da população
+    \end{itemize}
 \end{frame}
 
 \begin{frame}{Teorema do Limite Central}
     \begin{itemize}
-        \item Seja $(X_1, X_2, \dots, X_N)$ amostras de uma variável aleatória $X$ com média
-            $\mu$ e desvio padrão $\sigma$. Então
-            $$ Z = \frac{\overline{X} - \mu}{\sigma / \sqrt{n}} ~ N(0, 1)$$
-        \item Com isso, podemos definir um intervalo de confiança para a média amostral $\overline{X}$ 
+        \item No caso em que $X \sim N(\mu, \sigma^2)$, então é possível usar o estimador
+            $$s^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \overline{X})^2$$
+        \item Nesse caso
+            $$ T = \frac{\overline{X} - \mu}{s / \sqrt{n}} \sim t_{n-1}$$
     \end{itemize}
 \end{frame}
 
@@ -598,7 +614,7 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
             \hfil\hfil e \hfil\hfil
             $$P_i = \sup\{P(t)\,|\,t_{i} \leq t \leq t_{i+1}\}$$
             \hfil\hfil então: \hfil\hfil
-            $$\sum_{i=0}^{n-1} p_i(t)\Delta t \leq E \leq \sum_{i=0}^{n-1} P_i(t)\Delta t$$
+            $$\sum_{i=1}^{n-1} p_i\Delta t \leq E \leq \sum_{i=1}^{n-1} P_i\Delta t$$
 
     \end{itemize}
 \end{frame}
