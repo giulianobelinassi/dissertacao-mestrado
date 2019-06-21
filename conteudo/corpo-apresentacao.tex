@@ -52,89 +52,347 @@
 % Slide com o qrcode
 %\showqrcode
 
+\begin{frame}{Objetivos da Pesquisa}
+    \begin{itemize}
+        \item Paralelização de um compilador internamente
+        \begin{itemize}
+            \item Sem modificar a estrutura da compilação
+            \item Permitindo explorar paralelismo dentro de arquivos
+        \end{itemize}
+        \item Revisão de técnicas para a paralelização de Compiladores
+        \item[]
+        \item Consequências
+        \begin{itemize}
+            \item Compilações mais rápidas
+            \item Economia de energia
+            \item Integração Contínua mais responsiva
+            \item Alternativa ao \textit{Link Time Optimization} (LTO)
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Visão Geral}
   \overview
 \end{frame}
 
-\section{Introdução e Definições}
+\section{Introdução}
 
-\begin{frame}{Introdução e Definições}
+\begin{frame}{Introdução}
   \begin{itemize}
-    \item Compiladores são programas destinados a converter um programa de uma linguagem $A$ para outra linguagem $B$
+    \item Compiladores-Otimizadores são softwares enormes e complexos
         \begin{itemize}
-            \item Nessa apresentação, $A$ é uma linguagem de alto nível (C, C++, Go) e $B$ é a linguagem de montagem
+            \item Exemplos ainda com desenvolvimento ativo: GCC (1987), Clang (2007)
+            \item Majoritariamente sequenciais
+        \end{itemize}
+    \item Uso de recursos de programação como \texttt{templates}
+    \item Geração automática de arquivos grandes
+        \begin{itemize}
+            \item \texttt{gimple-match.c}: {\color{red}{100358 linhas}} de C++ (GCC 10.0.0)
         \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Introdução e Definições}
-  Um compilador normalmente é dividido em três etapas
-  \begin{itemize}
-    \item \textit{Front End}
-        \begin{itemize}
-            \item Responsável por interagir com o programa na linguagem $A$
-            \item Análise Léxica e Sintática
-            \item Exemplo: converte um código C para uma representação interna em árvores
-        \end{itemize}
-    \item \textit{Middle End}
-        \begin{itemize}
-            \item Responsável por efetuar \textit{otimizações independentes de arquitetura} no código original
-        \end{itemize}
-    \item \textit{Back End}
-        \begin{itemize}
-            \item Responsável por \textit{traduzir} a representação interna para $B$
-            \item Otimização dependentes de arquitetura, geração de código
-        \end{itemize}
-  \end{itemize}
+
+\begin{frame}{Introdução}
+    Paralelismo em compiladores:
+    \begin{itemize}
+        \item Normalmente com \texttt{make -j}
+            \begin{itemize}
+                \item Granularidade por arquivo
+                \item Modelo clássico de compilação
+            \end{itemize}
+    \end{itemize}
 \end{frame}
-\begin{frame}{Introdução e Definições}
+
+\begin{frame}{Introdução}
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=1cm and 1cm, auto, minimum height=2em]
+    text width=6em, text centered, rounded corners, node distance=1cm and 2cm, auto, minimum height=2em]
 \tikzstyle{line} = [draw, -latex]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=1cm,
     minimum height=2em]
-
 \begin{center}
-\scalebox{1.0}{
-    \begin{tikzpicture}
+\scalebox{0.7}{
+\begin{tikzpicture}
     % Place nodes
-    \begin{scope}{node distance = 1cm and 1cm}
-    \node [block]                      (front_c)    {Frontend C};
-    \node [block, below=of front_c]    (front_cpp)  {Frontend C++};
-    \node [block, below=of front_cpp]  (front_fort) {Frontend Fortran};
-    \node [block, right=of front_cpp]  (middle)     {Middle End};
-    \node [block, right=of middle]     (back_x86)   {Backend x86};
-    \node [block, above=of back_x86]   (back_arm)   {Backend ARM};
-    \node [block, below=of back_x86]   (back_ppc)   {Backend PPC};
+    \node [block]                         (make)   {Makefile};
+    \coordinate[below=of make]            (c);
+    \node [block, left=of c]              (fonte1) {fonte1.c};
+    \node [block, right=of fonte1]        (fonte2) {fonte2.cpp};
+    \node [block, right=of fonte2]        (fonte3) {fonte3.f90};
 
+    \node [block, below=of fonte1]        (gcc)      {gcc};
+    \node [block, below=of fonte2]        (g++)      {g++};
+    \node [block, below=of fonte3]        (gfortran) {gfortran};
 
-    \coordinate [left=of front_c]    (c_code);
-    \coordinate [left=of front_cpp]  (cpp_code);
-    \coordinate [left=of front_fort]  (fort_code);
+    \node [block, below=of gcc]           (objeto1) {objeto1.o};
+    \node [block, below=of g++]           (objeto2) {objeto2.o};
+    \node [block, below=of gfortran]      (objeto3) {objeto3.o};
 
-    \coordinate [right=of back_x86] (x86_code);
-    \coordinate [right=of back_arm] (arm_code);
-    \coordinate [right=of back_ppc] (ppc_code);
-    \end{scope}
+    \node [block, below=of objeto2]       (ld) {LD};
+
+    \node [block, below=of ld]            (bin) {Executável};
 
     % Draw edges
-    \draw[->]    (front_c.east)     to [out=0,in=180] ([yshift=0.5em]  middle.west);
-    \draw[->]    (front_cpp.east)   to [out=0,in=180] (middle.west);
-    \draw[->]    (front_fort.east)  to [out=0,in=180] ([yshift=-0.5em] middle.west);
+    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
+    \draw[->]    (make.south)   -- (fonte2.north);
+    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
 
-    \draw[->]    ([yshift=-0.5em] middle.east)  to [out=0,in=180] (back_ppc.west);
-    \draw[->]    (middle.east)                  to [out=0,in=180] (back_x86.west);
-    \draw[->]    ([yshift=0.5em] middle.east)   to [out=0,in=180] (back_arm.west);
+    \draw[->]    (fonte1.south)   -- (gcc.north);
+    \draw[->]    (fonte2.south)   -- (g++.north);
+    \draw[->]    (fonte3.south)   -- (gfortran.north);
+
+    \draw[->]    (gcc.south)   -- (objeto1.north);
+    \draw[->]    (g++.south)   -- (objeto2.north);
+    \draw[->]    (gfortran.south)   -- (objeto3.north);
+
+    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]ld.north);
+    \draw[->]    (objeto2.south)   -- (ld.north);
+    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]ld.north);
+
+    \draw[->]    (ld.south)   -- (bin.north);
+
 
 \end{tikzpicture}
 }
 \end{center}
-
-\caption{Arquitetura de um compilador.}
-\label{fig:compiler_arch}
+\caption{Processo clássico de compilação de um programa.}
+\label{fig:classical_build}
 \end{figure}
 \end{frame}
+
+\begin{frame}{Introdução}
+    \begin{itemize}
+        \item O que acontece se há alguns arquivos grandes no projeto?
+        \begin{itemize}
+            \item Gargalo na compilação
+            \item Maior gasto de energia
+            \item Exemplos
+                \begin{itemize}
+                    \item O próprio GCC
+                    \item Relatos similares em projetos internos \citep{mailgcc}
+                \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Introdução}
+    \begin{itemize}
+        \item Experimento 1
+        \begin{itemize}
+            \item Compilação do GCC em uma máquina com $4\times$ AMD Opteron 6376
+                \begin{itemize}
+                    \item $4 \times 16 = 64$ núcleos
+                \end{itemize}
+            \item \textit{Bootstrap} desligado
+            \item Coletado os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
+            \item Coletado a {\color{blue}{soma da potência instantânea}} fornecida a
+                {\color{red}{cada processador}}
+                \begin{itemize}
+                    \item Sensor AMD \texttt{fam15h\_power}
+                    \item $\Delta t = 5ms$
+                \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    Paralelismo com Makefile
+    \includegraphics[width=0.9\paperwidth]{gcc_timer_classic_crop.pdf}
+    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:analysis_classical}
+\end{frame}
+
+\begin{frame}
+    Paralelismo com Makefile
+    \includegraphics[width=0.9\paperwidth]{sensors-crop.pdf}
+    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:analysis_classical}
+\end{frame}
+
+\begin{frame}
+    \begin{itemize}
+        \item Como demonstrado, o \texttt{make -j} não é suficiente!
+        \item[]
+        \begin{itemize}
+            \item Isso levanta as seguintes questões de pesquisas:
+            \begin{description}
+                \item[\textit{QP1}] Em que pontos um compilador pode usufruir de paralelismo?
+                \item[\textit{QP2}] Qual é o ganho de tempo ao paralelizar um compilador?
+                \item[\textit{QP3}] Quanta energia é economizada ao paralelizar um compilador?
+            \end{description}
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Visão Geral}
+  \overview
+\end{frame}
+
+\section{Trabalhos Relacionados}
+
+\begin{frame}{Trabalhos Relacionados}
+    \begin{itemize}
+        \item Pesquisa de paralelismo em compiladores é majoritariamente destinada a compiladores que paralelizam
+        \item[]
+        \item Existem duas áreas relacionadas a paralelização de compiladores:
+        \begin{itemize}
+            \item Análise de texto em paralelo (análise léxica e sintática)
+            \item Análise de fluxo de dados e controle em paralelo
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Trabalhos Relacionados}
+    Análise Léxica e Sintática em Paralelo
+    \begin{itemize}
+        \item \cite{Mickunas:1978:PCM:800127.804105} propôs uma paralelização do algoritmo LR(0)
+            \begin{itemize}
+                \item Particiona o arquivo de entrada arbitrariamente
+                \item Executa um analisador LR(0) em cada partição
+                \item Se o analisador encontrar uma ambiguidade, envia a sua entrada para o analisador à sua esquerda
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Trabalhos Relacionados}
+    Compilação em Paralelo
+    \begin{itemize}
+        \item \cite{vandevoorde1988parallel} implementou um compilador C paralelo
+            \begin{itemize}
+                \item Analisador Sintático em paralelo ao Analisador Léxico
+                    \begin{itemize}
+                        \item Os \textit{tokens} são alimentados através de um \textit{pipeline}
+                    \end{itemize}
+                \item O Analisador Sintático executa em paralelo a cada expressão
+                \item[]
+                \item Supõe que todas as declarações de funções estão no cabeçalho do arquivo
+                \item {\color{red}{Não discute otimização}}
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Trabalhos Relacionados}
+    Compilação em Paralelo
+    \begin{itemize}
+        \item \cite{wortman1992} implementou um compilador Modula-2+ em paralelo
+            \begin{itemize}
+                \item Analisador Léxico encontra funções no código
+                \item Alimenta as funções através de uma fila de prioridade produtor-consumidor
+                \item Procede com a compilação das funções em paralelo
+                \item Propõe estratégias para solucionar os problemas de símbolos não definidos
+                    \begin{itemize}
+                        \item Uma \textit{thread} viu um símbolo que a outra precisa
+                    \end{itemize}
+                \item Procede com a geração de código em paralelo para cada função
+                \item[]
+                \item {\color{red}{Não discute otimização}}
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Trabalhos Relacionados}
+    Otimização em Paralelo 
+
+    \begin{itemize}
+        \item \cite{Lee1994} propõem uma análise de controle de fluxo em paralelo
+            \begin{itemize}
+                \item Particionam o grafo em regiões conexas.
+                \item Executam
+            \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Trabalhos Relacionados}
+    Existem dois conjuntos de otimizações que podem ser aplicadas em uma função do código:
+  \begin{itemize}
+    \item \textit{Intra Procedural}
+        \begin{itemize}
+            \item Podem ser aplicadas sem observar as interações com as demais funções
+        \end{itemize}
+    \item \textit{Inter Procedural}
+        \begin{itemize}
+            \item É necessário analisar as interações com as demais funções
+            \item Processo conhecido como \textit{Inter Process Analysis} (IPA)
+        \end{itemize}
+    \item[]
+    \item Note que estes dois conjuntos são disjuntos (intersecção é vazia)
+  \end{itemize}
+\end{frame}
+
+%\begin{frame}{Introdução e Definições}
+%  Um compilador normalmente é dividido em três etapas
+%  \begin{itemize}
+%    \item \textit{Front End}
+%        \begin{itemize}
+%            \item Responsável por interagir com o programa na linguagem $A$
+%            \item Análise Léxica e Sintática
+%            \item Exemplo: converte um código C para uma representação interna em árvores
+%        \end{itemize}
+%    \item \textit{Middle End}
+%        \begin{itemize}
+%            \item Responsável por efetuar \textit{otimizações independentes de arquitetura} no código original
+%        \end{itemize}
+%    \item \textit{Back End}
+%        \begin{itemize}
+%            \item Responsável por \textit{traduzir} a representação interna para $B$
+%            \item Otimização dependentes de arquitetura, geração de código
+%        \end{itemize}
+%  \end{itemize}
+%\end{frame}
+%\begin{frame}{Introdução e Definições}
+%\begin{figure}
+%\tikzstyle{block} = [rectangle, draw, fill=white,
+%    text width=6em, text centered, rounded corners, node distance=1cm and 1cm, auto, minimum height=2em]
+%\tikzstyle{line} = [draw, -latex]
+%\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+%    minimum height=2em]
+
+%\begin{center}
+%\scalebox{1.0}{
+%    \begin{tikzpicture}
+%    % Place nodes
+%    \begin{scope}{node distance = 1cm and 1cm}
+%    \node [block]                      (front_c)    {Frontend C};
+%    \node [block, below=of front_c]    (front_cpp)  {Frontend C++};
+%    \node [block, below=of front_cpp]  (front_fort) {Frontend Fortran};
+%    \node [block, right=of front_cpp]  (middle)     {Middle End};
+%    \node [block, right=of middle]     (back_x86)   {Backend x86};
+%    \node [block, above=of back_x86]   (back_arm)   {Backend ARM};
+%    \node [block, below=of back_x86]   (back_ppc)   {Backend PPC};
+%
+%
+%    \coordinate [left=of front_c]    (c_code);
+%    \coordinate [left=of front_cpp]  (cpp_code);
+%    \coordinate [left=of front_fort]  (fort_code);
+%
+%    \coordinate [right=of back_x86] (x86_code);
+%    \coordinate [right=of back_arm] (arm_code);
+%    \coordinate [right=of back_ppc] (ppc_code);
+%    \end{scope}
+%
+%    % Draw edges
+%    \draw[->]    (front_c.east)     to [out=0,in=180] ([yshift=0.5em]  middle.west);
+%    \draw[->]    (front_cpp.east)   to [out=0,in=180] (middle.west);
+%    \draw[->]    (front_fort.east)  to [out=0,in=180] ([yshift=-0.5em] middle.west);
+%
+%    \draw[->]    ([yshift=-0.5em] middle.east)  to [out=0,in=180] (back_ppc.west);
+%    \draw[->]    (middle.east)                  to [out=0,in=180] (back_x86.west);
+%    \draw[->]    ([yshift=0.5em] middle.east)   to [out=0,in=180] (back_arm.west);
+%
+%\end{tikzpicture}
+%}
+%\end{center}
+%
+%\caption{Arquitetura de um compilador.}
+%\label{fig:compiler_arch}
+%\end{figure}
+%\end{frame}
 
 \begin{frame}{Introdução e Definições}
     Existem dois conjuntos de otimizações que podem ser aplicadas em uma função do código:
@@ -173,6 +431,8 @@
         \end{itemize}
     \end{itemize}
 \end{frame}
+
+
 
 \begin{frame}[standout]
     Por quê?
@@ -431,20 +691,6 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
     \centering
     \includegraphics[scale=1.0]{42-years-processor-trend.pdf}
     \label{fig:42years}
-\end{frame}
-
-\section{Trabalhos Relacionados}
-
-\begin{frame}{Trabalhos Relacionados}
-    \begin{itemize}
-        \item Pesquisa de paralelismo em compiladores é majoritariamente destinada a compiladores que paralelizam
-        \item[]
-        \item Existem duas áreas relacionadas a paralelização de compiladores:
-        \begin{itemize}
-            \item Análise de texto em paralelo (análise léxica e sintática)
-            \item Análise de fluxo de dados e controle em paralelo
-        \end{itemize}
-    \end{itemize}
 \end{frame}
 
 \section{Estado Atual da Pesquisa}
