@@ -195,7 +195,7 @@
                 \begin{itemize}
                     \item $4 \times 16 = 64$ núcleos
                 \end{itemize}
-            \item \textit{Bootstrap} desligado
+            \item \textit{Bootstrap} desligado (\texttt{--disable-bootstrap})
             \item Coletado os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
             \item Coletado a {\color{blue}{soma da potência instantânea}} fornecida a
                 {\color{red}{cada processador}}
@@ -209,7 +209,7 @@
 
 \begin{frame}
     Paralelismo com Makefile
-    \includegraphics[width=0.9\paperwidth]{gcc_timer_classic_crop.pdf}
+    \includegraphics[width=0.9\paperwidth]{time_no_bootstrap-crop.pdf}
     %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
     %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
     \label{fig:analysis_classical}
@@ -217,7 +217,9 @@
 
 \begin{frame}
     Paralelismo com Makefile
-    \includegraphics[width=0.9\paperwidth]{sensors-crop.pdf}
+
+    \centering
+    \includegraphics[height=0.8\paperheight]{sensor_without_lto-crop.pdf}
     %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
     %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
     \label{fig:analysis_classical}
@@ -320,11 +322,11 @@
     \item[]
     \item As otimizações são classificadas em dois conjuntos {\color{red}{disjuntos}}
         \begin{itemize}
-            \item Intra Procedural
+            \item {\color{blue}{Intra Procedural}}
                 \begin{itemize}
                     \item Podem ser aplicadas sem observar as interações com as demais funções
                 \end{itemize}
-            \item Inter Procedural
+            \item {\color{red}{Inter Procedural}}
                 \begin{itemize}
                     \item É necessário analisar as interações com as demais funções
                     \item Processo conhecido como Inter Process Analysis (IPA)
@@ -623,6 +625,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
                 \item Uso elevado de memória (15Gb de RAM para compilar o Kernel Linux)
                 \item Consumo elevado de tempo ($2\times$ mais tempo para compilar o GCC)
             \end{itemize}
+        \item Amenizados com as atualizações
     \end{itemize}
 \end{frame}
 
@@ -656,7 +659,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
                     \item $4 \times 16 = 64$ núcleos
                 \end{itemize}
             \item \textit{Bootstrap} desligado
-            \item LTO ligado (\texttt{-flto=64})
+            \item LTO ligado (\texttt{CFLAGS=-flto=64 CXXFLAGS=-flto=64})
             \item Coletado os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
         \end{itemize}
     \end{itemize}
@@ -664,7 +667,17 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
 
 \begin{frame}
     Paralelismo com LTO
-    \includegraphics[width=0.9\paperwidth]{lto_crop.pdf}
+    \includegraphics[width=0.9\paperwidth]{time_no_bootstrap_lto-crop.pdf}
+    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:analysis_lto}
+\end{frame}
+
+\begin{frame}
+    Paralelismo com LTO
+
+    \centering
+    \includegraphics[height=0.8\paperheight]{sensor_with_lto-crop.pdf}
     %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
     %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
     \label{fig:analysis_lto}
@@ -674,26 +687,11 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
     \begin{itemize}
         \item Conclusões
         \begin{itemize}
-            \item {\color{blue}{Pouco mais de 140s sem LTO}} vs. {\color{red}{mais de 200s com LTO}}            \item Caso o objetivo seja compilar mais rápido, não vale a pena ligar o LTO
+            \item {\color{blue}{180s sem LTO}} vs. {\color{red}{300s com LTO}}
+            \item {\color{blue}{1.8Wh sem LTO}} vs. {\color{red}{2.7Wh com LTO}}
+            \item Caso o objetivo seja compilar mais rápido, não vale a pena ligar o LTO
         \end{itemize}
     \end{itemize}
-\end{frame}
-
-\begin{frame}{Introdução e Definições}
-    Existem dois conjuntos de otimizações que podem ser aplicadas em uma função do código:
-  \begin{itemize}
-    \item \textit{Intra Procedural}
-        \begin{itemize}
-            \item Podem ser aplicadas sem observar as interações com as demais funções
-        \end{itemize}
-    \item \textit{Inter Procedural}
-        \begin{itemize}
-            \item É necessário analisar as interações com as demais funções
-            \item Processo conhecido como \textit{Inter Process Analysis} (IPA)
-        \end{itemize}
-    \item[]
-    \item Note que estes dois conjuntos são disjuntos (intersecção é vazia)
-  \end{itemize}
 \end{frame}
 
 \section{Objetivos do Trabalho}
