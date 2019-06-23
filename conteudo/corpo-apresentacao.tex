@@ -52,27 +52,28 @@
 % Slide com o qrcode
 %\showqrcode
 
+\begin{frame}{Visão Geral}
+  \overview
+\end{frame}
+
+\section{Objetivos da Pesquisa}
+
 \begin{frame}{Objetivos da Pesquisa}
     \begin{itemize}
-        \item Paralelização de um compilador internamente
+        \item Paralelização das partes internas de um compilador
         \begin{itemize}
             \item Sem modificar a estrutura da compilação
-            \item Permitindo explorar paralelismo dentro de arquivos
+            \item Explorando paralelismo dentro de arquivos
         \end{itemize}
         \item Revisão de técnicas para a paralelização de Compiladores
         \item[]
-        \item Consequências
+        \item Objetivos desejados
         \begin{itemize}
-            \item Compilações mais rápidas
+            \item Redução no tempo de compilação
             \item Economia de energia
-            \item Integração Contínua mais responsiva
             \item Alternativa ao \textit{Link Time Optimization} (LTO)
         \end{itemize}
     \end{itemize}
-\end{frame}
-
-\begin{frame}{Visão Geral}
-  \overview
 \end{frame}
 
 \section{Introdução}
@@ -81,7 +82,7 @@
   \begin{itemize}
     \item Compiladores-Otimizadores são softwares enormes e complexos
         \begin{itemize}
-            \item Exemplos ainda com desenvolvimento ativo: GCC (1987), Clang (2007)
+            \item Exemplos com desenvolvimento ativo: GCC (1987) e Clang (2007)
             \item Majoritariamente sequenciais
         \end{itemize}
     \item Uso de recursos de programação como \texttt{templates}
@@ -196,9 +197,8 @@
                     \item $4 \times 16 = 64$ núcleos
                 \end{itemize}
             \item \textit{Bootstrap} desligado (\texttt{--disable-bootstrap})
-            \item Coletado os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
-            \item Coletada a {\color{blue}{soma da potência instantânea}} fornecida a
-                {\color{red}{cada processador}}
+            \item Coletados os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
+            \item Coletada a {\color{blue}{soma da potência instantânea}} fornecida a {\color{red}{cada processador}}
                 \begin{itemize}
                     \item Sensor AMD \texttt{fam15h\_power}
                     \item $\Delta t = 5ms$
@@ -409,6 +409,9 @@
 \begin{frame}{Fundamentação Teórica (Middle End)}
   \begin{itemize}
       \item Otimizações normalmente propagam informações pelo CFG
+          \begin{itemize}
+              \item funções \texttt{IN[v]} e \texttt{OUT[v]}, onde $\texttt{v} \in V$
+          \end{itemize}
       \item[]
       \item Dois métodos conhecidos para a propagação
       \begin{itemize}
@@ -725,7 +728,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
                 \item Diminui o tempo de compilação do LTO
                 \item Implementado no Clang
             \end{itemize}
-        \item Também mostraram a diferença de performance dos binários
+        \item Também mostraram a diferença de desempenho dos binários
     \end{itemize}
 \end{frame}
 
@@ -734,7 +737,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
     \includegraphics[width=0.9\paperwidth]{LTO_vs_ThinLTO_vs_default.png}
     %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
     %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
-    \label{fig:performance_lto}
+    \label{fig:desempenho_lto}
 \end{frame}
 
 \begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
@@ -747,8 +750,8 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
                 \end{itemize}
             \item \textit{Bootstrap} desligado
             \item LTO ligado (\texttt{CFLAGS=-flto=64 CXXFLAGS=-flto=64})
-            \item Coletado os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
-            \item Coletado a {\color{blue}{soma da potência instantânea}} fornecida as CPU
+            \item Coletados os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
+            \item Coletada a {\color{blue}{soma da potência instantânea}} fornecida às CPUs
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -782,30 +785,9 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
     \end{itemize}
 \end{frame}
 
-\section{Objetivos do Trabalho}
-
-\begin{frame}{Objetivos da Pesquisa}
-    \begin{itemize}
-        \item Paralelização de um compilador internamente
-        \begin{itemize}
-            \item Sem modificar a estrutura da compilação
-            \item Permitindo explorar paralelismo dentro de arquivos
-        \end{itemize}
-        \item Revisão de técnicas para a paralelização de Compiladores
-        \item[]
-        \item Consequências
-        \begin{itemize}
-            \item Compilações mais rápidas
-            \item Economia de energia
-            \item Integração Contínua mais responsiva
-            \item Alternativa ao \textit{Link Time Optimization} (LTO)
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
 \section{Estratégia de Paralelização}
 
-\begin{frame}{Estratégia de Paralelização}
+\begin{frame}{Estratégia de Paralelização (GCC)}
     \begin{itemize}
         \item Estudo do gargalo na compilação do GCC usando o \texttt{gimple-match.c}
             \begin{itemize}
@@ -818,7 +800,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Estratégia de Paralelização}
+\begin{frame}{Estratégia de Paralelização (GCC)}
     \begin{itemize}
         \item Estudo do gargalo na compilação do GCC usando o \texttt{gimple-match.c}
             \begin{itemize}
@@ -838,7 +820,7 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
 \end{frame}
 
 
-\begin{frame}{Estratégia de Paralelização}
+\begin{frame}{Estratégia de Paralelização (Corrente)}
     \begin{itemize}
         \item {\color{blue}{Estratégia corrente}} para paralelizar a aplicação das otimizações Intra Procedurais
             \begin{itemize}
@@ -846,7 +828,6 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
                 \item Execução de um número fixo de \textit{threads}
                 \item O IPA alimenta as funções do programa em uma fila no fim de sua análise
                 \item Cada \textit{thread} é responsável por retirar o seu trabalho da fila
-                \item Implementação atual consome $0.1s$ para gerenciar $2000$ funções.
     \end{itemize}
 \end{itemize}
 
@@ -854,7 +835,7 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
  \includegraphics[width=\textwidth]{paralelizacao.pdf}
 \end{frame}
 
-\begin{frame}{Estratégia de Paralelização}
+\begin{frame}{Estratégia de Paralelização (Corrente)}
     \begin{itemize}
         \item Vantagens
             \begin{itemize}
@@ -868,7 +849,7 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Estratégia de Paralelização}
+\begin{frame}{Estratégia de Paralelização (Alternativa)}
     \begin{itemize}
         \item {\color{blue}{Estratégia alternativa}} para paralelizar a aplicação das otimizações Intra Procedurais
             \begin{itemize}
@@ -894,24 +875,29 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
     \end{itemize}
 \end{frame}
 
-
 \begin{frame}{Estado Atual da Pesquisa}
     \begin{itemize}
-        \item Implementação da Estratégia Corrente no GCC
+        \item Desafios
+        \begin{itemize}
+            \item Mapeamento de variáveis globais e dependências falsas no GCC
+            \item O GCC não foi projetado com paralelismo em mente
+            \item O GGC (Coletor de Lixo)
             \begin{itemize}
-                \item Mapeamento de variáveis globais e dependências falsas no GCC
-                \item Variáveis compartilhadas no IPA e nas Otimizações Intra Procedurais
-                \begin{itemize}
-                    \item Algumas transferidas para a instância objeto que representa as funções do programa
-                \end{itemize}
-                \item Separação dos passos IPA, GIMPLE e RTL
-                \item Fazer ``\textit{troca de contexto}'' das funções não faz mais o compilador abortar com erro!
-                \item Enfrentando problemas com o alocador de memória
-                \begin{itemize}
-                    \item Solução paliativa é travar um \textit{mutex} toda vez que for alocar memória
-                \end{itemize}
+                \item Solução paliativa é travar um \textit{mutex} a cada alocação de memória
+            \end{itemize}
+        
+        \end{itemize}
+
+        \item Conquistas
+        \begin{itemize}
+            \item Apoio da comunidade do GCC
+            \item Separação de passos compartilhados entre o IPA e Intra Procedurais
+            \item Mecanismo de controle de \textit{threads} já funciona dentro do GCC
+            \begin{itemize}
+                \item Implementação atual consome $0.1s$ para gerenciar $2000$ funções.
+            \end{itemize}
+        \end{itemize}    
     \end{itemize}
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Estado Atual da Pesquisa}
