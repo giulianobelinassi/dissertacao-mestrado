@@ -234,7 +234,7 @@
             \begin{description}
                 \item[\textit{QP1}] Em que pontos um compilador pode usufruir de paralelismo?
                 \item[\textit{QP2}] Qual é o ganho de tempo ao paralelizar um compilador?
-                \item[\textit{QP3}] Quanta energia é economizada ao paralelizar um compilador?
+                \item[\textit{QP3}] Quanta energia é economizada ao aproveitar melhor os recursos da máquina durante a compilação?
             \end{description}
         \end{itemize}
     \end{itemize}
@@ -258,16 +258,14 @@
 \end{frame}
 
 
-\begin{frame}{Fundamentação Teórica}
+\begin{frame}{Fundamentação Teórica (Front End)}
     \begin{itemize}
         \item Front End:
-
         \begin{itemize}
             \item Responsável por interagir com o código na Linguagem Fonte
             \item Análise Léxica e Sintática
             \item Dois algoritmos mais usados: LR(1) e Recursivo Descendente
         \end{itemize}
-        
     \end{itemize}
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -313,7 +311,7 @@
 %            \item Processo conhecido como \textit{Inter Process Analysis} (IPA)
 %        \end{itemize}
 
-\begin{frame}{Fundamentação Teórica}
+\begin{frame}{Fundamentação Teórica (Middle End)}
   \begin{itemize}
     \item Middle End
     \begin{itemize}
@@ -335,7 +333,98 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Fundamentação Teórica}
+\begin{frame}{Fundamentação Teórica (Middle End)}
+  Uma estrutura de dados muito importante para otimizações
+  \begin{itemize}
+      \item Grafo de Controle de Fluxo (CFG)
+    \begin{itemize}
+        \item Grafo $G = (V, E, s_0)$, onde
+            \begin{itemize}
+                \item $V$ é o conjunto de vértices
+                \item $E \subseteq V \times V$ é o conjunto de arcos (arestas)
+                \item $s_0 \in V$ é o nó fonte
+            \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Fundamentação Teórica (Middle End)}
+\begin{figure}[ht]
+\centering
+  \begin{subfigure}[b]{0.40\textwidth}
+      \begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call},
+      ]
+        function norma_1(x[n])
+            sum = 0
+            for i := 1, n do
+                if (x[i] < 0)
+                    sum -= x[i]
+                else
+                    sum += x[i]
+            done
+            return sum
+        end
+      \end{lstlisting}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.40\textwidth}
+    \tikzstyle{line} = [draw, -latex]
+    \tikzstyle{node} = [draw, circle]
+    \begin{center}
+    \scalebox{0.5}{
+    \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
+        % Place nodes
+        \node [node]                    (source) {$s_0$};
+        \node [node, below of = source] (head) {for};
+        \node [node, below of = head]   (check) {if};
+        \coordinate[below of = check]            (c2);
+        \node [node, left of = c2]  (true) {true};
+        \node [node, right of = c2]   (false) {false};
+        \node [node, below of = c2]   (merge) {};
+        \node [node, left of = head]   (return) {return};
+        \coordinate[right of=false]    (c3);
+
+        % Draw edges
+        \draw[->]    (source)         -- (head);
+        \draw[->]    (head)           -- (check);
+        \draw[->]    (check)          -- (true);
+        \draw[->]    (check)          -- (false);
+        \draw[->]    (true)       -- (merge);
+        \draw[->]    (false)      --  (merge);
+        \draw    (merge.east) to [out=0, in=-90]  (c3);
+        \draw[->]    (c3) to [out=90, in=0]  (head);
+
+        \draw[->]    (head.west)  to [out=180, in=180] (return.east);
+    \end{tikzpicture}
+    }
+    \end{center}
+  \end{subfigure}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Fundamentação Teórica (Middle End)}
+  \begin{itemize}
+      \item Otimizações normalmente propagam informações pelo CFG
+      \item[]
+      \item Dois métodos conhecidos para a propagação
+      \begin{itemize}
+          \item Método 1 - Ponto Fixo
+              \begin{itemize}
+                  \item Itera no grafo até convergir para a solução
+              \end{itemize}
+          \item Método 2 - Eliminação
+              \begin{itemize}
+                  \item Solução de um sistema de equações
+              \end{itemize}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fundamentação Teórica (Back End)}
   \begin{itemize}
     \item Back End
     \begin{itemize}
@@ -411,13 +500,13 @@
 \end{frame}
 
 \begin{frame}{Trabalhos Relacionados (\textit{parsing} em Paralelo)}
-    
     \begin{itemize}
         \item \cite{Mickunas:1978:PCM:800127.804105} propôs uma paralelização do algoritmo LR(0)
             \begin{itemize}
                 \item Particiona o arquivo de entrada arbitrariamente
                 \item Executa um analisador LR(0) em cada partição
-                \item Se o analisador encontrar uma ambiguidade, envia a sua entrada para o analisador à sua esquerda
+                \item Se um analisador encontrar uma ambiguidade, envia a sua entrada para o analisador à sua esquerda e reinicia a análise
+                \item Ao terminar a análise, envia a solução para o analisador à esquerda
             \end{itemize}
     \end{itemize}
 \end{frame}
@@ -444,11 +533,11 @@
             \begin{itemize}
                 \item Analisador Léxico encontra funções no código
                 \item Alimenta as funções através de uma fila de prioridade produtor-consumidor
-                \item Procede com a compilação das funções em paralelo
                 \item Propõe estratégias para solucionar os problemas de símbolos não definidos
                     \begin{itemize}
                         \item Uma \textit{thread} viu um símbolo que a outra precisa
                     \end{itemize}
+                \item Procede com a compilação das funções em paralelo
                 \item Procede com a geração de código em paralelo para cada função
                 \item[]
                 \item {\color{red}{Não discute otimização}}
@@ -459,7 +548,7 @@
 \begin{frame}{Trabalhos Relacionados (Otimização em Paralelo)}
 
     \begin{itemize}
-        \item \cite{Lee1994} propuseram análise de controle de fluxo em paralelo
+        \item \cite{Lee1994} propuseram Análise de Controle de Fluxo em paralelo
             \begin{itemize}
                 \item Particionam o Grafo de Controle de Fluxo (CFG) em regiões conexas.
                  \begin{itemize}
@@ -487,9 +576,6 @@
 \end{frame}
 
 \begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-    Compilação em Paralelo
-
-    Link Time Optimization    
     \begin{itemize}
         \item Divide a compilação de um programa em três estágios
             \begin{itemize}
@@ -650,7 +736,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
     \label{fig:performance_lto}
 \end{frame}
 
-\begin{frame}{Introdução}
+\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
     \begin{itemize}
         \item Experimento 2
         \begin{itemize}
@@ -661,6 +747,7 @@ Date:   Mon Jul 21 17:10:16 2014 +0200
             \item \textit{Bootstrap} desligado
             \item LTO ligado (\texttt{CFLAGS=-flto=64 CXXFLAGS=-flto=64})
             \item Coletado os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
+            \item Coletado a {\color{blue}{soma da potência instantânea}} fornecida as CPU
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -752,7 +839,7 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
 
 \begin{frame}{Estratégia de Paralelização}
     \begin{itemize}
-        \item {\color{blue}{Estratégia corrente}} para paralelizar a aplicação das otimizações Intra-Procedurais
+        \item {\color{blue}{Estratégia corrente}} para paralelizar a aplicação das otimizações Intra Procedurais
             \begin{itemize}
                 \item Maneira similar ao trabalho de \cite{wortman1992}
                 \item Execução de um número fixo de \textit{threads}
@@ -777,14 +864,10 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
             \begin{itemize}
                 \item Necessário mapear todos os estados globais dos 221 passos de otimização do GCC
             \end{itemize}
-
     \end{itemize}
 \end{frame}
 
-%\begin{frame}{Estratégia de Paralelização}
-%\end{itemize}
-
-\begin{frame}{Estratégia Alternativa}
+\begin{frame}{Estratégia de Paralelização}
     \begin{itemize}
         \item {\color{blue}{Estratégia alternativa}} para paralelizar a aplicação das otimizações Intra Procedurais
             \begin{itemize}
@@ -792,10 +875,24 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
                 \item Passar a função pelas \textit{threads} de modo que dois passos não executem em paralelo
             \end{itemize}
     \end{itemize}
-
  \centering
  \includegraphics[width=\textwidth]{paralelizacao_pipeline.pdf}
 \end{frame}
+
+\begin{frame}{Estratégia de Paralelização}
+    \begin{itemize}
+        \item Vantagens
+            \begin{itemize}
+                \item Mais fácil de implementar
+            \end{itemize}
+        \item Desvantagens
+            \begin{itemize}
+                \item Pior caso: existência de um passo muito lento
+            \end{itemize}
+
+    \end{itemize}
+\end{frame}
+
 
 \begin{frame}{Estado Atual da Pesquisa}
     \begin{itemize}
@@ -814,6 +911,17 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
                 \end{itemize}
     \end{itemize}
 \end{itemize}
+\end{frame}
+
+\begin{frame}{Estado Atual da Pesquisa}
+    \begin{itemize}
+        \item O que resta fazer
+            \begin{itemize}
+                \item Finalizar a paralelização das Otimizações Intra Procedurais (GIMPLE)
+                \item Avaliar a paralelização das Otimizações Dependentes de Arquitetura e Geração de Código (RTL)
+                \item Avaliar a paralelização das Otimizações Inter Procedurais (IPA)
+            \end{itemize}
+    \end{itemize}
 \end{frame}
 
 %\section{Metodologia de Validação}
