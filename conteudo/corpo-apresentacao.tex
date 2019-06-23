@@ -6,7 +6,7 @@
 \author[Authors Name]{Giuliano Belinassi}
 
 %\institute[USP]{\textbf{Workshop Name} \\ Computer Science Department \\ IME USP}
-\institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departmentamento de Ciência da Computação \\ IME USP}
+\institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departamentamento de Ciência da Computação \\ IME USP}
 
 \date{17 de Junho de 2019}
 
@@ -174,7 +174,7 @@
 
 \begin{frame}{Introdução}
     \begin{itemize}
-        \item O que acontece se há alguns arquivos grandes no projeto?
+        \item O que acontece se existir alguns arquivos grandes no projeto?
         \begin{itemize}
             \item Gargalo na compilação
             \item Maior gasto de energia
@@ -197,7 +197,7 @@
                 \end{itemize}
             \item \textit{Bootstrap} desligado (\texttt{--disable-bootstrap})
             \item Coletado os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
-            \item Coletado a {\color{blue}{soma da potência instantânea}} fornecida a
+            \item Coletada a {\color{blue}{soma da potência instantânea}} fornecida a
                 {\color{red}{cada processador}}
                 \begin{itemize}
                     \item Sensor AMD \texttt{fam15h\_power}
@@ -230,7 +230,7 @@
         \item Como demonstrado, o \texttt{make -j} não é suficiente!
         \item[]
         \begin{itemize}
-            \item Isso levanta as seguintes questões de pesquisas:
+            \item Isso levanta as seguintes questões de pesquisa:
             \begin{description}
                 \item[\textit{QP1}] Em que pontos um compilador pode usufruir de paralelismo?
                 \item[\textit{QP2}] Qual é o ganho de tempo ao paralelizar um compilador?
@@ -489,7 +489,7 @@
     \begin{itemize}
         \item Pesquisa de paralelismo em compiladores é majoritariamente destinada a compiladores que paralelizam
         \item[]
-        \item Existem duas áreas relacionadas a paralelização de compiladores:
+        \item Existem duas áreas relacionadas à paralelização de compiladores:
         \begin{itemize}
             \item Análise de texto em paralelo (análise léxica e sintática, ou \textit{parsing})
             \item Análise de fluxo de dados e controle em paralelo
@@ -507,6 +507,7 @@
                 \item Executa um analisador LR(0) em cada partição
                 \item Se um analisador encontrar uma ambiguidade, envia a sua entrada para o analisador à sua esquerda e reinicia a análise
                 \item Ao terminar a análise, envia a solução para o analisador à esquerda
+                \item No final, a solução se concentra no primeiro analisador
             \end{itemize}
     \end{itemize}
 \end{frame}
