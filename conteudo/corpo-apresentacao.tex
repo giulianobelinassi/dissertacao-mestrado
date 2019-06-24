@@ -8,7 +8,7 @@
 %\institute[USP]{\textbf{Workshop Name} \\ Computer Science Department \\ IME USP}
 \institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departamentamento de Ciência da Computação \\ IME USP}
 
-\date{17 de Junho de 2019}
+\date{24 de Junho de 2019}
 
 % Coloca a imagem no fundo da página de título
 %\bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
@@ -410,7 +410,7 @@
   \begin{itemize}
       \item Otimizações normalmente propagam informações pelo CFG
           \begin{itemize}
-              \item funções \texttt{IN[v]} e \texttt{OUT[v]}, onde $\texttt{v} \in V$
+              \item Conjuntos \texttt{IN[v]} e \texttt{OUT[v]}, onde $\texttt{v} \in V$
           \end{itemize}
       \item[]
       \item Dois métodos conhecidos para a propagação
@@ -504,7 +504,7 @@
 
 \begin{frame}{Trabalhos Relacionados (\textit{parsing} em Paralelo)}
     \begin{itemize}
-        \item \cite{Mickunas:1978:PCM:800127.804105} propôs uma paralelização do algoritmo LR(0)
+        \item \cite{Mickunas:1978:PCM:800127.804105} propuseram uma paralelização do algoritmo LR(0)
             \begin{itemize}
                 \item Particiona o arquivo de entrada arbitrariamente
                 \item Executa um analisador LR(0) em cada partição
@@ -533,7 +533,7 @@
 
 \begin{frame}{Trabalhos Relacionados (Compilação em Paralelo)}
     \begin{itemize}
-        \item \cite{wortman1992} implementou um compilador Modula-2+ em paralelo
+        \item \cite{wortman1992} implementaram um compilador Modula-2+ em paralelo
             \begin{itemize}
                 \item Analisador Léxico encontra funções no código
                 \item Alimenta as funções através de uma fila de prioridade produtor-consumidor
@@ -542,7 +542,7 @@
                         \item Uma \textit{thread} viu um símbolo que a outra precisa
                     \end{itemize}
                 \item Procede com a compilação das funções em paralelo
-                \item Procede com a geração de código em paralelo para cada função
+                \item Procede com a geração de código em paralelo por função
                 \item[]
                 \item {\color{red}{Não discute otimização}}
             \end{itemize}
@@ -585,7 +585,7 @@
             \begin{itemize}
                 \item Local Generation (LGEN): compila os arquivos para a linguagem intermediária
                 \item Whole Program Analysis (WPA): executa otimizações Inter Procedurais
-                \item Local Transformations (LTRANS): executa as otimizações Intra Procedurais e compila o programa
+                \item Local Transformations (LTRANS): executa as otimizações Intra Procedurais e compila o programa para a linguagem de máquina
             \end{itemize}
 
         \item \citep{glek2010optimizing} implementaram essa funcionalidade no GCC
@@ -854,7 +854,7 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
         \item {\color{blue}{Estratégia alternativa}} para paralelizar a aplicação das otimizações Intra Procedurais
             \begin{itemize}
                 \item Atribuir uma \textit{thread} para cada passo de otimização
-                \item Passar a função pelas \textit{threads} de modo que dois passos não executem em paralelo
+                \item Passar a função pelas \textit{threads} de modo que um passo não execute simultaneamente
             \end{itemize}
     \end{itemize}
  \centering
@@ -874,6 +874,8 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
 
     \end{itemize}
 \end{frame}
+
+\section{Estado Atual da Pesquisa}
 
 \begin{frame}{Estado Atual da Pesquisa}
     \begin{itemize}
