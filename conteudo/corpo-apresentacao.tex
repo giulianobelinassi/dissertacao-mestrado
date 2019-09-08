@@ -1,14 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title[The shortened title]{Tópicos em Paralelização de Compiladores:\\ um estudo de caso no GCC}
+\title[The shortened title]{Parallel GCC: Status and Expectations}
 %\subtitle{The (optional) subtitle}
 
 \author[Authors Name]{Giuliano Belinassi}
 
-%\institute[USP]{\textbf{Workshop Name} \\ Computer Science Department \\ IME USP}
-\institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departamentamento de Ciência da Computação \\ IME USP}
+\institute[USP]{\textbf{GNU Cauldron 2019} \\ Computer Science Department \\ Institute of Mathematics and Statistics \\ University of São Paulo (USP)}
+%\institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departamentamento de Ciência da Computação \\ IME USP}
 
-\date{24 de Junho de 2019}
+\date{August 15, 2019}
 
 % Coloca a imagem no fundo da página de título
 %\bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
@@ -52,863 +52,419 @@
 % Slide com o qrcode
 %\showqrcode
 
-\begin{frame}{Visão Geral}
+\begin{frame}{Overview}
   \overview
 \end{frame}
 
-\section{Objetivos da Pesquisa}
+\section{Introduction}
 
-\begin{frame}{Objetivos da Pesquisa}
+
+\begin{frame}{Introduction}
     \begin{itemize}
-        \item Paralelização das partes internas de um compilador
+        \item How many of you have seen a compiler {\color{blue}{running in parallel}}?
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Introduction}
+    \begin{itemize}
+        \item Parallelization of GCC Internals
         \begin{itemize}
-            \item Sem modificar a estrutura da compilação
-            \item Explorando paralelismo dentro de arquivos
+            \item Without modifying the program compilation structure
+            \item Exploring parallelism in a single file
         \end{itemize}
-        \item Revisão de técnicas para a paralelização de Compiladores
         \item[]
-        \item Objetivos desejados
+        \item Main objectives
         \begin{itemize}
-            \item Redução no tempo de compilação
-            \item Economia de energia
-            \item Alternativa ao \textit{Link Time Optimization} (LTO)
+            \item Reduction of compilation time
+            \item Highlight GCC global states
         \end{itemize}
     \end{itemize}
 \end{frame}
 
-\section{Introdução}
-
-\begin{frame}{Introdução}
+\begin{frame}{Motivation}
   \begin{itemize}
-    \item Compiladores-Otimizadores são softwares enormes e complexos
+    \item Compilers are really complex programs
         \begin{itemize}
-            \item Exemplos com desenvolvimento ativo: GCC (1987) e Clang (2007)
-            \item Majoritariamente sequenciais
+            \item GCC dates from 1987
+            \item Still sequential
         \end{itemize}
-    \item Uso de recursos de programação como \texttt{templates}
+    \item Automatic Generation of big files
         \begin{itemize}
-           \item Gera novas funções para cada novo tipo no argumento
+            \item \texttt{gimple-match.c}: {\color{red}{100358 lines}} of C++ (GCC 10.0.0)
         \end{itemize}
-    \item Geração automática de arquivos grandes
-        \begin{itemize}
-            \item \texttt{gimple-match.c}: {\color{red}{100358 linhas}} de C++ (GCC 10.0.0)
-        \end{itemize}
-    \item Crescimento {\color{red}{exponencial}} no {\color{blue}{número de núcleos}} nos processadores
+    \item {\color{red}{Exponencial}} growth in {\color{blue}{number of cores}} of a CPU
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Introdução}
-    Crescimento do Poder Computacional \citep{42years}
+\begin{frame}{Motivation}
+    Growth of Computational Power \citep{42years}
 
     \centering
     \includegraphics[scale=1.0]{42-years-processor-trend.pdf}
     \label{fig:42years}
 \end{frame}
 
-\begin{frame}{Introdução}
-    Paralelismo em compiladores:
+
+\begin{frame}{Introduction}
     \begin{itemize}
-        \item Normalmente com \texttt{make -j}
-            \begin{itemize}
-                \item Granularidade por arquivo
-                \item Modelo clássico de compilação
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Introdução}
-\begin{figure}
-\tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=1cm and 2cm, auto, minimum height=2em]
-\tikzstyle{line} = [draw, -latex]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=1cm,
-    minimum height=2em]
-\begin{center}
-\scalebox{0.7}{
-\begin{tikzpicture}
-    % Place nodes
-    \node [block]                         (make)   {Makefile};
-    \coordinate[below=of make]            (c);
-    \node [block, left=of c]              (fonte1) {fonte1.c};
-    \node [block, right=of fonte1]        (fonte2) {fonte2.cpp};
-    \node [block, right=of fonte2]        (fonte3) {fonte3.f90};
-
-    \node [block, below=of fonte1]        (gcc)      {gcc};
-    \node [block, below=of fonte2]        (g++)      {g++};
-    \node [block, below=of fonte3]        (gfortran) {gfortran};
-
-    \node [block, below=of gcc]           (objeto1) {objeto1.o};
-    \node [block, below=of g++]           (objeto2) {objeto2.o};
-    \node [block, below=of gfortran]      (objeto3) {objeto3.o};
-
-    \node [block, below=of objeto2]       (ld) {LD};
-
-    \node [block, below=of ld]            (bin) {Executável};
-
-    % Draw edges
-    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
-    \draw[->]    (make.south)   -- (fonte2.north);
-    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
-
-    \draw[->]    (fonte1.south)   -- (gcc.north);
-    \draw[->]    (fonte2.south)   -- (g++.north);
-    \draw[->]    (fonte3.south)   -- (gfortran.north);
-
-    \draw[->]    (gcc.south)   -- (objeto1.north);
-    \draw[->]    (g++.south)   -- (objeto2.north);
-    \draw[->]    (gfortran.south)   -- (objeto3.north);
-
-    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]ld.north);
-    \draw[->]    (objeto2.south)   -- (ld.north);
-    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]ld.north);
-
-    \draw[->]    (ld.south)   -- (bin.north);
-
-
-\end{tikzpicture}
-}
-\end{center}
-\caption{Processo clássico de compilação de um programa.}
-\label{fig:classical_build}
-\end{figure}
-\end{frame}
-
-\begin{frame}{Introdução}
-    \begin{itemize}
-        \item O que acontece se existir alguns arquivos grandes no projeto?
+        \item Experiment 1
         \begin{itemize}
-            \item Gargalo na compilação
-            \item Maior gasto de energia
-            \item Exemplos de projetos com tais características
+            \item GCC compilation on a machine with $4\times$ AMD Opteron 6376
                 \begin{itemize}
-                    \item O próprio GCC
-                    \item Relatos similares em projetos internos \citep{mailgcc}
+                    \item $4 \times 16 = 64$ cores
                 \end{itemize}
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Introdução}
-    \begin{itemize}
-        \item Experimento 1
-        \begin{itemize}
-            \item Compilação do GCC em uma máquina com $4\times$ AMD Opteron 6376
-                \begin{itemize}
-                    \item $4 \times 16 = 64$ núcleos
-                \end{itemize}
-            \item \textit{Bootstrap} desligado (\texttt{--disable-bootstrap})
-            \item Coletados os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
-            \item Coletada a {\color{blue}{soma da potência instantânea}} fornecida a {\color{red}{cada processador}}
-                \begin{itemize}
-                    \item Sensor AMD \texttt{fam15h\_power}
-                    \item $\Delta t = 5ms$
-                \end{itemize}
+            \item No \textit{bootstrap} (\texttt{--disable-bootstrap})
+            \item Collected {\color{blue}{Compilation Time}} of {\color{red}{each file}}
+            \item Collected {\color{blue}{Consumed Energy}} of {\color{red}{all CPUs}}
         \end{itemize}
     \end{itemize}
 \end{frame}
 
 \begin{frame}
-    Paralelismo com Makefile
-    \includegraphics[width=0.9\paperwidth]{time_no_bootstrap-crop.pdf}
+    \includegraphics[width=0.9\paperwidth]{flamegraph.pdf}
     %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
     %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
     \label{fig:analysis_classical}
 \end{frame}
 
 \begin{frame}
-    Paralelismo com Makefile
-
     \centering
-    \includegraphics[height=0.8\paperheight]{sensor_without_lto-crop.pdf}
+    \includegraphics[height=0.8\paperheight]{sensor_graphic.pdf}
     %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
     %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
-    \label{fig:analysis_classical}
+    \label{fig:sensor_graphic}
+\end{frame}
+
+
+\begin{frame}{Introduction}
+    \begin{itemize}
+        \item How about LTO?
+        \item[]
+        \item Experiment 2
+        \begin{itemize}
+            \item GCC compilation on a machine with $4\times$ AMD Opteron 6376
+                \begin{itemize}
+                    \item $4 \times 16 = 64$ cores
+                \end{itemize}
+            \item No \textit{bootstrap} (\texttt{--disable-bootstrap})
+            \item Enabled LTO (\texttt{CFLAGS=-flto=64 CXXFLAGS=-flto=64})
+            \item Collected {\color{blue}{Compilation Time}} of {\color{red}{each file}}
+            \item Collected {\color{blue}{Consumed Energy}} of {\color{red}{all CPUs}}
+        \end{itemize}
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
+    \includegraphics[width=0.9\paperwidth]{flamegraph_lto.pdf}
+    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:analysis_lto}
+\end{frame}
+
+\begin{frame}
+    \centering
+    \includegraphics[height=0.8\paperheight]{sensor_graphic_with_lto.pdf}
+    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
+    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
+    \label{fig:sensor_graphic_lto}
+\end{frame}
+
+
+\begin{frame}{Results}
     \begin{itemize}
-        \item Como demonstrado, o \texttt{make -j} não é suficiente!
+        \item There is a parallelism bottleneck in GCC
         \item[]
-        \begin{itemize}
-            \item Isso levanta as seguintes questões de pesquisa:
-            \begin{description}
-                \item[\textit{QP1}] Em que pontos um compilador pode usufruir de paralelismo?
-                \item[\textit{QP2}] Qual é o ganho de tempo ao paralelizar um compilador?
-                \item[\textit{QP3}] Quanta energia é economizada ao aproveitar melhor os recursos da máquina durante a compilação?
-            \end{description}
-        \end{itemize}
+        \item Could we improve it by parallelizing GCC?
     \end{itemize}
 \end{frame}
 
 
 
-\begin{frame}{Visão Geral}
+\begin{frame}{Overview}
   \overview
 \end{frame}
 
-\section{Fundamentação Teórica}
+\section{Where to Start?}
 
-\begin{frame}{Fundamentação Teórica}
-  Um compilador normalmente é dividido em três etapas
+\begin{frame}{Where to Start?}
+  GCC structure is divided in three parts.
   \begin{itemize}
     \item \textit{Front End}
+        \begin{itemize}
+            \item Parsing
+        \end{itemize}
     \item \textit{Middle End}
+        \begin{itemize}
+            \item Hardware-Independent Optimization
+        \end{itemize}
     \item \textit{Back End}
+        \begin{itemize}
+            \item Hardware-Dependent Optimization
+            \item Code Generation
+        \end{itemize}
   \end{itemize}
 \end{frame}
 
-
-\begin{frame}{Fundamentação Teórica (Front End)}
-    \begin{itemize}
-        \item Front End:
-        \begin{itemize}
-            \item Responsável por interagir com o código na Linguagem Fonte
-            \item Análise Léxica e Sintática
-            \item Dois algoritmos mais usados: LR(1) e Recursivo Descendente
-        \end{itemize}
-    \end{itemize}
-\begin{figure}
-\tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=9cm, auto, minimum height=2em]
-\tikzstyle{line} = [draw, -latex]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
-    minimum height=2em]
-
-\begin{center}
-\scalebox{0.7}{
-\begin{tikzpicture}[node distance = 3cm, auto]
-    % Place nodes
-    \node [block]                    (lexico) {Analisador Léxico};
-    \node [block, right of = lexico] (sintatico) {Analisador Sintático};
-    \coordinate [left of=lexico]     (fonte);
-    \coordinate [right of=sintatico] (ast);
-
-    % Draw edges
-    \draw[->]    ([yshift=0.5em] lexico.east)       -- ([yshift=0.5em] sintatico.west) node[midway] {Token};
-    \draw[->]    ([yshift=-0.5em] sintatico.west)   -- ([yshift=-0.5em] lexico.east)    node[midway] {próximo\_token()};
-    \draw[->]    (fonte.west)                       -- (lexico.west)    node[pos=0, above] {Código Fonte};
-    \draw[->]    (sintatico.east)                   -- (ast.west)   node[pos=1, above] {Árvore Abstrata};
-\end{tikzpicture}
-}
-\end{center}
-
-\caption{Interações entre um analisador léxico e sintático.}
-\label{fig:lexico_sintatico}
-\end{figure}
-
-\end{frame}
-
-
-%      \tem Aplica as otimizações independentes de arquitetura no código
-%    \end{itemize}
-%    \item \textit{Intra Procedural}
-%        \begin{itemize}
-%            \item Podem ser aplicadas sem observar as interações com as demais funções
-%        \end{itemize}
-%    \item \textit{Inter Procedural}
-%        \begin{itemize}
-%            \item É necessário analisar as interações com as demais funções
-%            \item Processo conhecido como \textit{Inter Process Analysis} (IPA)
-%        \end{itemize}
-
-\begin{frame}{Fundamentação Teórica (Middle End)}
+\begin{frame}{Where to Start?}
   \begin{itemize}
-    \item Middle End
+    \item Selected Part: {\color{blue}{Middle End}}
     \begin{itemize}
-        \item Aplica as otimizações {\color{blue}{independentes}} de arquitetura no código
+        \item Applies Hardware-{\color{blue}{Independent}} Optimizations in the code
     \end{itemize}
     \item[]
-    \item As otimizações são classificadas em dois conjuntos {\color{red}{disjuntos}}
+    \item Optimization can be broken into two {\color{red}{disjoint}} sets
         \begin{itemize}
             \item {\color{blue}{Intra Procedural}}
                 \begin{itemize}
-                    \item Podem ser aplicadas sem observar as interações com as demais funções
+                    \item Can be applied into a function without observing the interactions with other functions
                 \end{itemize}
             \item {\color{red}{Inter Procedural}}
                 \begin{itemize}
-                    \item É necessário analisar as interações com as demais funções
-                    \item Processo conhecido como Inter Process Analysis (IPA)
+                    \item Interaction with other functions must be considered
+                    \item GCC calls this Inter Process Analysis (IPA)
                 \end{itemize}
         \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Fundamentação Teórica (Middle End)}
-  Uma estrutura de dados muito importante para otimizações
-  \begin{itemize}
-      \item Grafo de Controle de Fluxo (CFG)
+\begin{frame}{GCC Profile}
     \begin{itemize}
-        \item Grafo $G = (V, E, s_0)$, onde
+        \item We used \texttt{gimple-match.c} to profile the compiler
+    \end{itemize}
+
+            \centering
+            \includegraphics[scale=0.5]{profile_pie.pdf}
+\end{frame}
+
+\begin{frame}{GCC Profile}
+    \begin{itemize}
+        \item We used \texttt{gimple-match.c} to profile the compiler
             \begin{itemize}
-                \item $V$ é o conjunto de vértices
-                \item $E \subseteq V \times V$ é o conjunto de arcos (arestas)
-                \item $s_0 \in V$ é o nó fonte
+                \item 63\% is spent in Intra Procedural Optimization
+                \item This can be parallelized
+                \item Maximum speedup: $2.7\times$ according to Amdahl's Law
             \end{itemize}
     \end{itemize}
-  \end{itemize}
+
 \end{frame}
 
-\begin{frame}[fragile]{Fundamentação Teórica (Middle End)}
-\begin{figure}[ht]
-\centering
-  \begin{subfigure}[b]{0.40\textwidth}
-      \begin{lstlisting}[
-        language=pseudocode,
-        style=pseudocode,
-        style=wider,
-        functions={},
-        specialidentifiers={extern, call},
-      ]
-        function norma_1(x[n])
-            sum = 0
-            for i := 1, n do
-                if (x[i] < 0)
-                    sum -= x[i]
-                else
-                    sum += x[i]
-            done
-            return sum
-        end
-      \end{lstlisting}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.40\textwidth}
-    \tikzstyle{line} = [draw, -latex]
-    \tikzstyle{node} = [draw, circle]
-    \begin{center}
-    \scalebox{0.5}{
-    \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
-        % Place nodes
-        \node [node]                    (source) {$s_0$};
-        \node [node, below of = source] (head) {for};
-        \node [node, below of = head]   (check) {if};
-        \coordinate[below of = check]            (c2);
-        \node [node, left of = c2]  (true) {true};
-        \node [node, right of = c2]   (false) {false};
-        \node [node, below of = c2]   (merge) {};
-        \node [node, left of = head]   (return) {return};
-        \coordinate[right of=false]    (c3);
+\section{Parallel Approach}
 
-        % Draw edges
-        \draw[->]    (source)         -- (head);
-        \draw[->]    (head)           -- (check);
-        \draw[->]    (check)          -- (true);
-        \draw[->]    (check)          -- (false);
-        \draw[->]    (true)       -- (merge);
-        \draw[->]    (false)      --  (merge);
-        \draw    (merge.east) to [out=0, in=-90]  (c3);
-        \draw[->]    (c3) to [out=90, in=0]  (head);
-
-        \draw[->]    (head.west)  to [out=180, in=180] (return.east);
-    \end{tikzpicture}
-    }
-    \end{center}
-  \end{subfigure}
-\end{figure}
-\end{frame}
-
-\begin{frame}{Fundamentação Teórica (Middle End)}
-  \begin{itemize}
-      \item Otimizações normalmente propagam informações pelo CFG
-          \begin{itemize}
-              \item Conjuntos \texttt{IN[v]} e \texttt{OUT[v]}, onde $\texttt{v} \in V$
-          \end{itemize}
-      \item[]
-      \item Dois métodos conhecidos para a propagação
-      \begin{itemize}
-          \item Método 1 - Ponto Fixo
-              \begin{itemize}
-                  \item Itera no grafo até convergir para a solução
-              \end{itemize}
-          \item Método 2 - Eliminação
-              \begin{itemize}
-                  \item Solução de um sistema de equações
-              \end{itemize}
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Fundamentação Teórica (Back End)}
-  \begin{itemize}
-    \item Back End
+\begin{frame}{Parallel Approach}
     \begin{itemize}
-        \item Aplica as otimizações {\color{blue}{dependentes}} de arquitetura no código
-        \item Gera o código final
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Fundamentação Teórica}
-\begin{figure}
-\tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=1cm and 1cm, auto, minimum height=2em]
-\tikzstyle{line} = [draw, -latex]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
-    minimum height=2em]
-
-\begin{center}
-\scalebox{1.0}{
-    \begin{tikzpicture}
-    % Place nodes
-    \begin{scope}{node distance = 1cm and 1cm}
-    \node [block]                      (front_c)    {Frontend C};
-    \node [block, below=of front_c]    (front_cpp)  {Frontend C++};
-    \node [block, below=of front_cpp]  (front_fort) {Frontend Fortran};
-    \node [block, right=of front_cpp]  (middle)     {Middle End};
-    \node [block, right=of middle]     (back_x86)   {Backend x86};
-    \node [block, above=of back_x86]   (back_arm)   {Backend ARM};
-    \node [block, below=of back_x86]   (back_ppc)   {Backend PPC};
-
-
-    \coordinate [left=of front_c]    (c_code);
-    \coordinate [left=of front_cpp]  (cpp_code);
-    \coordinate [left=of front_fort]  (fort_code);
-
-    \coordinate [right=of back_x86] (x86_code);
-    \coordinate [right=of back_arm] (arm_code);
-    \coordinate [right=of back_ppc] (ppc_code);
-    \end{scope}
-
-    % Draw edges
-    \draw[->]    (front_c.east)     to [out=0,in=180] ([yshift=0.5em]  middle.west);
-    \draw[->]    (front_cpp.east)   to [out=0,in=180] (middle.west);
-    \draw[->]    (front_fort.east)  to [out=0,in=180] ([yshift=-0.5em] middle.west);
-
-    \draw[->]    ([yshift=-0.5em] middle.east)  to [out=0,in=180] (back_ppc.west);
-    \draw[->]    (middle.east)                  to [out=0,in=180] (back_x86.west);
-    \draw[->]    ([yshift=0.5em] middle.east)   to [out=0,in=180] (back_arm.west);
-
-\end{tikzpicture}
-}
-\end{center}
-
-\caption{Arquitetura de um compilador.}
-\label{fig:compiler_arch}
-\end{figure}
-\end{frame}
-
-\section{Trabalhos Relacionados}
-
-\begin{frame}{Trabalhos Relacionados}
-    \begin{itemize}
-        \item Pesquisa de paralelismo em compiladores é majoritariamente destinada a compiladores que paralelizam
-        \item[]
-        \item Existem duas áreas relacionadas à paralelização de compiladores:
-        \begin{itemize}
-            \item Análise de texto em paralelo (análise léxica e sintática, ou \textit{parsing})
-            \item Análise de fluxo de dados e controle em paralelo
-        \end{itemize}
-        \item[]
-        \item Os trabalhos são apresentados aqui em {\color{blue}{ordem cronológica}}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (\textit{parsing} em Paralelo)}
-    \begin{itemize}
-        \item \cite{Mickunas:1978:PCM:800127.804105} propuseram uma paralelização do algoritmo LR(0)
+        \item Parallelize Intra Procedural Optimizations
             \begin{itemize}
-                \item Particiona o arquivo de entrada arbitrariamente
-                \item Executa um analisador LR(0) em cada partição
-                \item Se um analisador encontrar uma ambiguidade, envia a sua entrada para o analisador à sua esquerda e reinicia a análise
-                \item Ao terminar a análise, envia a solução para o analisador à esquerda
-                \item No final, a solução se concentra no primeiro analisador
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Compilação em Paralelo)}
-    \begin{itemize}
-        \item \cite{vandevoorde1988parallel} implementou um compilador C paralelo
-            \begin{itemize}
-                \item Analisador Sintático em paralelo ao Analisador Léxico
-                    \begin{itemize}
-                        \item Os \textit{tokens} são alimentados através de um \textit{pipeline}
-                    \end{itemize}
-                \item O Analisador Sintático executa em paralelo a cada expressão
-                \item[]
-                \item Supõe que todas as declarações de funções estão no cabeçalho do arquivo
-                \item {\color{red}{Não discute otimização}}
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Compilação em Paralelo)}
-    \begin{itemize}
-        \item \cite{wortman1992} implementaram um compilador Modula-2+ em paralelo
-            \begin{itemize}
-                \item Analisador Léxico encontra funções no código
-                \item Alimenta as funções através de uma fila de prioridade produtor-consumidor
-                \item Propõe estratégias para solucionar os problemas de símbolos não definidos
-                    \begin{itemize}
-                        \item Uma \textit{thread} viu um símbolo que a outra precisa
-                    \end{itemize}
-                \item Procede com a compilação das funções em paralelo
-                \item Procede com a geração de código em paralelo por função
-                \item[]
-                \item {\color{red}{Não discute otimização}}
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Otimização em Paralelo)}
-
-    \begin{itemize}
-        \item \cite{Lee1994} propuseram Análise de Controle de Fluxo em paralelo
-            \begin{itemize}
-                \item Particionam o Grafo de Controle de Fluxo (CFG) em regiões conexas.
-                 \begin{itemize}
-                    \item Heurística, caso geral é NP-difícil
-                 \end{itemize}
-                \item Cada região computa a sua solução usando método de ponto fixo
-                \item Para propagar a solução, usa-se métodos de eliminação
-            \end{itemize}
-        \item \cite{kramer1994combining} exploram Grafos Acíclicos (DAG) na Análise de Controle de Fluxo
-            \begin{itemize}
-                \item Transformam um CFG em uma representação em DAGs.
-                \item Progagam as informações em paralelo
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-
-    \begin{itemize}
-        \item \cite{whoprgoogle} propuseram o Link Time Optimization (LTO)
-            \begin{itemize}
-                \item O objetivo inicial era permitir otimizações mais agressivas, e não compilar em paralelo
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-    \begin{itemize}
-        \item Divide a compilação de um programa em três estágios
-            \begin{itemize}
-                \item Local Generation (LGEN): compila os arquivos para a linguagem intermediária
-                \item Whole Program Analysis (WPA): executa otimizações Inter Procedurais
-                \item Local Transformations (LTRANS): executa as otimizações Intra Procedurais e compila o programa para a linguagem de máquina
-            \end{itemize}
-
-        \item \citep{glek2010optimizing} implementaram essa funcionalidade no GCC
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-
-\begin{figure}
-\tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=1cm and 1cm, auto, minimum height=2em]
-\tikzstyle{line} = [draw, -latex, node distance=1cm and 1cm, auto]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
-    minimum height=2em]
-\begin{center}
-\scalebox{0.6}{
-\begin{tikzpicture}
-    % Place nodes
-    \node [block]                         (make)   {Makefile};
-    \coordinate[below=of make]            (c);
-    \node [block, left=of c]              (fonte1) {fonte1.c};
-    \node [block, right=of fonte1]        (fonte2) {fonte2.cpp};
-    \node [block, right=of fonte2]        (fonte3) {fonte3.f90};
-
-    \node [block, below=of fonte1]        (gcc)      {gcc};
-    \node [block, below=of fonte2]        (g++)      {g++};
-    \node [block, below=of fonte3]        (gfortran) {gfortran};
-
-    \node [block, below=of gcc]           (objeto1) {lto\_obj1.o};
-    \node [block, below=of g++]           (objeto2) {lto\_obj2.o};
-    \node [block, below=of gfortran]      (objeto3) {lto\_obj3.o};
-
-    \node [block, below=of objeto2]       (gcc_lto) {gcc\_lto1};
-
-    \node [block, right=of fonte3]       (gcc_wpa) {gcc\_wpa};
-    \coordinate[below=of gcc_wpa]            (c2);
-
-    \node [block, left=of c2, right=of gfortran]            (gcc_ltrans1) {gcc\_ltrans};
-    \node [block, right=of gcc_ltrans1]   (gcc_ltrans2) {gcc\_ltrans};
-    \node [block, right=of gcc_ltrans2]   (gcc_ltrans3) {gcc\_ltrans};
-
-    \node [block, below=of gcc_ltrans1]   (obj1) {obj1.o};
-    \node [block, below=of gcc_ltrans2]   (obj2) {obj2.o};
-    \node [block, below=of gcc_ltrans3]   (obj3) {obj3.o};
-
-    \node [block, below=of obj2]   (ld) {LD};
-
-	\node [block, below=of ld]  (bin) {Executável};
-
-
-    \coordinate[right=of objeto3, left=of obj1]    (c3) at (8.2, -5);
-
-    % Draw edges
-    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
-    \draw[->]    (make.south)   -- (fonte2.north);
-    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
-
-    \draw[->]    (fonte1.south)   -- (gcc.north);
-    \draw[->]    (fonte2.south)   -- (g++.north);
-    \draw[->]    (fonte3.south)   -- (gfortran.north);
-
-    \draw[->]    (gcc.south)   -- (objeto1.north);
-    \draw[->]    (g++.south)   -- (objeto2.north);
-    \draw[->]    (gfortran.south)   -- (objeto3.north);
-
-    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]gcc_lto.north);
-    \draw[->]    (objeto2.south)   -- (gcc_lto.north);
-    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]gcc_lto.north);
-
-    \draw        (gcc_lto.east)   to [out=0, in=-90] (c3);
-    \draw[->]    (c3.north)       to [out=90, in=180] (gcc_wpa.west);
-
-    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans1.north);
-    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans2.north);
-    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans3.north);
-
-    \draw[->]    (gcc_ltrans1.south)   -- (obj1.north);
-    \draw[->]    (gcc_ltrans2.south)   -- (obj2.north);
-    \draw[->]    (gcc_ltrans3.south)   -- (obj3.north);
-
-    \draw[->]    (obj1.south)   -- ([xshift=-0.7em]ld.north);
-    \draw[->]    (obj2.south)   -- (ld.north);
-    \draw[->]    (obj3.south)   -- ([xshift=+0.7em]ld.north);
-
-	\draw[->]    (ld.south)   -- (bin.north);
-
-
-\end{tikzpicture}
-}
-\end{center}
-\caption{Compilação de um programa utilizando LTO.}
-\label{fig:whopr_build}
-\end{figure}
-\end{frame}
-
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-    \begin{itemize}
-        \item {\color{red}{Conclusão: modifica o processo de compilação!}}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Trabalhos Relacionados (Link Time Optimization)}
-    Problemas na \texttt{libcairo}
-
-\begin{verbatim}
-
-Schlachter 2014-08-01 21:31:36 UTC
-
-commit c7ff9bb32e20679d6da4e8a2856be716e5bd9e12
-Author: Uli Schlachter <psychon@znc.in>
-Date:   Mon Jul 21 17:10:16 2014 +0200
-
-    Remove LTO support
-
-    This just never worked too well and caused too many issues.
-    I don't think anyone will miss this.
-
-\end{verbatim}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-    \begin{itemize}
-        \item \cite{livska2014optimizing} faz uma análise dessa funcionalidade
-        \item Problemas encontrados
-            \begin{itemize}
-                \item Uso elevado de memória (15Gb de RAM para compilar o Kernel Linux)
-                \item Consumo elevado de tempo ($2\times$ mais tempo para compilar o GCC)
-            \end{itemize}
-        \item Amenizados com as atualizações
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-    \begin{itemize}
-        \item \cite{Johnson:2017:TSI:3049832.3049845} propuseram e implementaram o ThinLTO
-            \begin{itemize}
-                \item Diminui a fase sequencial WHOPR
-                \item Consome menos memória
-                \item Diminui o tempo de compilação do LTO
-                \item Implementado no Clang
-            \end{itemize}
-        \item Também mostraram a diferença de desempenho dos binários
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-    Desempenho dos Binários em LTO \citep{Johnson:2017:TSI:3049832.3049845}
-    \includegraphics[width=0.9\paperwidth]{LTO_vs_ThinLTO_vs_default.png}
-    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
-    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
-    \label{fig:desempenho_lto}
-\end{frame}
-
-\begin{frame}{Trabalhos Relacionados (Link Time Optimization)}
-    \begin{itemize}
-        \item Experimento 2
-        \begin{itemize}
-            \item Compilação do GCC em uma máquina com $4\times$ AMD Opteron 6376
-                \begin{itemize}
-                    \item $4 \times 16 = 64$ núcleos
-                \end{itemize}
-            \item \textit{Bootstrap} desligado
-            \item LTO ligado (\texttt{CFLAGS=-flto=64 CXXFLAGS=-flto=64})
-            \item Coletados os {\color{blue}{tempos de compilação}} de {\color{red}{cada arquivo}}
-            \item Coletada a {\color{blue}{soma da potência instantânea}} fornecida às CPUs
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    Paralelismo com LTO
-    \includegraphics[width=0.9\paperwidth]{time_no_bootstrap_lto-crop.pdf}
-    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
-    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
-    \label{fig:analysis_lto}
-\end{frame}
-
-\begin{frame}
-    Paralelismo com LTO
-
-    \centering
-    \includegraphics[height=0.8\paperheight]{sensor_with_lto-crop.pdf}
-    %   \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
-    %64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
-    \label{fig:analysis_lto}
-\end{frame}
-
-\begin{frame}{Introdução}
-    \begin{itemize}
-        \item Conclusões
-        \begin{itemize}
-            \item {\color{blue}{180s sem LTO}} vs. {\color{red}{300s com LTO}}
-            \item {\color{blue}{1.8Wh sem LTO}} vs. {\color{red}{2.7Wh com LTO}}
-            \item Caso o objetivo seja compilar mais rápido, não vale a pena ligar o LTO
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\section{Estratégia de Paralelização}
-
-\begin{frame}{Estratégia de Paralelização (GCC)}
-    \begin{itemize}
-        \item Estudo do gargalo na compilação do GCC usando o \texttt{gimple-match.c}
-            \begin{itemize}
-                \item São necessários em média 76 segundos para compilar tal arquivo
-                \item 75\% ($57s$) é gasto em otimizações Intra Procedurais e Geração de código
-                \item 11\% ($11s$) é gasto nas otimizações Inter Procedurais
-                \item 8\% ($6s$) é gasto na análise léxica e sintática
-                \item 1\% está distribuído em diversas partes do compilador
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Estratégia de Paralelização (GCC)}
-    \begin{itemize}
-        \item Estudo do gargalo na compilação do GCC usando o \texttt{gimple-match.c}
-            \begin{itemize}
-                \item Se paralelizarmos a aplicação das otimizações Intra Procedurais
-            \begin{itemize}
-                \item $T_1$: tempo sequencial \hfil\hfil $T_p$: Tempo paralelo com $p$ processadores
-                \item Usando a Lei de Amdahl:
-$$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
-\right)T_1 $$ 
-                \item O \textit{speedup} máximo por arquivo é: $$
-\lim_{p \rightarrow +\infty} \frac{T_1}{T_p} = \lim_{p \rightarrow +\infty}
-\frac{T_1}{\frac{1}{4} \left( 1 + \frac{3}{p} \right)T_1} = \lim_{p \rightarrow
-+\infty} \frac{4}{1 + \frac{3}{p}} = 4$$
-            \end{itemize}
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-
-\begin{frame}{Estratégia de Paralelização (Corrente)}
-    \begin{itemize}
-        \item {\color{blue}{Estratégia corrente}} para paralelizar a aplicação das otimizações Intra Procedurais
-            \begin{itemize}
-                \item Maneira similar ao trabalho de \cite{wortman1992}
-                \item Execução de um número fixo de \textit{threads}
-                \item O IPA alimenta as funções do programa em uma fila no fim de sua análise
-                \item Cada \textit{thread} é responsável por retirar o seu trabalho da fila
+                \item By per-function
+                \item Similarly to \cite{wortman1992}
+                \item With arbitrary fixed number of threads
     \end{itemize}
 \end{itemize}
 
+\end{frame}
+
+\begin{frame}{Parallel Approach}
+    \begin{itemize}
+        \item Parallel Architecture of the Compiler
+            \begin{itemize}
+                \item The Inter Process Analysis inserts functions into a Producer Consumer Queue
+                \item Each thread is responsible to remove their work from the Queue
+                \item When Queue is empty, threads are blocked until work is inserted into it
+                \item The threads die when the \texttt{EMPTY} token is inserted
+                \item Measured overhead: 0.1s for 2000 functions
+             \end{itemize}
+\end{itemize}
  \centering
- \includegraphics[width=\textwidth]{paralelizacao.pdf}
+ \includegraphics[width=\textwidth]{paralelizacao_eng.pdf}
 \end{frame}
 
-\begin{frame}{Estratégia de Paralelização (Corrente)}
+\begin{frame}{Parallel Approach}
     \begin{itemize}
-        \item Vantagens
+        \item Advantages
             \begin{itemize}
-                \item Candidato a \textit{speedup} linear se as funções forem do mesmo tamanho
-                \item Pior caso: existência de uma função muito grande
+                \item Best candidate to Linear speedup
+                \item Worst case: A single big function
             \end{itemize}
-        \item Desvantagens
+        \item Disadvantage
             \begin{itemize}
-                \item Necessário mapear todos os estados globais dos 221 passos de otimização do GCC
+              \item Map per-pass global states in the compiler
             \end{itemize}
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Estratégia de Paralelização (Alternativa)}
+\begin{frame}{Implementation}
     \begin{itemize}
-        \item {\color{blue}{Estratégia alternativa}} para paralelizar a aplicação das otimizações Intra Procedurais
-            \begin{itemize}
-                \item Atribuir uma \textit{thread} para cada passo de otimização
-                \item Passar a função pelas \textit{threads} de modo que um passo não execute simultaneamente
-            \end{itemize}
-    \end{itemize}
- \centering
- \includegraphics[width=\textwidth]{paralelizacao_pipeline.pdf}
-\end{frame}
-
-\begin{frame}{Estratégia de Paralelização}
-    \begin{itemize}
-        \item Vantagens
-            \begin{itemize}
-                \item Mais fácil de implementar
-            \end{itemize}
-        \item Desvantagens
-            \begin{itemize}
-                \item Pior caso: existência de um passo muito lento
-            \end{itemize}
-
+        \item Split \texttt{cgraph\_node::expand} into three methods:
+            \begin{enumerate}
+                \item \texttt{expand\_ipa\_gimple}
+                \item \texttt{expand\_gimple} $\longleftarrow$ parallelized
+                \item \texttt{expand\_rtl}
+            \end{enumerate}
+        \item Serialized the Garbage Collector
+        \item Serialized memory related structures
     \end{itemize}
 \end{frame}
 
-\section{Estado Atual da Pesquisa}
-
-\begin{frame}{Estado Atual da Pesquisa}
+\begin{frame}{Implementation}
+    Memory pools:
     \begin{itemize}
-        \item Desafios
-        \begin{itemize}
-            \item Mapeamento de variáveis globais e dependências falsas no GCC
-            \item O GCC não foi projetado com paralelismo em mente
-            \item O GGC (Coletor de Lixo)
+        \item Problems:
             \begin{itemize}
-                \item Solução paliativa é travar um \textit{mutex} a cada alocação de memória
+                \item Linked List of several object instances
+                \item Can be allocated/released upon request
+                \item Most race conditions were there
             \end{itemize}
-        
-        \end{itemize}
-
-        \item Conquistas
-        \begin{itemize}
-            \item Apoio da comunidade do GCC
-            \item Separação de passos compartilhados entre o IPA e Intra Procedurais
-            \item Mecanismo de controle de \textit{threads} já funciona dentro do GCC
+        \item Solution:
             \begin{itemize}
-                \item Implementação atual consome $0.1s$ para gerenciar $2000$ funções.
+                \item Create an instance for every thread
+                \item Merge the memory pools when all threads join
+                \item Implementing merge feature: Just append the two Linked List
             \end{itemize}
-        \end{itemize}    
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Estado Atual da Pesquisa}
+\begin{frame}{Implementation}
+    Garbage Collection: 
     \begin{itemize}
-        \item O que resta fazer
+        \item Problem: 
             \begin{itemize}
-                \item Finalizar a paralelização das Otimizações Intra Procedurais (GIMPLE)
-                \item Avaliar a paralelização das Otimizações Dependentes de Arquitetura e Geração de Código (RTL)
-                \item Avaliar a paralelização das Otimizações Inter Procedurais (IPA)
+                \item GCC implements a garbage collector 
+                \item Variables can be marked to be watched by it
+                \item Collection can also be done upon request
+            \end{itemize}
+        \item Partial Solution:
+            \begin{itemize}
+                \item Serialize the entire Garbage Collector
+                \item Disable collection between passes
+            \end{itemize}
+        \item Research is needed to:
+            \begin{itemize}
+                \item Map the race conditions in the Garbage Collector 
+                \item Make it thread aware
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Implementation}
+    \texttt{rtl\_data} structure: 
+    \begin{itemize}
+        \item Problem: 
+            \begin{itemize}
+                \item This class represents the current function being compiled in RTL
+                \item GCC only has a single instance of this class
+                \item GIMPLE uses it to decide optimization related to instruction costs
+            \end{itemize}
+        \item Partial Solution:
+            \begin{itemize}
+                \item Have one copy of this structure for each thread 
+            \end{itemize}
+        \item Solution 
+            \begin{itemize}
+                \item Do not rely on it at this stage of compilation? 
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Implementation}
+    \texttt{rtl\_data} structure:
+    \begin{itemize}
+        \item Problem: 
+            \begin{itemize}
+                \item This class represents the current function being compiled in RTL
+                \item GCC only has a single instance of this class
+                \item GIMPLE uses it to decide optimization related to instruction costs
+            \end{itemize}
+        \item Partial Solution:
+            \begin{itemize}
+                \item Have one copy of this structure for each thread 
+            \end{itemize}
+        \item Solution 
+            \begin{itemize}
+                \item Do not rely on it at this stage of compilation? 
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Implementation}
+    tree-ssa.address.c: \texttt{mem\_addr\_template\_list} 
+
+    \begin{itemize}
+        \item Problem:
+            \begin{itemize}
+                \item Race condition in this structure
+            \end{itemize}
+        \item Partial Solution:
+            \begin{itemize}
+                \item Serialize with a mutex
+            \end{itemize}
+        \item Solution 
+            \begin{itemize}
+                \item Replicate for each thread?
+            \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Implementation}
+    Integer to Tree Node hash
+
+    \begin{itemize}
+        \item Problem:
+            \begin{itemize}
+                \item Race condition in this structure
+            \end{itemize}
+        \item Partial Solution:
+            \begin{itemize}
+                \item Serialize with a mutex
+            \end{itemize}
+        \item Solution 
+            \begin{itemize}
+                \item Replicate for each thread?
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+
+\section{Results}
+
+\begin{frame}{Results}
+    \begin{itemize}
+        \item Results by parallelizing GIMPLE
+        \item Mean of 30 samples
+    \end{itemize}
+
+\begin{figure}[ht]
+\centering
+  \begin{subfigure}[b]{0.49\textwidth}
+ 	\includegraphics[scale=0.45]{gimple_speedup.pdf}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.49\textwidth}
+ 	\includegraphics[scale=0.45]{gcc_archived_speedup.pdf}
+  \end{subfigure}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Results}
+    \begin{itemize}
+        \item The same approach can be used to parallelize RTL
+        \item Using the GIMPLE results
+    \end{itemize}
+
+\begin{figure}[ht]
+\centering
+ 	\includegraphics[scale=0.5]{gcc_estimate.pdf}
+\end{figure}
+\end{frame}
+
+\section{TODOs}
+
+\begin{frame}{TODOs}
+    \begin{itemize}
+        \item What is left to do:
+            \begin{itemize}
+                \item Fix all race conditions in GIMPLE
+                \item Fix all C11 \texttt{\_\_thread} occurrences
+                \item Parallelize RTL
+                \item Parallelize IPA (useful for LTO?)
             \end{itemize}
     \end{itemize}
 \end{frame}
@@ -942,15 +498,15 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
 %    \end{itemize}
 %\end{frame}
 
-\section{Referências}
+\section{References}
 
-\begin{frame}[allowframebreaks]{Referências}
+\begin{frame}[allowframebreaks]{References}
   %\nocite{bronevetsky02, schmidt03:MSc, FSF:GNU-GPL, CORBA:spec, MenaChalco08, natbib, biblatex, eco:09}
   \printbibliography
 \end{frame}
 
 % Recapitulando
-\begin{frame}{Tópicos em Paralelização de Compiladores}
+\begin{frame}{Repositories}
   \overview
 
   % \begin{center} acrescenta espaço vertical;
@@ -960,58 +516,14 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
     \centering\noindent%
     \url{https://github.com/giulianobelinassi/gcc-timer-analysis}\par
     \url{https://gitlab.com/flusp/gcc/tree/giulianob\_parallel}\par
+    \url{https://gcc.gnu.org/wiki/ParallelGcc}\par
   }
 
 \end{frame}
 
 \begin{frame}[standout]
-    Obrigado!
+    Thank you!
 \end{frame}
 
 \appendix
 
-\begin{frame}{Teorema do Limite Central}
-    \begin{itemize}
-        \item Seja $(X_1, X_2, \dots, X_n)$ amostras de uma variável aleatória $X$ com média
-            $\mu$ e desvio padrão $\sigma$. Então
-            $$ Z = \frac{\overline{X} - \mu}{\sigma / \sqrt{n}} \sim N(0, 1)$$
-        \item Ou seja, a distribuição do erro $e = \overline{X} - \mu$ segue uma distribuição $N(0, \sigma^2/n)$
-        \item Problema: não sei ao certo o valor de $\sigma$ da população
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Teorema do Limite Central}
-    \begin{itemize}
-        \item No caso em que $X \sim N(\mu, \sigma^2)$, então é possível usar o estimador
-            $$s^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \overline{X})^2$$
-        \item Nesse caso
-            $$ T = \frac{\overline{X} - \mu}{s / \sqrt{n}} \sim t_{n-1}$$
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Cálculo de Energia Consumida}
-    \begin{itemize}
-        \item Definição de Potência Instantânea:
-            $$P(t) = \frac{dE}{dt}$$
-        \item Solução da Eq. Diferencial para $E(t)$
-            $$E = \int_{t_0}^{t_1} P(t) dt$$
-
-        \item Não é possível calcular essa integral com precisão absoluta no computador
-            \begin{itemize}
-                \item Temos apenas amostras de $P(t)$
-                \item Estratégia: encontrar um limitante inferior e outro superior para $E$
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Cálculo de Energia Consumida}
-    \begin{itemize}
-        \item Discretizando $dt$ em $\Delta t = t_{i+1} - t_{i}$ com $n$ pontos, define:
-            $$p_i = \inf\{P(t)\,|\,t_{i} \leq t \leq t_{i+1}\}$$
-            \hfil\hfil e \hfil\hfil
-            $$P_i = \sup\{P(t)\,|\,t_{i} \leq t \leq t_{i+1}\}$$
-            \hfil\hfil então: \hfil\hfil
-            $$\sum_{i=1}^{n-1} p_i\Delta t \leq E \leq \sum_{i=1}^{n-1} P_i\Delta t$$
-
-    \end{itemize}
-\end{frame}

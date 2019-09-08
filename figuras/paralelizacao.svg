@@ -378,14 +378,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="463.47018"
-     inkscape:cy="120.59123"
+     inkscape:cx="380.7716"
+     inkscape:cy="197.89323"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      showgrid="true"
      inkscape:window-width="1920"
-     inkscape:window-height="1034"
-     inkscape:window-x="0"
+     inkscape:window-height="1059"
+     inkscape:window-x="1920"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      fit-margin-top="0"
@@ -475,7 +475,7 @@
          id="tspan1999-8-7"
          x="196.11778"
          y="113.47827"
-         style="stroke-width:0.26458332">Passos RTL</tspan></text>
+         style="stroke-width:0.26458332">RTL Passes</tspan></text>
     <rect
        style="fill:#cccccc;stroke:#000000;stroke-width:0.40509573;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1943-4"
@@ -493,7 +493,7 @@
          id="tspan2990"
          x="159.05516"
          y="83.821426"
-         style="stroke-width:0.26458332">Barreira</tspan></text>
+         style="stroke-width:0.26458332">Barrier</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker3474)"
        d="m 149.48957,91.947911 h 13.22917"
@@ -539,7 +539,7 @@
          id="tspan4500"
          x="244.73956"
          y="113.02393"
-         style="stroke-width:0.26458332">Geração de Código</tspan></text>
+         style="stroke-width:0.26458332">Code Generation</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker4514)"
        d="m 235.47916,111.79167 h 7.9375"
@@ -647,11 +647,11 @@
        x="96.572914"
        y="89.302094" />
     <rect
-       style="fill:#ffffff;stroke:#000000;stroke-width:0.40509573;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.49613893;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1943"
-       width="10.583333"
+       width="15.875"
        height="52.91666"
-       x="72.760414"
+       x="70.114586"
        y="85.333336" />
     <text
        xml:space="preserve"
@@ -663,7 +663,7 @@
          id="tspan1999-8"
          x="105.21461"
          y="93.63456"
-         style="stroke-width:0.26458332">Passos GIMPLE</tspan></text>
+         style="stroke-width:0.26458332">GIMPLE Passes</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.40000001;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1941-5"
@@ -681,7 +681,7 @@
          id="tspan1999-8-2"
          x="105.2146"
          y="133.32205"
-         style="stroke-width:0.26458332">Passos GIMPLE</tspan></text>
+         style="stroke-width:0.26458332">GIMPLE Passes</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.40000001;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1941-5-2"
@@ -699,7 +699,7 @@
          id="tspan1999-8-2-9"
          x="105.21459"
          y="125.38456"
-         style="stroke-width:0.26458332">Passos GIMPLE</tspan></text>
+         style="stroke-width:0.26458332">GIMPLE Passes</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.40000001;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1941-5-7"
@@ -717,7 +717,7 @@
          id="tspan1999-8-2-6"
          x="105.21459"
          y="117.44705"
-         style="stroke-width:0.26458332">Passos GIMPLE</tspan></text>
+         style="stroke-width:0.26458332">GIMPLE Passes</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.40000001;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1941-5-1"
@@ -735,7 +735,7 @@
          id="tspan1999-8-2-93"
          x="105.21459"
          y="109.50955"
-         style="stroke-width:0.26458332">Passos GIMPLE</tspan></text>
+         style="stroke-width:0.26458332">GIMPLE Passes</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.40000001;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1941-5-19"
@@ -753,18 +753,18 @@
          id="tspan1999-8-2-7"
          x="105.21459"
          y="101.57205"
-         style="stroke-width:0.26458332">Passos GIMPLE</tspan></text>
+         style="stroke-width:0.26458332">GIMPLE Passes</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93888855px;line-height:1.25;font-family:'Latin Modern Math';-inkscape-font-specification:'Latin Modern Math';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="73.79715"
-       y="113.47829"
+       x="71.017685"
+       y="113.94602"
        id="text2140"><tspan
          sodipodi:role="line"
          id="tspan2138"
-         x="73.79715"
-         y="113.47829"
-         style="stroke-width:0.26458332">Fila</tspan></text>
+         x="71.017685"
+         y="113.94602"
+         style="stroke-width:0.26458332">Queue</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93888855px;line-height:1.25;font-family:'Latin Modern Math';-inkscape-font-specification:'Latin Modern Math';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
