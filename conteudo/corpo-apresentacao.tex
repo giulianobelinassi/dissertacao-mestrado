@@ -24,6 +24,7 @@
   \hfil\hfil\includegraphics[width=.1\textwidth]{usp-logo}\hfil%
 %  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{interscity-logo}}\hfil%
 %  \raisebox{-.00517\paperheight}{\includegraphics[height=.057\paperheight]{cnpq-logo}}\hfil%
+  \raisebox{-.00517\paperheight}{\includegraphics[height=.1\paperheight]{flusp-logo}}\hfil%
   \raisebox{-.02\paperheight}{\includegraphics[height=.1035\paperheight]{capes-logo}}\hfil\hfil\strut%
 %  \includegraphics[height=.044\paperheight]{fapesp-logo}\hfil\hfil
 }
@@ -178,12 +179,6 @@
     \end{itemize}
 \end{frame}
 
-
-
-\begin{frame}{Overview}
-  \overview
-\end{frame}
-
 \section{Where to Start?}
 
 \begin{frame}{Where to Start?}
@@ -296,7 +291,7 @@
         \item Split \texttt{cgraph\_node::expand} into three methods:
             \begin{enumerate}
                 \item \texttt{expand\_ipa\_gimple}
-                \item \texttt{expand\_gimple} $\longleftarrow$ parallelized
+                \item \texttt{expand\_gimple} $\longleftarrow$ GSoC 2019
                 \item \texttt{expand\_rtl}
             \end{enumerate}
         \item Serialized the Garbage Collector
@@ -305,7 +300,7 @@
 \end{frame}
 
 \begin{frame}{Implementation}
-    Memory pools:
+    Memory Pools:
     \begin{itemize}
         \item Problems:
             \begin{itemize}
@@ -345,27 +340,7 @@
 \end{frame}
 
 \begin{frame}{Implementation}
-    \texttt{rtl\_data} structure: 
-    \begin{itemize}
-        \item Problem: 
-            \begin{itemize}
-                \item This class represents the current function being compiled in RTL
-                \item GCC only has a single instance of this class
-                \item GIMPLE uses it to decide optimization related to instruction costs
-            \end{itemize}
-        \item Partial Solution:
-            \begin{itemize}
-                \item Have one copy of this structure for each thread 
-            \end{itemize}
-        \item Solution 
-            \begin{itemize}
-                \item Do not rely on it at this stage of compilation? 
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Implementation}
-    \texttt{rtl\_data} structure:
+    \texttt{rtl\_data} Structure: 
     \begin{itemize}
         \item Problem: 
             \begin{itemize}
@@ -463,6 +438,10 @@
             \begin{itemize}
                 \item Fix all race conditions in GIMPLE
                 \item Fix all C11 \texttt{\_\_thread} occurrences
+                    \begin{itemize}
+                        \item Initialize Inter-Pass objects at \texttt{::execute} time
+                        \item Per-thread attributes initialized at spawn time
+                    \end{itemize}
                 \item Parallelize RTL
                 \item Parallelize IPA (useful for LTO?)
             \end{itemize}
