@@ -3,7 +3,7 @@
 \title[The shortened title]{Parallel GCC: Status and Expectations}
 %\subtitle{The (optional) subtitle}
 
-\author[Authors Name]{Giuliano Belinassi}
+\author[Authors Name]{Giuliano Belinassi \\ \texttt{giulianob}}
 
 \institute[USP]{\textbf{GNU Cauldron 2019} \\ FLUSP \\ Computer Science Department \\ Institute of Mathematics and Statistics \\ University of São Paulo (USP)}
 %\institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departamentamento de Ciência da Computação \\ IME USP}
@@ -98,7 +98,6 @@
     \begin{itemize}
         \item Parallelization of GCC Internals
         \begin{itemize}
-            \item Without modifying the program compilation structure
             \item Exploring parallelism in a single file
         \end{itemize}
         \item[]
@@ -212,7 +211,7 @@
 \end{frame}
 
 
-\begin{frame}{Results}
+\begin{frame}{Introduction}
     \begin{itemize}
         \item There is a parallelism bottleneck in GCC project
             \begin{itemize}
@@ -284,6 +283,7 @@
     \begin{itemize}
         \item We used \texttt{gimple-match.c} to profile the compiler
             \begin{itemize}
+                \item 48s is spent compiling this file
                 \item 63\% is spent in Intra Procedural Optimization
                 \item This can be parallelized
                 \item Maximum speedup: $2.7\times$ according to Amdahl's Law
@@ -292,26 +292,21 @@
 
 \end{frame}
 
-\section{Parallel Approach}
+\section{Parallel Architecture}
 
-\begin{frame}{Parallel Approach}
+\begin{frame}{Parallel Architecture}
     \begin{itemize}
         \item Parallelize Intra Procedural Optimizations
             \begin{itemize}
                 \item By per-function
                 \item Similarly to \cite{wortman1992}
-                    \begin{itemize}
-                        \item Describes how to implement a non-optimizing concurrent compiler
-                        \item Also discusses how to handle concurrent Recursive Descent parsing
-                        \item Uses a Priority Queue to sort the functions by size
-                    \end{itemize}
                 \item With arbitrary number of threads
     \end{itemize}
 \end{itemize}
 
 \end{frame}
 
-\begin{frame}{Parallel Approach}
+\begin{frame}{Parallel Architecture}
     \begin{itemize}
         \item Architecture of Parallel GCC
             \begin{itemize}
@@ -326,7 +321,7 @@
  \includegraphics[width=\textwidth]{paralelizacao_eng.pdf}
 \end{frame}
 
-\begin{frame}{Parallel Approach}
+\begin{frame}{Parallel Architecture}
     \begin{itemize}
         \item Advantages
             \begin{itemize}
@@ -388,7 +383,7 @@
         \item Research is needed to:
             \begin{itemize}
                 \item Map the race conditions in the Garbage Collector 
-                \item Make it thread aware
+                \item Make it thread safe
             \end{itemize}
     \end{itemize}
 \end{frame}
@@ -402,13 +397,10 @@
                 \item GCC only has a single instance of this class
                 \item GIMPLE uses it to decide optimization related to instruction costs
             \end{itemize}
-        \item Partial Solution:
-            \begin{itemize}
-                \item Have one copy of this structure for each thread 
-            \end{itemize}
         \item Solution 
             \begin{itemize}
-                \item Do not rely on it at this stage of compilation? 
+                \item Have one copy of this structure for each thread
+                \item Make GIMPLE not rely on this? 
             \end{itemize}
     \end{itemize}
 \end{frame}
