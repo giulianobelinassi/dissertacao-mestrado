@@ -8,7 +8,7 @@
 \institute[USP]{\textbf{GNU Cauldron 2019} \\ FLUSP \\ Computer Science Department \\ Institute of Mathematics and Statistics \\ University of São Paulo (USP)}
 %\institute[USP]{\textbf{Orientador: Alfredo Goldman} \\ Departamentamento de Ciência da Computação \\ IME USP}
 
-\date{August 15, 2019}
+\date{September 13, 2019}
 
 % Coloca a imagem no fundo da página de título
 %\bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
@@ -58,8 +58,8 @@
     \begin{itemize}
         \item {\color{blue}{FLUSP}} -- Floss at USP
             \begin{itemize}
-                \item Student Extension Group
-                \item Aims to Contribute at FLOSS
+                \item Student extension group
+                \item Aims to Contribute to FLOSS
                 \item Projects we currently contribute: Linux Kernel, GCC, Git, Debian
                 \item Promote {\color{blue}{Contribution Events}}, such as the KernelDevDay
             \end{itemize}
@@ -154,6 +154,7 @@
                     \item $4 \times 16 = 64$ cores
                 \end{itemize}
             \item No \textit{bootstrap} (\texttt{--disable-bootstrap})
+            \item \texttt{\$ make -j64}
             \item Collected {\color{blue}{Compilation Time}} of {\color{red}{each file}}
             \item Collected {\color{blue}{Consumed Energy}} of {\color{red}{all CPUs}}
         \end{itemize}
@@ -188,6 +189,7 @@
                 \end{itemize}
             \item No \textit{bootstrap} (\texttt{--disable-bootstrap})
             \item Enabled LTO (\texttt{CFLAGS=-flto=64 CXXFLAGS=-flto=64})
+            \item \texttt{\$ make -j64}
             \item Collected {\color{blue}{Compilation Time}} of {\color{red}{each file}}
             \item Collected {\color{blue}{Consumed Energy}} of {\color{red}{all CPUs}}
         \end{itemize}
@@ -213,6 +215,9 @@
 \begin{frame}{Results}
     \begin{itemize}
         \item There is a parallelism bottleneck in GCC project
+            \begin{itemize}
+                \item And the compilation uses more electrical power as a consequence
+            \end{itemize}
         \item[]
         \item Could we improve it by parallelizing GCC?
     \end{itemize}
@@ -244,7 +249,7 @@
     \item Selected Part: {\color{blue}{Middle End}}
     \begin{itemize}
         \item Applies Hardware-{\color{blue}{Independent}} Optimizations in the code
-        \item Why? Because it was easier to start with rather than RTL
+        \item Why? Because it looked easier to start rather than RTL
     \end{itemize}
     \item[]
     \item Optimization can be broken into two {\color{red}{disjoint}} sets
@@ -295,6 +300,11 @@
             \begin{itemize}
                 \item By per-function
                 \item Similarly to \cite{wortman1992}
+                    \begin{itemize}
+                        \item Describes how to implement a non-optimizing concurrent compiler
+                        \item Also discusses how to handle concurrent Recursive Descent parsing
+                        \item Uses a Priority Queue to sort the functions by size
+                    \end{itemize}
                 \item With arbitrary number of threads
     \end{itemize}
 \end{itemize}
@@ -303,7 +313,7 @@
 
 \begin{frame}{Parallel Approach}
     \begin{itemize}
-        \item Parallel Architecture of the Compiler
+        \item Architecture of Parallel GCC
             \begin{itemize}
                 \item The Inter Process Analysis inserts functions into a Producer Consumer Queue
                 \item Each thread is responsible to remove their work from the Queue
