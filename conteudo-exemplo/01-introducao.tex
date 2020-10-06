@@ -1,3 +1,7 @@
+%!TeX root=../tese.tex
+%("dica" para o editor de texto: este arquivo é parte de um documento maior)
+% para saber mais: https://tex.stackexchange.com/q/78101/183146
+
 %% ------------------------------------------------------------------------- %%
 \chapter{Introdução}
 \label{cap:introducao}
@@ -65,7 +69,7 @@ natbib \citep{natbib}\index{natbib} (esses comandos são compatíveis com biblat
 usando a opção \textsf{natbib=true}, ativada por padrão neste modelo). Em geral,
 portanto, as citações devem seguir estes exemplos:
 
-\small
+\footnotesize
 \begin{verbatim}
 Modos de citação:
 indesejável: [AF83] introduziu o algoritmo ótimo.
@@ -85,6 +89,18 @@ Uma prática recomendável na escrita de textos é descrever as
 legendas\index{Legendas} das figuras e tabelas em forma auto-contida: as
 legendas devem ser razoavelmente completas, de modo que o leitor possa entender
 a figura sem ler o texto onde a figura ou tabela é citada.\index{Floats}
+
+Sugerimos que você faça referências bibliográficas de forma similar aos
+estilos ``alpha'' (referências alfanuméricas) ou ``plainnat'' (referências
+por autor-data) de \LaTeX{}.  Se estiver usando natbib+bibtex\index{natbib}\index{bibtex},
+use os arquivos .bst ``alpha-ime.bst'' ou ``plainnat-ime.bst'', que são
+versões desses dois formatos traduzidas para o português. Se estiver usando
+biblatex\index{biblatex} (recomendado), escolha o estilo ``alphabetic''
+(que é um dos estilos padrão do biblatex) ou ``plainnat-ime''. O arquivo de
+exemplo inclui todas essas opções; basta des-comentar as linhas
+correspondentes e, se necessário, modificar o arquivo Makefile para chamar
+o bibtex\index{bibtex} ao invés do biber\index{biber} (este último é usado
+em conjunto com o biblatex).
 
 \section{Ferramentas Bibliográficas}
 

@@ -21,8 +21,8 @@
 % É possível mudar esse comportamento com a opção "openany". Observe que você
 % pode adaptar este modelo para escrever artigos, mudando a classe do
 % documento de "book" para "article" ou a classe de algum periódico específico.
-% No entanto, o arquivo "artigo-exemplo.tex" é um ponto de partida melhor: ele
-% é similar a este, mas já inclui as mudanças necessárias para a classe article.
+% No entanto, o arquivo "artigo.tex" é um ponto de partida melhor: ele é
+% similar a este, mas já inclui as mudanças necessárias para a classe article.
 %
 % A opção frente-e-verso aqui significa, por exemplo, que as margens das páginas
 % ímpares e pares são diferentes ou que números de página aparecem à direita
@@ -35,16 +35,31 @@
 % seu comportamento em função da língua (em especial, babel/polyglossia).
 % A última língua da lista é a língua padrão do documento.
 %\documentclass[12pt,twoside,brazil,english]{book}
-\documentclass[12pt,twoside,english,brazil]{book}
+\documentclass[12pt,twoside,english]{book}
 
-% tamanho da página e margens
+% Com papel tamanho A4, queremos estas margens:
+%
+% topo: 32mm
+% pé: 28mm
+% esquerda/interna: 24mm
+% direita/externa: 34mm
+%
+% Para isso, definimos os tamanhos do texto, do cabeçalho e do rodapé,
+% e deixamos a package geometry calcular os demais valores. Assim,
+% obtemos o mesmo resultado impresso, mas com margens diferentes, se
+% o tamanho do papel for diferente.
+
 \usepackage[a4paper]{geometry}
+
 \geometry{
-  % distância entre o início da página e o início do texto principal
-  top=32mm,
-  bottom=28mm,
-  left=24mm,
-  right=34mm,
+  %top=32mm,
+  %bottom=28mm,
+  %left=24mm,
+  %right=34mm,
+  textwidth=152mm, % 210-24-34
+  textheight=237mm, % 297-32-28
+  vmarginratio=8:7, % 32:28
+  hmarginratio=12:17, % 24:34
   % Com geometry, esta medida não é tão relevante; basta garantir que ela
   % seja menor que "top" e que o texto do cabeçalho caiba nela.
   headheight=25.4mm,
@@ -56,12 +71,6 @@
   marginpar=20mm,
   marginparsep=5mm,
 }
-
-% Vários comandos auxiliares para o desenvolvimento de packages e classes;
-% aqui, usamos em alguns comandos de formatação e condicionais.
-\usepackage{etoolbox}
-\usepackage{xstring}
-\usepackage{xparse}
 
 % Vários pacotes e opções de configuração genéricos; para personalizar o
 % resultado, modifique estes arquivos.
@@ -108,30 +117,52 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BIBLIOGRAFIA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% O estilo de citação e de lista de referências usado por biblatex
-\PassOptionsToPackage{
-  % Estilo similar a plainnat
-  bibstyle=extras/plainnat-ime,
-  citestyle=extras/plainnat-ime,
+%%%%%%%%%%%% Usando bibtex (preterido): %%%%%%%%%%%%
+
+% citação bibliográfica alpha (alpha-ime.bst)
+%\dowithsubdir{extras/}{\usepackage[square,sort,nonamebreak,comma]{natbib-ime}}
+
+% citação bibliográfica textual(plainnat-ime.bst)
+%\dowithsubdir{extras/}{\usepackage[round,sort,nonamebreak]{natbib-ime}}
+
+%%%%%%%%%%%
+
+
+%%%%%%%%%%% Usando biblatex (preferido): %%%%%%%%%%%
+
+\usepackage[
+  % "natbib=true" faz biblatex reconhecer comandos no estilo
+  % do pacote natbib (\citet, \citep)
+  natbib=true,
+  %
+  % Aqui definimos estilo de citação e de lista
+  % de referências usado por biblatex
+  %
+  % Estilo similar a plainnat, uma variante de autor-data
+  style=extras/plainnat-ime,
   % Estilo similar a alpha
-  %bibstyle=alphabetic,
-  %citestyle=alphabetic,
+  %style=alphabetic,
   % O estilo numérico é comum em artigos
-  %bibstyle=numeric,
-  %citestyle=numeric,
+  %style=numeric,
+  % autor-data "padrão" do biblatex
+  %style=authoryear-comp,
+  % APA, uma variante de autor-data muito usada
+  %style=apa,
   % Um estilo que busca ser compatível com a ABNT:
-  %bibstyle=abnt,
-  %citestyle=abnt,
+  %style=abnt,
   %style=bwl-FU,
-}{biblatex}
+]{biblatex}
 
-% Para personalizar outros aspectos da bibliografia e citações ou
-% para utilizar bibtex, modifique este arquivo.
-\input{extras/bibconfig}
-
-% O arquivo com os dados bibliográficos; você pode usar este comando
-% mais de uma vez para acrescentar múltiplos arquivos
+% O arquivo com os dados bibliográficos para biblatex; você pode usar
+% este comando mais de uma vez para acrescentar múltiplos arquivos
 \addbibresource{bibliografia.bib}
+
+%%%%%%%%%%%
+
+
+% Para personalizar outros aspectos da bibliografia
+% e citações, modifique este arquivo.
+\input{extras/bibconfig}
 
 % Este comando permite acrescentar itens à lista de referências sem incluir
 % uma referência de fato no texto (pode ser usado em qualquer lugar do texto)
@@ -173,21 +204,21 @@
 
 \begin{document}
 
-% Para gerar o título sem seguir o formato deste modelo, você pode usar o
-% comando padrão do LaTeX "\maketitle".
-%\maketitle
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%% CAPA E FOLHAS DE ROSTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Aqui vai o conteúdo inicial que aparece antes do capítulo 1, ou seja,
 % página de rosto, resumo, sumário etc. O comando frontmatter faz números
 % de página aparecem em algarismos romanos ao invés de arábicos e
 % desabilita a contagem de capítulos.
 \frontmatter
 
-% Este formato está definido na package imeusp-headers
+% Este formato está (re)definido na package imeusp-headers
 \pagestyle{plain}
-%\pagestyle{frontback}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% CAPA E FOLHAS DE ROSTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Para gerar o título sem seguir o formato deste modelo, você pode usar o
+% comando padrão do LaTeX "\maketitle".
+%\maketitle
 
 % Capa e folhas de rosto no formato sugerido para teses/dissertações do IME/USP.
 % Se for gerar a capa etc. manualmente, remova.
@@ -235,21 +266,37 @@
 % a numerá-los com letras. "annex" não faz parte de nenhuma classe padrão,
 % ele foi criado para este modelo (em annex.sty e utils.tex). Se o
 % trabalho não tiver apêndices ou anexos, remova estas linhas.
+%
+% Diferentemente de \mainmatter, \backmatter etc., \appendix e \annex não
+% forçam o início de uma nova página. Em geral isso não é importante, pois
+% o comando seguinte costuma ser "\chapter", mas pode causar problemas com
+% a formatação dos cabeçalhos. Assim, vamos forçar uma nova página antes
+% de cada um deles.
 
-% Este formato está definido na package imeusp-headers
+%%%% Apêndices %%%%
+\makeatletter
+\if@openright\cleardoublepage\else\clearpage\fi
+\makeatother
+
+% Este formato está definido na package imeusp-headers.
 \pagestyle{appendix}
 
-% Sem esta linha, a palavra "Apêndices" no sumário ficava no final da
-% primeira página; assim, forçamos uma quebra de página antes.
-\addtocontents{toc}{\newpage}
-% Apêndices
 \appendix
 
 %\input{conteudo-exemplo/apendices}
 \input{conteudo/apendices}
 \par
 
-% Anexos
+%%%% Anexos %%%%
+\makeatletter
+\if@openright\cleardoublepage\else\clearpage\fi
+\makeatother
+
+% Este formato está definido na package imeusp-headers (note que é o mesmo
+% que o anterior; repetimos aqui caso você queira desabilitar toda a seção
+% de apêndices).
+\pagestyle{appendix}
+
 \annex
 
 %\input{conteudo-exemplo/anexos}
@@ -261,18 +308,18 @@
 
 % Aqui vão a bibliografia, índice remissivo e outras seções similares.
 
-% Espaço adicional no sumário antes das referências / índice remissivo
-\addtocontents{toc}{\vspace{2\baselineskip plus .5\baselineskip minus .5\baselineskip}}
-
 % O comando backmatter desabilita a numeração de capítulos.
 \backmatter
 
 % Este formato está definido na package imeusp-headers
-\pagestyle{frontback}
+\pagestyle{backmatter}
+
+% Espaço adicional no sumário antes das referências / índice remissivo
+\addtocontents{toc}{\vspace{2\baselineskip plus .5\baselineskip minus .5\baselineskip}}
 
 % A bibliografia é obrigatória
 
-%%%%%%%%% Bibliografia com natbib (preterido): %%%%%%%%%
+%%%%%%%%% Bibliografia com bibtex (preterido): %%%%%%%%%
 %\bibliographystyle{extras/alpha-ime}% citação bibliográfica alpha
 %\bibliographystyle{extras/plainnat-ime} % citação bibliográfica textual
 %\bibliography{bibliografia}  % associado ao arquivo: 'bibliografia.bib'

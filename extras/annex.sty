@@ -5,27 +5,35 @@
 % Author: Nelson Lago.
 % License: LPPL, as most of the code is derived from book.cls and hyperref.sty
 
-\ProvidesPackage{annex}[2018/10/28 Annexes, similar to appendixes]
+\ProvidesPackage{annex}[2019/10/18 Annexes, similar to appendixes]
 
 \RequirePackage{etoolbox}
 
-% Copiado de \appendix em book.cls; define o comando \annex "simples"
+% Baseado em \appendix de book.cls e article.cls;
+% define o comando \annex "simples"
 \newcommand\annex{\par
-  \setcounter{chapter}{0}%
-  \setcounter{section}{0}%
-  \gdef\@chapapp{\annexname}%
-  \gdef\thechapter{\@Alph\c@chapter}
+  \ltx@IfUndefined{chapter}
+    {
+        \setcounter{section}{0}
+        \setcounter{subsection}{0}
+        \gdef\thesection{\@Alph\c@section}
+    }{
+        \setcounter{chapter}{0}
+        \setcounter{section}{0}
+        \gdef\thechapter{\@Alph\c@chapter}
+        \gdef\@chapapp{\annexname}
+    }
 }
 
 % Traduções
 \providecommand\annexname{Annex}
 
-\addto\captionsbrazil{
-  \renewcommand\annexname{Anexo}
+\addto\captionsbrazil{%
+  \renewcommand\annexname{Anexo}%
 }
 
-\addto\captionsenglish{
-  \renewcommand\annexname{Annex}
+\addto\captionsenglish{%
+  \renewcommand\annexname{Annex}%
 }
 
 % hyperref define isto para appendix, não sei bem para quê.

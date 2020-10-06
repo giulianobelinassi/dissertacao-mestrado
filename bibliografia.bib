@@ -34,8 +34,8 @@
 % year      = {1983}
 %}
 
-% Esta entrada não está em uso em tese-exemplo, apenas em
-% apresentacao-exemplo, mas isso não é um problema: você pode
+% Esta entrada não está em uso em tese.tex, apenas em
+% apresentacao.tex, mas isso não é um problema: você pode
 % ter um banco de dados com todos os papers que são de seu
 % interesse e, em um dado texto, citar apenas alguns deles.
 @Manual{CORBA:spec,
@@ -108,6 +108,20 @@
  year     = {2008},
 }
 
+@Article{floats2014,
+ author    = {Frank Mittelbach},
+ title     = {How to influence the position of float environments like figure and table in {\LaTeX}?},
+ journal   = {{TUGboat}},
+ journalsubtitle = {Communications of the \TeX\ Users Group},
+ volume    = {35},
+ number    = {3},
+ year      = 2014,
+ url       = {tug.org/TUGboat/tb35-3/tb111mitt-float.pdf},
+ urldate   = {2020-01-09},
+ publisher = {\TeX\ {Users} {Group}},
+ address   = {Portland ({OR}), {USA}},
+}
+
 @Techreport{alvisi99:analysisCIC,
  author      = {Lorenzo Alvisi and Elmootazbellah Elnozahy and Sriram S. Rao and Syed A. Husain and Asanka Del Mel},
  title       = {An Analysis of Comunication-Induced Checkpointing},
@@ -123,9 +137,12 @@
  year     = {2003}
 }
 
+% A entrada "year" eh usada por bibtex;
+% biblatex pode usar "year" ou "date"
 @Manual{natbib,
  title       = "Reference sheet for \texttt{natbib} usage",
  author      = "Patrick W. Daly",
+ year        = {2010},
  date        = {2010-09-13},
  urldate     = {2018-12-20},
  url         = {mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf},
@@ -134,6 +151,7 @@
 @Manual{biblatex,
  title       = "The \texttt{biblatex} Package",
  author      = "Philipp Lehman and Philip Kime and Moritz Wemheuer and Audrey Boruvka and Joseph Wright",
+ year        = 2018,
  date        = {2018-10-30},
  urldate     = {2018-12-20},
  url         = {mirrors.ctan.org/macros/latex/contrib/biblatex/doc/biblatex.pdf},

@@ -1,3 +1,7 @@
+%!TeX root=../tese.tex
+%("dica" para o editor de texto: este arquivo é parte de um documento maior)
+% para saber mais: https://tex.stackexchange.com/q/78101/183146
+
 % Vamos definir alguns comandos auxiliares para facilitar.
 
 % "textbackslash" é muito comprido.
@@ -86,14 +90,56 @@ comandos de formatação, automatizam o processo de compilação do documento e
 oferecem outras comodidades. Os mais comumente usados são \TeX{}maker,
 \TeX{}studio e \TeX{}works; os três são software livre e funcionam em
 Windows, MacOS e Linux. \TeX{}nicCenter é outra opção livre, mas funciona
-apenas em Windows. O editor atom (\url{atom.io}) tem uma interface às vezes
-peculiar para não programadores, mas em conjunto com as suas \emph{packages}
-\pkg{atom-latex}, \pkg{latex-document-outline},
-\pkg{grammar-token-limit} e \pkg{preview-inline}, ele é uma boa opção
-(observe que essas são \emph{packages} do atom, não do \LaTeX{}). O mesmo
-vale para o editor emacs (\url{www.gnu.org/software/emacs}) e sua package
-\pkg{AUC\TeX{}}. Ainda outra possibilidade são os editores \emph{online},
-como overleaf (\url{www.overleaf.com}) e sharelatex (\url{www.sharelatex.com}).
+apenas em Windows. Os editores atom (\url{atom.io}) e Visual Studio Code
+(\url{code.visualstudio.com}) têm interfaces às vezes peculiares para não
+programadores, mas em conjunto com \emph{packages} adicionais
+(\pkg{atom-latex}, \pkg{latex-document-outline}, \pkg{grammar-token-limit}
+e \pkg{preview-inline} para atom e \pkg{LaTeX Workshop} para vscode), são
+uma boa opção (observe que as \emph{packages} mencionadas são do editor,
+não do \LaTeX{}). O mesmo vale para o editor emacs
+(\url{www.gnu.org/software/emacs}) e sua package \pkg{AUC\TeX{}}. Ainda
+outra possibilidade são os editores \emph{online}, como overleaf
+(\url{www.overleaf.com}), authorea (\url{www.authorea.com}) e papeeria
+(\url{papeeria.com}).
+
+Um documento \LaTeX{} é dividido em duas partes: o \emph{preâmbulo}, onde
+você coloca comandos de configuração para o documento, e o \emph{corpo}
+do documento em si, que contém o texto propriamente dito. O preâmbulo é
+onde você define as características do resultado tipográfico esperado
+para o documento como um todo: tipo e tamanho da fonte a usar, posição
+dos títulos e subtítulos na página etc. O corpo, por sua vez, consiste no
+texto e em alguns comandos indicativos da estrutura.
+
+Dado que configurar o preâmbulo é um tanto complexo e que mesmo no corpo
+do texto às vezes há comandos especiais (para a geração da bibliografia
+ou tabelas, por exemplo),
+usar algum documento existente como base para criar seu texto em geral é
+uma boa ideia. O IME/USP oferece um conjunto de modelos adequados para
+teses/dissertações, artigos, apresentações e pôsteres (\url{gitlab.com/ccsl-usp/modelo-latex})
+que pode ser adaptado para outros usos e outras instituições. Há também uma
+família de modelos (\url{www.abntex.net.br}) que procura seguir as normas
+da ABNT para diversos tipos de documentos científicos, e algumas publicações
+científicas fornecem modelos de acordo com suas diretrizes.
+
+\section{Estrutura de um Documento \LaTeX{}}
+\label{sec:basico}
+
+O preâmbulo \LaTeX{} começa com a definição da \emph{classe} a ser utilizada,
+que determina boa parte da configuração do documento. As principais classes
+são \pkg{book}, \pkg{report} e \pkg{article}; você pode saber mais sobre elas
+(e outras) em qualquer texto introdutório sobre \LaTeX{} na Internet (veja a
+Seção~\ref{sec:docs}). \pkg{book} e \pkg{report} são as mais adequadas para a
+escrita de teses ou dissertações acadêmicas.
+A seguir, são carregadas várias \emph{packages} (``\emph{plugins}'') que
+acrescentam funcionalidades ou modificam as classes padrão. Qualquer documento
+\LaTeX{} utiliza várias delas e é comum que revistas científicas utilizem
+packages próprias que pré-definem a formatação esperada para os artigos.
+A classe é definida com o comando \ltxcmd{documentclass\{nome-da-classe\}};
+packages são carregadas com o comando \ltxcmd{usepackage\{nome-da-package\}}.
+Classes e packages podem receber opções adicionais entre colchetes
+(\ltxcmd{usepackage[opção1,opção2...]\{nome-da-package\}}); a documentação
+de cada package e classe (veja a Seção~\ref{sec:docs}) detalha as opções
+disponíveis.
 
 \LaTeX{} ignora quebras de linha e trata sequências de vários espaços como
 se fossem apenas um. Isso significa que você pode usar quebras de linha e
@@ -106,47 +152,6 @@ resultado final do documento. Comentários podem ser usados como lembrete sobre
 alguma decisão, para indicar um parágrafo que ainda precisa de revisão etc.
 Por conta desse significado especial, para inserir um caractere \% ``normal''
 no texto é preciso digitar ``\ltxcmd{\%}''.
-
-Um documento \LaTeX{} é dividido em duas partes: o \emph{preâmbulo}, onde
-você coloca comandos de configuração para o documento, e o \emph{corpo} do
-documento em si, que contém o texto propriamente dito. O preâmbulo é onde
-você define as características do resultado tipográfico esperado: tipo e
-tamanho da fonte a usar, posição dos títulos e subtítulos na página etc.
-Como definir todas as configurações de impressão desejadas é bastante complexo,
-\LaTeX{} fornece algumas pré-definições padrão (``\emph{classes}'') em
-função do tipo de documento, que você escolhe com o comando
-\ltxcmd{documentclass\{nome-da-classe\}} no preâmbulo. As principais classes
-são \pkg{book}, \pkg{report} e \pkg{article}; você pode saber mais sobre elas
-(e outras) em qualquer texto introdutório sobre \LaTeX{} na Internet.
-\pkg{book} e \pkg{report} são as mais adequadas para a escrita de teses ou
-dissertações acadêmicas.
-
-\LaTeX{} também tem \emph{packages} (``\emph{plugins}'') que acrescentam
-funcionalidades ou modificam as classes padrão e também são carregadas no
-preâmbulo, com o comando \ltxcmd{usepackage\{nome-da-package\}}. Várias
-delas podem receber opções adicionais no formato
-\ltxcmd{usepackage[opção1,opção2...]\{nome-da-package\}}; a documentação
-de cada package detalha as opções disponíveis.
-
-Qualquer documento \LaTeX{} utiliza várias packages, portanto é preciso
-conhecê-las. Isso às vezes é trabalhoso porque algumas delas podem se
-tornar obsoletas e, com isso, sítios web com ``dicas'' podem estar
-desatualizados. O sítio \url{www.ctan.org} é um índice com praticamente
-todas as packages disponíveis, incluindo sua documentação. Além dessas,
-é comum que revistas científicas ofereçam packages que pré-definem a
-formatação esperada para os artigos. Finalmente, o sítio
-\url{tex.stackexchange.com} é um fórum de perguntas e respostas sobre
-\LaTeX{} que é muito útil.
-
-Usar algum documento existente como base para criar seu texto em geral é
-uma boa ideia; o IME/USP oferece um modelo adequado para teses e
-dissertações (\url{gitlab.com/ccsl-usp/modelo-latex}) que pode ser
-adaptado para outros usos e outras instituições. Há também um modelo
-(\url{www.abntex.net.br}) que procura seguir as normas da ABNT para
-documentos científicos.
-
-\section{Comandos Básicos}
-\label{sec:basico}
 
 Como mencionado anteriormente, \LaTeX{} divide o trabalho de produção
 de um texto entre a preparação do conteúdo e a definição da forma de
@@ -192,6 +197,33 @@ acima de \ltxcmd{chapter}). Usar o nome do comando seguido de um asterisco
 (\ltxcmd{chapter*} etc.) faz o capítulo/seção não ser numerado nem incluído
 no sumário (nem considerado na contagem de capítulos, seções etc.).
 
+\section{Executando \LaTeX{} e Comandos Auxiliares}
+
+\enlargethispage{-.5\baselineskip}
+
+Depois de escrever o arquivo \cmd{.tex}, é preciso \emph{compilá-lo}, ou
+seja, processá-lo para gerar o pdf desejado. Isso envolve executar,
+além do próprio \LaTeX{} (veja a Seção~\ref{sec:versions}), alguns
+programas auxiliares (em geral, \cmd{biber} ou \cmd{bibtex} e
+\cmd{makeindex}). Nesse processo, \LaTeX{} quase sempre precisa ser
+executado três ou mais vezes antes de gerar o pdf final\footnote{A cada
+vez, ele gera uma nova versão intermediária do arquivo pdf, mas essas
+versões têm defeitos, como citações e referências cruzadas incorretas
+ou sumário inexistente.}. Por conta dessa complexidade, é comum utilizar
+alguma ferramenta para automatizar o processamento. Existem diversas
+opções, mas a mais comum é o \cmd{latexmk}, que é capaz de identificar
+automaticamente os passos necessários para a geração do documento,
+executando os programas na ordem correta quantas vezes forem
+necessárias\footnote{É possível personalizar o comportamento de \cmd{latexmk}
+com o arquivo de configuração \cmd{latexmkrc}.}. Assim, embora seja possível
+gerar o pdf executando apenas \cmd{pdflatex nome-do-arquivo.tex}, acostume-se
+a compilar o documento sempre com \cmd{latexmk nome-do-arquivo.tex}. Note
+que editores especializados em \LaTeX{} costumam ter uma opção de menu para
+a compilação do documento; muitas vezes essa opção simplesmente aciona
+\cmd{latexmk}.
+
+\section{Mais sobre Estrutura}
+
 Para criar listas de itens, você pode fazer\footnote{Observe o uso de
 espaços no início das linhas com \ltxcmd{item} para deixar a
 estrutura visualmente mais clara durante a edição.}:
@@ -222,21 +254,21 @@ uma linha em branco e versos são separados por \cmd{\sla\sla{}*}. O asterisco
 é opcional; ele instrui \LaTeX{} a manter as linhas na mesma página). A package
 \pkg{csquotes} acrescenta recursos sofisticados para citações.
 
-\enlargethispage{.5\baselineskip}
-
 Para inserir uma nota de rodapé, use o comando
 \ltxcmd{footnote\{texto da nota\}}\index{Notas de rodapé}. Um espaço
 não-separável é indicado pelo caractere til (``\cmd{\textasciitilde{}}'')
 e é possível forçar uma quebra de linha com ``\cmd{\sla\sla{}}''. Aspas
 tipográficas (``'' e `') são inseridas com
-% As fontes Linux Libertine e inconsolata não têm estes caracteres
+% As fontes Linux Libertine e Biolinum não têm estes caracteres
 \texttt{\textasciigrave\textasciigrave\textquotesingle\textquotesingle} e
 \texttt{\textasciigrave\textquotesingle}. Você pode consultar a lista completa de
-símbolos em \url{www.ctan.org/tex-archive/info/symbols/comprehensive/symbols-a4.pdf}.
+símbolos com \textsf{texdoc symbols-a4} ou em \url{www.ctan.org/tex-archive/info/symbols/comprehensive/symbols-a4.pdf}.
 Uma outra maneira de encontrar símbolos é usar este sítio: \url{detexify.kirelabs.org/classify.html}.
 
 \section{Referências Cruzadas e \emph{Floats}}
 \label{sec:refs}
+
+\enlargethispage{-.5\baselineskip}
 
 É comum que um trecho do texto faça referência a outro trecho (``como
 discutimos no Capítulo~X\ldots''). Isso pode ser feito diretamente, mas
@@ -269,36 +301,8 @@ diferentes, ou seja, se você definiu a Figura~5, a Tabela~3 e a Figura~6,
 elas podem aparecer no documento na ordem ``Figura~5, Tabela~3, Figura~6'',
 ``Figura~5, Figura~6, Tabela~3'' ou ``Tabela~3, Figura~5, Figura~6''.
 
-\section{Múltiplas Execuções e Comandos Auxiliares}
-
-\enlargethispage{.5\baselineskip}
-
-\LaTeX{} numera capítulos, seções, figuras etc. automaticamente
-e pode fazer referências a seções ou figuras que aparecem tanto antes
-quanto depois da própria referência. Para isso funcionar, o trabalho de
-geração do arquivo final é dividido em duas partes: primeiro, a diagramação
-das páginas e numeração dos capítulos, seções, figuras etc.; segundo, a
-inserção o texto das referências (``página X'', ``Seção Y'' etc.).
-
-A princípio, isso poderia ser feito automaticamente, sem intervenção do
-usuário; \LaTeX{}, no entanto, não funciona assim. Ao invés disso, é
-preciso executar o comando \cmd{pdflatex} duas vezes seguidas: na
-primeira ele gera um PDF ``defeituoso'' (sem as referências corretas) e
-um arquivo auxiliar com as informações sobre a localização de cada
-referência e, na segunda, cria o PDF ``correto''.
-
-Essas múltiplas execuções são necessárias também para a geração automática
-da bibliografia e do índice remissivo e, na prática, costuma ser necessário
-rodar o comando no mínimo três vezes. Como a geração da bibliografia e do
-índice remissivo dependem também de programas auxiliares, a produção do
-documento final acaba envolvendo vários passos e, por isso, é comum utilizar
-alguma ferramenta para automatizar esse processo. As mais usadas são o
-\cmd{make}, que executa os passos (às vezes bastante complexos) definidos
-em um arquivo chamado \cmd{Makefile}, e o \cmd{latexmk}, que foi
-desenvolvido especificamente para uso com \LaTeX{} e, portanto, funciona
-com um arquivo de configuração simples (que é, inclusive, opcional).
-
 \section{Fórmulas Matemáticas}
+
 
 A diagramação de fórmulas matemáticas tem regras específicas; assim, para
 criar fórmulas em \LaTeX{}, é preciso usar um comando para iniciar o modo
@@ -400,13 +404,13 @@ de artigos, livros etc:
   próprios'').
 \end{description}
 
+
 Cada estilo de bibliografia utiliza um desses formatos e, portanto, é
 desejável que o banco de dados funcione corretamente com ambos. No
 entanto, nem sempre é claro quais palavras devem ser iniciadas com letra
 maiúscula ao usar \emph{title case} e, por conta disso, não há um sistema
 automático em \LaTeX{} para adaptar títulos a ele. Sendo assim, como fazer
 um banco de dados bibliográfico capaz de funcionar com os dois formatos?
-
 A solução é sempre inserir os títulos dos itens no banco de dados seguindo
 o formato \emph{title case}. Se o estilo utiliza esse formato, o título
 é reproduzido na bibliografia como digitado no banco de dados. Se o estilo
@@ -439,19 +443,19 @@ especial, consulte a documentação do pacote ou a Internet; é quase certeza
 que \pkg{biblatex} oferece uma solução.
 
 \section{Imagens, Ilustrações, Diagramas e Gráficos}
+\label{sec:graficos}
 
 Podemos classificar imagens em quatro categorias:
 
 \begin{enumerate}
-    \item Imagens fotográficas ou escaneadas. Mesmo sendo possível criar
-    imagens desse tipo manualmente em programas de edição de imagens como
-    Gimp, Krita ou Adobe PhotoShop, elas sempre consistem em um conjunto
+    \item Imagens fotográficas ou escaneadas, que consistem em um conjunto
     de \emph{pixels} coloridos sem organização previsível.
 
     \item Ilustrações, que consistem em curvas e figuras geométricas
     que formam uma imagem completa, como um objeto ou uma paisagem.
-    Elas são desenhadas de forma totalmente manual em programas como
-    Inkscape ou CorelDraw!.
+    Apesar de lidarem com abstrações geométricas ao invés de meros
+    \emph{pixels}, elas ainda são desenhadas de forma totalmente manual
+    em programas como Inkscape ou CorelDraw!.
 
     \item Diagramas, que são ilustrações estruturadas, como fluxogramas,
     grafos ou diagramas UML, criadas com ferramentas como Draw.io,
@@ -472,11 +476,14 @@ Em particular, a package \pkg{tikz} oferece bons recursos para a
 criação de ilustrações e diagramas (incluindo funções pré-prontas
 para formas geométricas, grafos, matrizes etc.) e é fácil usá-la
 para traçar linhas ou curvas simples. Você também pode criar gráficos
-de dados ou de funções matemáticas com ela ou com a package
-\pkg{pgfplots}; \cmd{Gnuplot} é capaz de exportar gráficos na forma
-de comandos para \pkg{tikz} (garantindo maior consistência visual entre
-o texto principal e o gráfico), e o programa \cmd{Asymptote} tem
-excelente integração com \LaTeX{}.
+de dados ou de funções matemáticas com a package \pkg{pgfplots}.
+\cmd{Gnuplot}, com o \emph{driver} \cmd{lua tikz}\footnote{
+\url{www.gnuplot.info/docs\_5.2/Gnuplot\_5.2.pdf\#section*.516}}, e
+\cmd{matplotlib}, com o \emph{backend} \textsc{pgf}\footnote{
+\url{matplotlib.org/users/pgf.html}}, são capazes de exportar gráficos
+de dados na forma de comandos para \pkg{tikz} (garantindo maior
+consistência visual entre o texto principal e o gráfico), e o programa
+\cmd{Asymptote} tem excelente integração com \LaTeX{}.
 
 \section{Formatação Manual}
 
@@ -574,12 +581,14 @@ entende que o caractere espaço que se segue a esses comandos serve apenas
 como separador em relação ao que vem a seguir. Por conta disso, ele ignora
 esse espaço. Quando isso não é o que se deseja, a solução é usar as chaves:
 \ltxcmd{itshape\{\}}.
-
-Alguns comandos aceitam mais de um parâmetro, às vezes entre chaves, às
-vezes entre colchetes. Você pode descobrir a sintaxe correta para cada caso
-lendo a documentação de cada comando.
+Vale observar que alguns comandos aceitam mais de um parâmetro, às vezes
+entre chaves, às vezes entre colchetes. Você pode descobrir a sintaxe
+correta para cada caso lendo a documentação de cada comando.
 
 \section{Versões do \LaTeX{}}
+\label{sec:versions}
+
+\enlargethispage{-.5\baselineskip}
 
 Assim como há packages para o \LaTeX{}, o próprio \LaTeX{} é, na verdade, um
 conjunto de extensões para o programa \TeX{}. Assim, se você encontrar
@@ -623,6 +632,8 @@ alfabetos ou se gostaria de escolher fontes diferentes, use \LuaLaTeX{}.
 \section{Limitações do \LaTeX{} e Algumas Dicas}
 \label{sec:limitations}
 
+\enlargethispage{-.5\baselineskip}
+
 Como qualquer ferramenta, \LaTeX{} tem limitações e características
 indesejáveis:
 
@@ -630,12 +641,19 @@ indesejáveis:
     % \linebreak[0]{} -> sugestão (não-obrigatória) de quebra de linha
     \item A linguagem é muito prolixa: é bastante tedioso escrever
     coisas como ``\ltxcmd{begin\linebreak[0]{}\{itemize\}}'' etc. Linguagens
-    como asciidoc/asciidoctor (\url{asciidoctor.org}) e markdown
-    (\url{daringfireball.net/projects/markdown}) operam de
+    como asciidoc/asciidoctor (\url{asciidoctor.org}), markdown
+    (\url{daringfireball.net/projects/markdown}), bookdown
+    (\url{bookdown.org}) e sphinx (\url{sphinx-doc.org}) operam de
     maneira similar a \LaTeX{}, mas sua sintaxe é bem mais enxuta.
-    Embora não possuam alguns recursos avançados oferecidos por \LaTeX{},
-    em particular para a gestão de bibliografias, elas são bastante
-    eficazes e funcionam muito bem para a geração de páginas web.
+    Elas funcionam muito bem para a geração de
+    páginas web, mas \LaTeX{} oferece mais recursos e geralmente produz
+    resultados impressos melhores.
+
+    \item \LaTeX{} gera muitas mensagens pouco importantes durante
+    o processamento do documento, o que dificulta a identificação
+    de problemas. Além disso, quando ocorrem erros durante esse
+    processamento, as mensagens explicativas de \LaTeX{} muitas vezes
+    são confusas ou, pior, não indicam o problema real que causou a falha.
 
     \item \LaTeX{} procura ser uma linguagem \emph{declarativa}, ou seja,
     os comandos buscam expressar o que se deseja e não como fazer algo
@@ -666,7 +684,8 @@ indesejáveis:
     \emph{floats} seguintes e, depois, procura novamente um lugar para ela.
     Por isso, depois que seu trabalho estiver finalizado, vale a pena
     avaliar se a colocação dos \emph{floats} pode ser melhorada; se sim,
-    mudar a ordem em que eles são definidos no documento pode fazer \LaTeX{}
+    mudar o lugar em que eles são definidos no documento (veja algumas
+    dicas em \cite{floats2014}) pode fazer \LaTeX{}
     gerar um resultado melhor (mas lembre-se que isso só faz sentido depois
     que o documento estiver pronto, pois qualquer mudança no texto pode
     mudar totalmente a posição final dos \emph{floats}).
@@ -704,16 +723,15 @@ indesejáveis:
     são um caso especial: biblatex (usado neste modelo) funciona normalmente
     com caracteres acentuados, mas bibtex oficialmente não tem suporte a eles
     (embora em geral funcione corretamente). Além disso, é bastante comum que
-    um arquivo desse tipo seja compartilhado por várias pessoas, com diferentes
+    arquivos desse tipo sejam compartilhados por várias pessoas, com diferentes
     configurações. Para evitar problemas com os acentos
     nesse caso, uma possibilidade é representar os caracteres acentuados
     usando comandos \LaTeX{}: \cmd{\sla\textquotesingle\{a\}} para á,
     \cmd{\sla{}c\{c\}} para cedilha etc., independentemente da
     codificação usada no texto\footnote{Você pode consultar os comandos
     desse tipo mais comuns em \url{en.wikibooks.org/wiki/LaTeX/Special_Characters}.
-    Observe que a dica sobre os pingos do i e do j \emph{não} é mais
-    válida atualmente, basta usar \cmd{\sla\textquotesingle\{i\}} para
-    obter o acento correto.}.
+    Observe que a dica sobre o pingo do i \emph{não} é mais
+    válida atualmente; basta usar \cmd{\sla\textquotesingle\{i\}}.}.
 
     \item As classes padrão (\pkg{book}, \pkg{article} etc.) não foram criadas
     para serem facilmente modificadas, o que deu origem a inúmeras packages
@@ -728,6 +746,6 @@ indesejáveis:
     outras publicações é baseada nas classes padrão. A versão 3 de \LaTeX{}
     está em desenvolvimento com vistas a resolver boa parte dos problemas
     atuais do sistema, mas ainda deve demorar muitos anos para ficar pronta.
-    \textsc{Con\TeX{}t} é um ``irmão mais novo'' de \LaTeX{} com diversas
+    \ConTeXt{} é um ``irmão mais novo'' de \LaTeX{} com diversas
     vantagens, mas com sintaxe diferente e que ainda não é tão popular.
 \end{itemize}

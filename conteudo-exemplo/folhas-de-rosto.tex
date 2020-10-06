@@ -1,20 +1,21 @@
+%!TeX root=../tese.tex
+%("dica" para o editor de texto: este arquivo é parte de um documento maior)
+% para saber mais: https://tex.stackexchange.com/q/78101/183146
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS DA TESE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Define o texto da capa e da referência que vai na página do resumo;
-% "masc" ou "fem" definem se serão usadas palavras no masculino ou feminino
-% (Mestre/Mestra, Doutor/Doutora, candidato/candidata). O segundo parâmetro
-% é opcional e determina que se trata de exame de qualificação.
-\mestrado[fem]
-%\mestrado[fem][quali]
-%\doutorado[masc]
-%\doutorado[masc][quali]
+% O título (\title) e o autor (\author) do trabalho são definidos no arquivo
+% tese.tex, porque têm significado "especial" para o LaTeX; em particular,
+% eles são gravados nos metadados do arquivo pdf final.
 
-% Se "\title" está em inglês, você pode definir o título em português aqui
+% Se "\title" está em inglês, você pode definir o título em português aqui;
+% caso contrário, remova
 \tituloport{Título do trabalho}
 
-% Se "\title" está em português, você pode definir o título em inglês aqui
+% Se "\title" está em português, você pode definir o título em inglês aqui;
+% caso contrário, remova
 \tituloeng{Title of the document}
 
 % Se o trabalho não tiver subtítulo, basta remover isto.
@@ -23,6 +24,7 @@
 % Se isto não for definido, "\subtitulo" é utilizado no lugar
 \subtituloeng{a subtitle}
 
+% Para TCCs, este comando define o supervisor
 \orientador[fem]{Profª. Drª. Fulana de Tal}
 
 % Se isto não for definido, "\orientador" é utilizado no lugar
@@ -32,6 +34,7 @@
 \coorientador[masc]{Prof. Dr. Ciclano}
 
 % Se isto não for definido, "\coorientador" é utilizado no lugar
+% (isto é útil quando se trata de "Profª. Drª.", por exemplo)
 %\coorientadoreng{Prof. Dr. Ciclano}
 
 \programa{Ciência da Computação}
@@ -59,18 +62,18 @@ financeiro da XXXX}
 
 \banca{
   \begin{itemize}
-    \item Profª. Drª. Nome Completo (orientadora) - IME-USP [sem ponto final]
-    \item Prof. Dr. Nome Completo - IME-USP [sem ponto final]
-    \item Prof. Dr. Nome Completo - IMPA [sem ponto final]
+    \item Profª. Drª. Nome Completo (orientadora) -- IME-USP [sem ponto final]
+    \item Prof. Dr. Nome Completo -- IME-USP [sem ponto final]
+    \item Prof. Dr. Nome Completo -- IMPA [sem ponto final]
   \end{itemize}
 }
 
 % Se isto não for definido, "\banca" é utilizado no lugar
 \bancaeng{
   \begin{itemize}
-    \item Prof. Dr. Nome Completo (advisor) - IME-USP [sem ponto final]
-    \item Prof. Dr. Nome Completo - IME-USP [sem ponto final]
-    \item Prof. Dr. Nome Completo - IMPA [sem ponto final]
+    \item Prof. Dr. Nome Completo (advisor) -- IME-USP [sem ponto final]
+    \item Prof. Dr. Nome Completo -- IME-USP [sem ponto final]
+    \item Prof. Dr. Nome Completo -- IMPA [sem ponto final]
   \end{itemize}
 }
 
@@ -78,6 +81,18 @@ financeiro da XXXX}
 \palavraschave{Palavra-chave1. Palavra-chave2. Palavra-chave3.}
 
 \keywords{Keyword1. Keyword2. Keyword3.}
+
+% Define os textos padrão ("mestrado" X "doutorado", "tese" X
+% "dissertação" etc.) da capa e da referência que vai na página
+% do resumo; "masc" ou "fem" definem se serão usadas palavras
+% no masculino ou feminino (Mestre/Mestra, Doutor/Doutora,
+% candidato/candidata). O segundo parâmetro é opcional e
+% determina que se trata de exame de qualificação.
+\mestrado[fem]
+%\mestrado[fem][quali]
+%\doutorado[masc]
+%\doutorado[masc][quali]
+%\tcc[masc]
 
 % Se quiser estabelecer regras diferentes, converse com seu
 % orientador
@@ -115,6 +130,8 @@ citada a fonte.}
 % definitiva (ou seja, a versão final após a incorporação das sugestões
 % da banca). Os parâmetros podem ser "port/eng" para a língua e
 % "provisoria/definitiva" para o tipo de página de rosto.
+% Observe que TCCs não têm página de rosto; nesse caso, desabilite
+% todas as opções.
 %\pagrostoime[port]{definitiva}
 \pagrostoime[port]{provisoria}
 %\pagrostoime[eng]{definitiva}
@@ -122,7 +139,7 @@ citada a fonte.}
 
 %%%%%%%%%%%%%%%%%%%% DEDICATÓRIA, RESUMO, AGRADECIMENTOS %%%%%%%%%%%%%%%%%%%%%%%
 
-% A definição deste ambiente está no pacote imeusp; se você não
+% A definição deste ambiente está no pacote imeusp-capa.sty; se você não
 % carregar esse pacote, precisa cuidar desta página manualmente.
 \begin{dedicatoria}
 Esta seção é opcional e fica numa página separada; ela pode ser usada para
@@ -212,14 +229,17 @@ texto texto texto texto. Texto opcional.
 
 %%%%% Listas criadas automaticamente
 
+% Você pode escolher se quer ou não permitir a quebra de página
 %\listoffigures
 \disablenewpage{\listoffigures}
 
+% Você pode escolher se quer ou não permitir a quebra de página
 %\listoftables
 \disablenewpage{\listoftables}
 
 % Esta lista é criada "automaticamente" pela package float quando
 % definimos o novo tipo de float "program" (em utils.tex)
+% Você pode escolher se quer ou não permitir a quebra de página
 %\listof{program}{\programlistname}
 \disablenewpage{\listof{program}{\programlistname}}
 

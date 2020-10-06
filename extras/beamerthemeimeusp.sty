@@ -5,8 +5,10 @@
 
 % Caso LaTeX faça alguma substituição de fontes, vamos garantir que ele
 % use Latin Modern e não outra versão das fontes Computer Modern.
-\usepackage{lmodern}
-\usepackage{fix-cm}
+\RequirePackage{lmodern}
+\RequirePackage{fix-cm}
+
+\RequirePackage{calc}
 
 \usetheme[sectionpage=progressbar,subsectionpage=none,numbering=fraction,progressbar=frametitle]{metropolis}
 
@@ -14,9 +16,9 @@
 
 % Estas packages precisam ser carregadas depois do tema metropolis
 \PassOptionsToPackage{mono=false}{libertine}
-\PassOptionsToPackage{scale=0.92}{inconsolata}
-\usepackage{inconsolata}
-\usepackage{libertine}
+\PassOptionsToPackage{scale=.85}{sourcecodepro}
+\RequirePackage{sourcecodepro}
+\RequirePackage{libertine}
 
 % As margens default são muito grandes
 \setbeamersize{
@@ -31,16 +33,25 @@
 \setbeamerfont{itemize/enumerate body}{series=\bfseries}
 \setbeamerfont{itemize/enumerate subbody}{series=\normalfont}
 \setbeamerfont{itemize/enumerate subsubbody}{series=\itshape}
-\setbeamertemplate{itemize items}[triangle]
+% Os triângulos ficam MUITO grandes, acho que por conta do
+% inner theme "circles"; vamos definir manualmente.
+%\setbeamertemplate{itemize items}[triangle]
 \setbeamertemplate{itemize item}{\raisebox{-.05em}{\Large\textbf{\textbullet}}}
-\setbeamertemplate{itemize subsubitem}{\raisebox{.02em}{{\textbf\guillemotright}}}
+% O triângulo fica de tamanhos diferentes com pdflatex e lualatex;
+% para contornar isso, vamos (1) redimensionar para o tamanho do
+% \strut e (2) redimensionar para 25% desse valor.
+\setbeamertemplate{itemize subitem}{{\normalsize\raisebox{.4\totalheight}{\scalebox{.25}{\resizebox*{!}{\totalheightof{\strut}}{\ensuremath{\blacktriangleright}}}}}}
+\setbeamertemplate{itemize subsubitem}{\raisebox{.02em}{{\textbf{\guillemotright}}}}
 \addtolength{\leftmargini}{-.9em}
 \addtolength{\leftmarginii}{-1.3em}
 \addtolength{\leftmarginiii}{-1em}
 \addtolength{\labelsep}{-.3em}
 
 \setbeamertemplate{caption}[numbered]
-\setbeamertemplate{bibliography item}[triangle]
+% Os triângulos ficam MUITO grandes, acho que por conta do
+% inner theme "circles"; vamos definir manualmente.
+%\setbeamertemplate{bibliography item}[triangle]
+\setbeamertemplate{bibliography item}{{\normalsize\raisebox{.4\totalheight}{\scalebox{.25}{\resizebox*{!}{\totalheightof{\strut}}{\ensuremath{\blacktriangleright}}}}}}
 % Com as margens menores definidas anteriormente, os itens da bibliografia
 % caem fora da tela; isto é um truque sujo para resolver esse problema
 \addtobeamertemplate{bibliography item}{\hspace{1.3em}}{}
@@ -75,7 +86,7 @@
 \newcommand\qrcodeintoc{
   \ifcsvoid{qrcodecontents}{\relax}{% else
     \vskip 2\baselineskip plus \baselineskip minus 2.5\baselineskip
-    {\centering\noindent\qrcode[height=.3\paperheight,level=H]{\thepresentationurl}\par}
+    {\centering\noindent\qrcode[height=.27\paperheight,level=H]{\thepresentationurl}\par}
   }
 }
 
@@ -140,7 +151,8 @@
           % \hspace
           \vfill
           \centering%
-          \noindent\hspace*{-.04\textwidth}#1\par
+          % "\strut" para garantir que "\hfil" à direita funcione
+          \noindent\hspace*{-.04\textwidth}#1\strut\par
           \noindent\hspace*{-.04\textwidth}\includegraphics[height=.0311\paperheight]{cc-by}\par
           \vspace{.3\baselineskip}
       \end{minipage}%
