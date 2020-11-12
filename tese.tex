@@ -34,8 +34,8 @@
 % elas são repassadas para todas as packages, e diversas packages mudam
 % seu comportamento em função da língua (em especial, babel/polyglossia).
 % A última língua da lista é a língua padrão do documento.
-%\documentclass[12pt,twoside,brazil,english]{book}
-\documentclass[12pt,twoside,english]{book}
+\documentclass[12pt,twoside,brazilian,english]{book}
+%\documentclass[12pt,twoside,english]{book}
 
 % Com papel tamanho A4, queremos estas margens:
 %
@@ -95,10 +95,12 @@
 \newcommand{\ssq}{\ensuremath{\subseteq}\xspace}
 \newcommand{\union}{\mathop{\bigcup}\displaylimits}
 
-\newtheorem{theorem}{Teorema}%[section]
-\newtheorem{corollary}{Corolário}[theorem]
-\newtheorem{lemma}[theorem]{Lema}
-\newtheorem{definition}[theorem]{Definição}
+\newcommand{\ttt}[1]{\texttt{#1}\xspace}
+
+\newtheorem{theorem}{Theorem}%[section]
+\newtheorem{corollary}{Corolary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
 
 % Diretórios onde estão as figuras; com isso, não é preciso colocar o caminho
 % completo em \includegraphics (e nem a extensão).

@@ -1,61 +1,504 @@
-\chapter{Fundamentação Teórica}
+\chapter{Theoretical Background}
 \label{chap:fundamentacao}
 
-Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
-trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
-de maneira a entender os passos de compilação.
-Em seguida, discute-se como o compilador GCC apresenta esses tópicos implementados,
-além do seu uso no processo de compilação de um programa. Por fim, são
-apresentados alguns conceitos e algoritmos básicos sobre Computação Paralela.
+This chapter presents a brief introduction to the concepts used in this work.
+First, we present all parts of the compiler pipeline to understand the
+compilation phases. Following that, we discuss how the GCC compiler presents
+these topics implemented, and how these parts interact with each other.
+Finally, we present some basic concepts and algorithms about Parallel
+Computing.
 
-\begin{section}{Compiladores}
+%Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
+%trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
+%de maneira a entender os passos de compilação.
+%Em seguida, discute-se como o compilador GCC apresenta esses tópicos implementados,
+%além do seu uso no processo de compilação de um programa. Por fim, são
+%apresentados alguns conceitos e algoritmos básicos sobre Computação Paralela.
 
-Para evitar confusões a respeito das diferentes linguagens que um compilador
-trabalha em seus muitos estágios, é adotado a seguinte nomenclatura neste trabalho:
-Denote \textit{Linguagem Fonte} como sendo a linguagem
-na qual o código fonte do programa a ser compilado foi originalmente escrito;
-\textit{Linguagem Intermediária} uma das linguagens internas do compilador; e
-\textit{Linguagem Alvo} a linguagem na qual o compilador deverá gerar código.
+%\begin{section}{Compiladores}
 
-Compiladores são grandes projetos destinados a tradução de códigos fonte
-entre distintas linguagens de programação. Normalmente, compiladores traduzem
-linguagens de alto nível, como C, para linguagens mais próximas da máquina,
-como a linguagem de montagem - embora isso não seja uma regra pois existem
-compiladores cuja única tarefa é realizar uma tradução entre duas linguagens
-de alto nível.
+\begin{section}{Finite State Automatas}
 
-Compiladores também costumam otimizar
-o código que passam por eles, aplicando diversas heurísticas de
-maneira a acelerar o código a ser produzido, substituindo trechos de código por
-outros mais eficientes, reordenando as instruções do programa, etc.
+A large part of compiler theory relies upon parsing text, and the simplest
+machine we can think about this is a Finite Automata. With these machines, we
+can easily build several controller machines for various applications, such as
+elevator state controllers, microwave control panels, signal detectors, and so
+on. This is because automata can be cheaply and easily be implemented using
+flip-flops, an electronic device which can hold a bit as data storage.
 
-Por serem programas extremamente grandes, existe um grande interesse em evitar
-reescrever um novo compilador
-sempre que uma nova linguagem é proposta, ou um novo \textit{hardware} é criado.
-Para isso, a seguinte modularização é largamente adotada por projetistas de
-compiladores \citep{redhat} \citep{llvm}, conforme ilustrado na Figura \ref{fig:compiler_arch}:
+Finite Automata are also used in Compilers as a Lexical Analyser as a token
+recognizer, as we will see in Section Bla. They are very useful tools since we
+can express these machines easily with Regular Expressions, and then algorithms
+can easily convert them into a finite automata.
+
+\begin{definition}
+A Deterministic Finite Automata (\ttt{DFA}) can be defined as a 5-tuple
+$(Q. \Sigma, \delta, q_0, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\delta:Q\times\Sigma \longrightarrow Q$ is the transition function.
+\item $q_0 \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+\end{definition}
+
+For example of automation, let us assume that we want to detect whether a
+certain input is a non-negative integer number. Therefore, let $\Sigma$ be the
+characters in the ASCII table, let $D = \{\texttt{0}, \texttt{1}, \cdots,
+\texttt{9}\}$ be the set of numerals, and $\sigma \in \Sigma$ be the current
+character being read. A \textit{language} describing this subset of words
+is
+
+$$ L_1 = \conj{w \in \Sis}{w \text{is a non-negative number}}$$
+
+A \texttt{flex} regex for it would be
+$$\land\texttt{[0-9]+\$}$$
+and the following automata to recognize it would be
+$\mathcal{A} = (\{q_1, q_2, q_3\}, \Sigma, \delta, q_1, \{q_2\})$, where
+the $\delta$ function will be defined as:
+	\[
+		\delta(q, \sigma) = \begin{cases}
+		  q_2,& \text{if } \sigma \in D \text{ and } q \in \{q_1, q_2\} \\
+		  q_3,& \text{if } \sigma \in \Sigma \text{ and } q = q_3 \\
+		  q_3,& \text{if } \sigma \in \Sigma - D \text{ and } q \in \{q_1, q_2\} \\
+		\end{cases} \nonumber
+	\]
+Figure \ref{fig:a_automata} illustrates this machine.
+
+Deterministic automatas can be easily implemented using a transition
+matrix. In one dimension, we have every state in the machine, in another,
+every possible character of $\Sigma$.  Therefore, by just remembering the
+last state of the machine, we can lookup this matrix and select what state
+should the machine jump to when reading a character $\sigma$. This
+yields in a $O(n)$ algorithm to parse a word $w \in \Sigma^*$ with $|w| = n$.
+
+
+\begin{figure}
+\begin{tikzpicture}[node distance = 3cm, auto]
+  \node[state, initial] (q1) {$q_1$};
+  \node[state, accepting, right of=q1] (q2) {$q_2$};
+  \node[state, right of=q2] (q3) {$q_3$};
+
+  \draw[->]   (q1) edge[above, bend left] node{$\sigma \in D$} (q2);
+  \draw[->]   (q1) edge[below, bend right] node{$\sigma \in \Sigma - D$} (q3);
+  \draw[->]   (q2) edge[loop above] node{$\sigma \in D$} (q2);
+  \draw[->]   (q2) edge[above, bend left] node{$\sigma \in D - \Sigma$} (q3);
+  \draw[->]   (q3) edge[loop above] node{$\sigma \in \Sigma$} (q3);
+\end{tikzpicture}
+
+\caption{Finite Automata recognizing $\land\texttt{[0-9]+\$}$}
+\label{fig:a_automata}
+\end{figure}
+
+
+Literature also present the Nondeterministic Finite Automata, however,
+if you are able to present a Nondeterministic Finite Automation to a
+certain language, you can also present a deterministic one for the same
+language, and vice versa. We will present these machines for the sake
+of completeness, as they are often used to quickly implement regex
+algorithms. There are even algorithms to convert an \ttt{NFA} to
+\ttt{DFA}, which we will not present in this work.
+
+
+\begin{definition}
+A Nondeterministic Finite Automation (\ttt{NFA}) is a 5-tuple
+$(Q. \Sigma, \delta, q_0, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\delta:Q\times\Sigma \longrightarrow 2^Q$ is the transition function.
+\item $q_0 \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+\end{definition}
+
+\ttt{NFA}s are interesting machines, once they are often used to implement
+Regular Expressions via the Thompson Construction \citep{dragonbook}. However,
+implementation should be done with care, as these machines requires \textit{backtracking},
+which may lead to some unfortunate bugs \citep{PR86164}.
+
+Automatas, however, are not very expressive machines. For example, consider
+the following language:
+
+$$L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$$
+
+This is a stripped down version of the balanced parenthesis
+problem. Unfortunatelly, it is impossible to build an finite automata
+that can decide if a word $w \in \Sigma^*$ is in $L_2$.
+
+\begin{lemma}
+There is no finite automata recognizing $L$.
+\end{lemma}
+\begin{proof}
+Let $\mathcal{A} = (Q, \sigma, \delta, s, F)$ be such automation,
+with $\Si = \{\ttt{(}, \ttt{)}\}$.
+Since it is a finite automation, then $|Q|$ is finite, and therefore
+$|Q| = n$. Now take the following word $w = \texttt{(}^{2n}\texttt{)}^{2n}$.
+Clearly, $w \in L_2$, and therefore the automation $\mathcal{A}$ should
+recognize it. Since $2n > n$, it means that in the sequence of states
+$(p_1, p_2, \cdots, p_{2n})$ there are some state $q \in Q$ and integers
+$i$ and $j$ such as $1 \leq i < j \leq 2n$ where $p_i = p_j = q$,
+\textit{i.e.} a circuit, when processing the first part of the $w$
+that only contains $\texttt{(}^{2n}$. Therefore, we can split
+$w$ in 
+$$w = xyz $$
+Where $x \in \Sigma^*$ is the part of $w$ before the circuit, $y$ is
+the part of $w$ in this circuit, and $z$ is the part of $w$ after the
+circuit. Note that $x$ and $y$ constists of a sequence of $\texttt{(}$
+characters, because we are processing the first $2n$ characters of $w$.
+Since $y$ is the part of $w$ in this circuit, then
+$ xyyz $
+is also recognized by $\mathcal{A}$. Let $k = |y|$. This means that
+the input string
+$$ \texttt{(}^{n+k}\texttt{)}^n \not\in L_2$$
+is also recognized by $\mathcal{A}$, which means that such machine does
+not exist, and therefore there is no finite automata which can detect
+$L_2$.
+\end{proof}
+
+In fact, this proof is heavily based on the proof of the Pumping Lemma,
+a powerful tool to find if a certain language is not regonizable by an
+Finite Automata. Entering in details about this is beyound the scope of
+this work.
+
+\end{section}
+
+\begin{section}{Pushdown Finite Automatas}
+	An extension of the Finite Automatas are the Pushdown Finite Automatas,
+which is simply an Nondeterministic Finite Automata together with a infinite
+stack. This machine as it is presented is not very useful for building
+compilers, however, they are important for defining a Deterministic Pushdown
+Automatas, which are the key for defining Deterministic Context-Free Grammars,
+which can be parsed with $O(n)$ algorithms.
+
+\begin{definition}
+A Nondeterministic Finite Automation can be defined as a 6-tuple
+$(Q, \Si, \Ga, \delta, q_0, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\Ga$ is the stack alphabet,
+\item $\delta:Q\times\Sigma_\lambda \times \Ga_\lambda \longrightarrow 2^{Q \times \Ga_\lambda}$ is the transition function.
+\item $q_0 \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+\end{definition}
+Here, we denote $\Gamma_\lambda$ and $\Sigma_\lambda$ as being, respectively,
+$\Gamma \cup \{\lambda\}$ and $\Sigma \cup \{\lambda\}$, where $\lambda$ is
+the empty string, \textit{i.e}., if $w \in \Sis$, then
+$\lambda w = w \lambda = w$.
+
+Those machines starts with an empty stack, and it will then choose
+to read an input based on the following notation given a transiction from $q_i \in Q$
+to $q_j \in Q$:
+$$\sigma, \gamma_1 \rightarrow \gamma_2$$
+which is the same as
+$$\{(q_j, \gamma_2)\} \in \delta(q_i, \sigma, \gamma_1)$$
+meaning that on input character $\sigma \in \Si_\lambda$ and with $\gamma_1 \in
+\Gamma_\lambda$ on the top of the stack, it advances one character on the input
+string, pop $\gamma_1$ from the stack, and push $\gamma_2 \in \Gamma_\lambda$
+on top of the stack. There are some special cases: when $\sigma = \lambda$,
+then the machine will not advance on the input string. When $\gamma_1 =
+\lambda$, it will not check nor pop anything from the stack. Finally, when
+$\gamma_2 = \lambda$, then nothing is pushed on the stack. Note that these
+three cases can happen together. These notation is suffice to describe the
+$\delta$ function.  For an input $w \in \Sis$ to be accepted by such
+automation, there must exist at least one path from the starting state $q_0$ to
+a final state $q_f \in F$ consuming the entire input string $w$.
+
+These machines are more powerful than Deterministic and Nondeterministic Finite
+Automatas. For instance, there is a Nondeterministic Finite Automation detecting
+$L_2$, in which we proved that there is no Deterministic (and therefore there is
+also a nondeterminisic) Finite Automata for such language.
+
+\begin{figure}
+\begin{tikzpicture}[node distance = 3cm, auto]
+  \node[state, initial] (q1) {$q_1$};
+  \node[state, right of=q1] (q2) {$q_2$};
+  \node[state, right of=q2] (q3) {$q_3$};
+  \node[state, accepting, right of=q3] (q4) {$q_4$};
+
+  \draw[->]   (q1) edge[above, bend left] node{$\lambda, \lambda \rightarrow \$$} (q2);
+  \draw[->]   (q2) edge[above, bend left] node{$\lambda, \lambda \rightarrow \lambda$} (q3);
+  \draw[->]   (q2) edge[loop below] node{$\ttt{(}, \lambda, \rightarrow \ttt{(}$} (q2);
+  \draw[->]   (q3) edge[above, bend left] node{$\lambda, \$ \rightarrow \lambda$} (q4);
+
+  \draw[->]   (q3) edge[loop below] node{$\ttt{)}, \ttt{(} \rightarrow \lambda$} (q3);
+\end{tikzpicture}
+
+\caption{Finite Automata recognizing $L_2$}
+\label{fig:pushdown_automata}
+\end{figure}
+
+Figure \ref{fig:pushdown_automata} describes a Nondeterministic Finite Pushdown
+Automata which detects $L_2$. This machine works as follows: On the transition
+from $q_1$, to $q_2$, the machine will push an token $\$ \in \Ga$ to mark the
+beginning of the stack. Then we may proceed reading $\ttt{(}$ through the loop
+at $q_2$, and pushing then on the stack, or avance without reading, poping or
+pushing anything on the stack.  Once all $\ttt{(}$ has been pushed on the
+stack, it will then proceed reading all $\ttt{)}$ while poping the $\ttt{(}$
+characters on the stack.  If the machine incorrectly guesses when to switch
+from $q_2$ to $q_3$ even if $w \in L_2$, this would generate an invalid path
+because the top of the stack would contain a $\ttt{(}$ and not the $\$$, and
+the same goes when $w = \ttt{(}^i\ttt{)}^j$, with $j < i$. If, however, $i >
+j$, then it is possible to $q_3$ to $q_4$, however, the entire input string
+would not be completly consumed, and therefore the machine will reject the
+string. The only way that an string is accepted is when $j = i$. Notice that
+this is not a formal proof that such machine works.
+
+However, as stated in the begining of this section, Nondeterministic Finite Pushdown
+Automata are not a very important machine when the topic are compilers. On Figure
+\ref{fig:pushdown_automata}, a careful reader may notice that backtracking is
+required to implement such machines because on given state, there can be
+multiple transictions on the same character. For instance, on above machine,
+when on state $q_2$, given an input character $\ttt{(}$, the transiction to
+$q_3$ is valid, since $\{(q_3, \lambda)\} \in \delta(q_2, \lambda, \lambda)$,
+as well as $\{(q_2, \ttt{(})\} \in \delta(q_2, \ttt{(}, \lambda)$.
+We are interested in a less powerful machine, the Deterministic Finite Pushdown
+Automata, which does not require Backtracking.
+
+\begin{section}{Deterministic Finite Pushdown Automata}
+	Let's now restrict the Nondeterministic Finite Pushdown Automatas so that
+it is possible to remove the necessary backtracking from these machines.
+The way to do it is to restrict when the machine can have certain transictions
+with regard to $\delta(q, \sigma, \lambda)$, $\delta(q, \lambda, \gamma)$ and
+$\delta(q, \lambda, \lambda)$.
+
+\begin{definition}
+A Deterministic Finite Automation can be defined as a 6-tuple
+$(Q, \Si, \Ga, \delta, q_0, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\Ga$ is the stack alphabet,
+\item $\delta:Q\times\Sigma_\lambda \times \Ga_\lambda \longrightarrow Q \times \Ga_\lambda \cup \{\emptyset \}$ is the transition function.
+\item $q_0 \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+
+$\delta$ must also satisfy the following condition: For every $q \in Q$, $\sigma \in \Si$,
+and $\gamma \in \Ga$, one and only one of these values
+$$\delta(q, \sigma, \gamma), \delta(q, \lambda, \gamma), \delta(q, \sigma, \lambda), \delta(q, \lambda, \lambda)$$
+is not $\emptyset$.
+
+\end{definition}
+
+By setting these restrictions on $\delta$, we prevent the machine from taking two
+distinct actions given the same input, as it is possible in the Nondeterministic
+version by setting both $\delta(q, \sigma, \gamma) \neq \emptyset$ and
+$\delta(q, \sigma, \lambda) \neq \emptyset$. The machine can also only take an
+move of form $\delta(q, \sigma, \lambda)$ or $\delta(q, \lambda, \lambda)$ when
+the stack is empty, otherwise the machine will always reject the input. Acceptance
+happens the same way as the Nondeterministic version.
+
+Let's now build a Deterministic Finite Pushdown Automata for $L_2$. We can start
+from the Nondeterminisitc version, since the only condition that is violated
+there with regard to a Deterministic machine are the transitions
+$\delta(q_2, \ttt{(}, \lambda)$ and $\delta(q_2, \lambda, \lambda)$: only one
+of these transictions can exist. We therefore can design the following machine
+to address these problems, eliminating the $\delta(q_2, \lambda, \lambda)$
+transiction and adding an extra final state so that it accepts $\lambda \in L_2$.
+
+\begin{figure}
+\begin{tikzpicture}[node distance = 3cm, auto]
+  \node[state, accepting, initial] (q1) {$q_1$};
+  \node[state, right of=q1] (q2) {$q_2$};
+  \node[state, right of=q2] (q3) {$q_3$};
+  \node[state, accepting, right of=q3] (q4) {$q_4$};
+
+  \draw[->]   (q1) edge[above, bend left] node{$\lambda, \lambda \rightarrow \$$} (q2);
+  \draw[->]   (q2) edge[above, bend left] node{$\ttt{)}, \ttt{(} \rightarrow \lambda$} (q3);
+  \draw[->]   (q2) edge[loop below] node{$\ttt{(}, \lambda, \rightarrow \ttt{(}$} (q2);
+  \draw[->]   (q3) edge[above, bend left] node{$\lambda, \$ \rightarrow \lambda$} (q4);
+
+  \draw[->]   (q3) edge[loop below] node{$\ttt{)}, \ttt{(} \rightarrow \lambda$} (q3);
+\end{tikzpicture}
+
+\caption{Finite Automata recognizing $L_2$}
+\label{fig:pushdown_automata}
+\end{figure}
+
+One can clearly see that such machines can be implemented with an $O(n)$ algorithm,
+once backtracking is not needed. Unfortunately, such machines are less powerful
+than the Nondeterministic version. For instance, the language
+$$L_3 = \conj{ww^R}{w \in \{0, 1\}^*}$$
+can not be detected by such machines.
+
+\begin{lemma}\label{lemma:pushdown_1}
+	There is no Deterministic Finite Pushdown Automata that detects $L_3$
+\end{lemma}
+Proof of such lemma is quite complicated, however the idea behind it is that
+there is no way that the machine find out when to stop pushing the symbols
+on the stack and start popping the symbols to compare for equality, once
+there is no way to discover the point exactly when $w$ stops and $w^R$ starts
+because the machine lacks Nondeterminism. This, however, shows that there
+are Languages that can be detected with Nondeterministic Finite Pushdown
+Automata.
+
+\begin{lemma}\label{lemma:pushdown_2}
+	For every Deterministic Finite Pushdown Automata $\mathbb{P}$, there is
+	an equivalent Nondeterministic Finite Pushdown Automata that detects the
+	same language.
+\end{lemma}
+\begin{proof}
+	See \ref{sipser:2012}
+\end{proof}
+
+Lemma \ref{lemma:pushdown_1} and \ref{lemma:pushdown_2} shows that the Deterministic
+Finite Pushdown Automatas are not so powerful when compared to the Nondeterminisitc
+version.
+
+\end{section}
+
+\end{section}
+
+\begin{section}{Context-Free Languages}
+
+A more powerful way to express languages are through Context-Free Grammars.
+\begin{definition}
+A Context-Free Grammar $G = (V, \Si, R, S)$ is a 4-uple where:
+\begin{itemize}
+	\item $V$ is the set of \textit{Variables}, often named set of
+	\textit{Nonterminal} symbols.
+	\item $\Si$ is the alphabet, often named \textit{terminal} symbols.
+	\item $R \ssq V \times (\Si \cup V)^*$ is the set of \textit{derivation rules}.
+	\item $S \in V$ is the \textit{starting variable}
+	\item $V \cap \Si = \varnothing$
+\end{itemize}
+\end{definition}
+For instance of grammar, $G = (V, \Si, R, S)$ such that
+$V = \{S\}$, $\Si = \{\ttt{(}, \ttt{)}\}$, $R = \{S \rightarrow \ttt{(}S{)}\}$
+can recognize $L = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$.
+
+Context-Free Grammars are very powerful tool to express how a Programming Language
+should behave when reading a program as input, however, algorithms that parses
+such grammars in general are $O(n^3)$, where $n$ is the size of the input. Hopefuly,
+if we restrict the grammar to be a Deterministic Context-Free Grammar, we can ensure
+that parsing can take $O(n)$.
+
+
+\begin{definition}
+A Deterministic Context-Free Grammar $G = (V, \Si, R, S)$ is a 4-uple where:
+\begin{itemize}
+	\item $V$ is the set of \textit{Variables}, often named set of
+	\textit{Nonterminal} symbols.
+	\item $\Si$ is the alphabet, often named \textit{terminal} symbols.
+	\item $R \ssq V \times (\Si \cup V)^*$ is the set of \textit{derivation rules}.
+	\item $S \in V$ is the \textit{starting variable}
+	\item $V \cap \Si = \varnothing$
+\end{itemize}
+\end{definition}
+
+
+\end{section}
+
+\begin{section}{Compilers}
+
+%Para evitar confusões a respeito das diferentes linguagens que um compilador
+%trabalha em seus muitos estágios, é adotado a seguinte nomenclatura neste trabalho:
+%Denote \textit{Linguagem Fonte} como sendo a linguagem
+%na qual o código fonte do programa a ser compilado foi originalmente escrito;
+%\textit{Linguagem Intermediária} uma das linguagens internas do compilador; e
+%\textit{Linguagem Alvo} a linguagem na qual o compilador deverá gerar código.
+
+To avoid confusion regarding the various languages that the compiler works on,
+we denote the following definitions on this work: Denote \textit{Source
+Language}, as the language in which the code being compiled was originally
+written; \textit{Intermediary Language} as the languages used internally in the
+compiler; and \textit{Target Language} the language in which the compiler must
+generate the code.
+
+Compilers are large projects destined for the translation of source code
+between distinct programming languages. Usually, compilers translate high-level
+languages such as C, to assembly language. However, this is not a rule once
+there exist compilers designed for the translation between high-level language.
+Such compilers are called a Transpilator.
+
+%Compiladores são grandes projetos destinados a tradução de códigos fonte
+%entre distintas linguagens de programação. Normalmente, compiladores traduzem
+%linguagens de alto nível, como C, para linguagens mais próximas da máquina,
+%como a linguagem de montagem - embora isso não seja uma regra pois existem
+%compiladores cuja única tarefa é realizar uma tradução entre duas linguagens
+%de alto nível.
+
+%Compiladores também costumam otimizar
+%o código que passam por eles, aplicando diversas heurísticas de
+%maneira a acelerar o código a ser produzido, substituindo trechos de código por
+%outros mais eficientes, reordenando as instruções do programa, etc.
+
+Compilers also usually optimize the code that passes in them, applying several
+heurístics and algorithms to produce faster code, replacing pieces of code with
+more efficient ones, reordering program instructions, aligning the code in
+caches, etc.
+
+Being a large program, there is a great interest in avoiding rewriting a
+compiler when a new language is proposed, or when new hardware is created. For
+that, compiler writers usually adopt the following modularization
+\citep{redhat} \citep{llvm}, as illustrated by Figure \ref{fig:compiler_arch}:
+
+%Por serem programas extremamente grandes, existe um grande interesse em evitar
+%reescrever um novo compilador
+%sempre que uma nova linguagem é proposta, ou um novo \textit{hardware} é criado.
+%Para isso, a seguinte modularização é largamente adotada por projetistas de
+%compiladores \citep{redhat} \citep{llvm}, conforme ilustrado na Figura \ref{fig:compiler_arch}:
+%
 
 \begin{itemize}
-    \item Um \textit{Front End} para cada Linguagem Fonte.
-	Neste módulo são executadas as análises léxica e sintática, com a
-        finalidade de construir uma Árvore de Sintaxe Abstrata (AST), para que em
-seguida, ela seja convertida para uma Linguagem Intermediária do compilador.
 
-    \item Um \textit{Middle End}, responsável por aplicar diversas otimizações
-independentes de arquitetura no código já convertido para a Linguagem Intermediária.
+\item A Front End for each Source Language. In this module are executed the
+lexical and syntactical analysis to construct the Abstract Syntax Tree (AST).
+Following that, this structure is converted to another compiler's IR.
 
-    \item Um \textit{Back End} para cada linguagem alvo, responsável por converter a linguagem intermediária
-na linguagem alvo. Aqui outras otimizações específicas da linguagem alvo são realizadas,
-como alocação de registradores e seleção de instruções.
+\item A Middle End, responsible for applying several hardware-independent
+optimizations to the already converted IR code.
+
+\item A Back End for each Target Language, responsible to translate the IR to
+the Target Language. Here, hardware-dependent optimizations are employed, such
+as register allocation and instruction selection.
 
 \end{itemize}
 
-Porém, essa modularização é opcional: compiladores mais antigos destinados a fazer uma
-conversão direta entre duas linguagens, como o UNIX C Compiler, não costumam usar uma linguagem
-intermediária \citep{ritchie1979tour}, além de diversos livros-texto não mencionarem tal módulo, fundindo suas
-funcionalidades com o \textit{Back End} \citep{dragonbook}. Não adotar tal metodologia
-simplifica o projeto, mas dificulta a inserção de suporte a novas
-linguagens de programação.
+%\begin{itemize}
+%    \item Um \textit{Front End} para cada Linguagem Fonte.
+%	Neste módulo são executadas as análises léxica e sintática, com a
+%        finalidade de construir uma Árvore de Sintaxe Abstrata (AST), para que em
+%seguida, ela seja convertida para uma Linguagem Intermediária do compilador.
+%
+%    \item Um \textit{Middle End}, responsável por aplicar diversas otimizações
+%independentes de arquitetura no código já convertido para a Linguagem Intermediária.
+%
+%    \item Um \textit{Back End} para cada linguagem alvo, responsável por converter a linguagem intermediária
+%na linguagem alvo. Aqui outras otimizações específicas da linguagem alvo são realizadas,
+%como alocação de registradores e seleção de instruções.
+%\end{itemize}
+
+However, this modularization is completely optional: older compilers destined
+to simply doing a direct translation between languages, such as the UNIX C
+Compiler, do not have an IR \citep{ritchie1979tour}. Not only that, several
+textbooks about compilers do not mention the Middle-End part, being a part of
+the Beck-End of the compiler \citep{dragonbook}. Not adopting this
+modularization simplifies the project, but also complicates the insertion of
+new programming languages, as well as adding support to new hardware.
+
+%Porém, essa modularização é opcional: compiladores mais antigos destinados a fazer uma
+%conversão direta entre duas linguagens, como o UNIX C Compiler, não costumam usar uma linguagem
+%intermediária \citep{ritchie1979tour}, além de diversos livros-texto não mencionarem tal módulo, fundindo suas
+%funcionalidades com o \textit{Back End} \citep{dragonbook}. Não adotar tal metodologia
+%simplifica o projeto, mas dificulta a inserção de suporte a novas
+%linguagens de programação.
 
 
 \begin{figure}
@@ -69,13 +512,13 @@ linguagens de programação.
 \scalebox{0.8}{
 \begin{tikzpicture}[node distance = 3cm, auto]
     % Place nodes
-    \node [block]                      (front_c)    {Frontend C};
-    \node [block, below of=front_c]    (front_cpp)  {Frontend C++};
-    \node [block, below of=front_cpp]  (front_fort) {Frontend Fortran};
-    \node [block, right of=front_cpp]  (middle)     {Middle End};
-    \node [block, right of=middle]     (back_x86)   {Backend x86};
-    \node [block, above of=back_x86]   (back_arm)   {Backend ARM};
-    \node [block, below of=back_x86]   (back_ppc)   {Backend PPC};
+    \node [block]                      (front_c)    {C Front-End};
+    \node [block, below of=front_c]    (front_cpp)  {C++ Front-End};
+    \node [block, below of=front_cpp]  (front_fort) {Fortran Front-End};
+    \node [block, right of=front_cpp]  (middle)     {Middle-End};
+    \node [block, right of=middle]     (back_x86)   {x86 Back-End};
+    \node [block, above of=back_x86]   (back_arm)   {ARM Back-End};
+    \node [block, below of=back_x86]   (back_ppc)   {PPC Back-End};
 
 
     \coordinate [left of=front_c]    (c_code);
@@ -102,26 +545,41 @@ linguagens de programação.
 }
 \end{center}
 
-\caption{Arquitetura de um compilador.}
+\caption{Compiler Architecture}
 \label{fig:compiler_arch}
 \end{figure}
 
-\begin{subsection}{\textit{Front End}}
+%\begin{subsection}{\textit{Front-End}}
+\begin{subsection}{Front-End}
 
-Um \textit{Front End} é um módulo responsável por interagir diretamente com o
-código escrito na Linguagem Fonte a ser compilado. Ele costuma ser único
-para cada Linguagem Fonte, ou seja, para inserir suporte a uma nova
-Linguagem Fonte, basta implementar um novo \textit{Front End}, mas é
-possível que algumas classes sejam
-compartilhadas, como no caso de um compilador que dê tanto para C quanto para e C++.
+A Front-End is a module responsible for direct interaction with the code
+written in the Source Language, which means from a Software Engineering
+perspective, for adding support to a new Source Language, it is enough to write
+a new Front-End. It is also possible that some classes are shared between
+frontends, which may be the case of a compiler that supports both C and C++.
+
+%Um \textit{Front End} é um módulo responsável por interagir diretamente com o
+%código escrito na Linguagem Fonte a ser compilado. Ele costuma ser único
+%para cada Linguagem Fonte, ou seja, para inserir suporte a uma nova
+%Linguagem Fonte, basta implementar um novo \textit{Front End}, mas é
+%possível que algumas classes sejam
+%compartilhadas, como no caso de um compilador que dê tanto para C quanto para e C++.
 
 
-Como primeiro passo, \textit {Front End} realiza uma análise
-léxica e sintática, com a finalidade de gerar uma AST e verificar
-se o texto dado como entrada realmente pertence à linguagem.
-Estes dois analisadores se comunicam constantemente, conforme ilustrado na Figura
-\ref{fig:lexico_sintatico}.
+As a first step, the Front-End performs a lexical and syntactical analysis for
+generating an AST and verify if the input text belongs to the language. It is
+also responsible for printing parsing errors in a way that the user can easily
+understand them. The Front-End also populates the Symbol Table of the compiler
+with symbols that it has seen so far when compiling the program for checking if
+there are references to undefined symbols. These three pieces (the Lexical
+Analyser, the Syntactic Analyser, and the Symbol Table) frequently communicate
+with each other, as illustrated in Figure \ref{fig:lexico_sintatico}.
 
+%Como primeiro passo, \textit {Front End} realiza uma análise
+%léxica e sintática, com a finalidade de gerar uma AST e verificar
+%se o texto dado como entrada realmente pertence à linguagem.
+%Estes dois analisadores se comunicam constantemente, conforme ilustrado na Figura
+%\ref{fig:lexico_sintatico}.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -130,36 +588,45 @@ Estes dois analisadores se comunicam constantemente, conforme ilustrado na Figur
 \tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
     minimum height=2em]
 
+%TODO: Adcionar a tabela de símbolos aqui.
 \begin{center}
 \scalebox{0.8}{
 \begin{tikzpicture}[node distance = 3cm, auto]
     % Place nodes
-    \node [block]                    (lexico) {Analisador Léxico};
-    \node [block, right of = lexico] (sintatico) {Analisador Sintático};
+    \node [block]                    (lexico) {Lexical Analyser};
+    \node [block, right of = lexico] (sintatico) {Syntactic Analyser};
     \coordinate [left of=lexico]     (fonte);
     \coordinate [right of=sintatico] (ast);
 
     % Draw edges
     \draw[->]    ([yshift=0.5em] lexico.east)       -- ([yshift=0.5em] sintatico.west) node[midway] {Token};
-    \draw[->]    ([yshift=-0.5em] sintatico.west)   -- ([yshift=-0.5em] lexico.east)    node[midway] {próximo\_token()};
-    \draw[->]    (fonte.west)                       -- (lexico.west)    node[pos=0, above] {Código Fonte};
-    \draw[->]    (sintatico.east)                   -- (ast.west)   node[pos=1, above] {Árvore Abstrata};
+    \draw[->]    ([yshift=-0.5em] sintatico.west)   -- ([yshift=-0.5em] lexico.east)    node[midway] {next\_token()};
+    \draw[->]    (fonte.west)                       -- (lexico.west)    node[pos=0, above] {Source Code};
+    \draw[->]    (sintatico.east)                   -- (ast.west)   node[pos=1, above] {Abstract Syntax Tree};
 \end{tikzpicture}
 }
 \end{center}
 
-\caption{Interações entre um analisador léxico e sintático.}
+\caption{Interactions between the Lexical, Syntactic Analyser and the Symbol Table}
 \label{fig:lexico_sintatico}
 \end{figure}
 
-    Primeiro, a análise léxica é responsável por ler o arquivo
-d texto contendo o código fonte, e quebrar as palavras em \textit{tokens}, que
-serão alimentados para o analisador sintático. Por consequência, ele é capaz de
-realizar alguns filtros, \textit{e.g}. ignorar os comentários, identificar constantes
-numéricas, eliminar espaços desnecessários, e substituir um \textit{token} por
-outro.
-Analisadores léxicos também podem ser usados para substituição
-de macros, como implementado pelo preprocessador do C
+%    Primeiro, a análise léxica é responsável por ler o arquivo
+%de texto contendo o código fonte, e quebrar as palavras em \textit{tokens}, que
+%serão alimentados para o analisador sintático. Por consequência, ele é capaz de
+%realizar alguns filtros, \textit{e.g}. ignorar os comentários, identificar constantes
+%numéricas, eliminar espaços desnecessários, e substituir um \textit{token} por
+%outro.
+%Analisadores léxicos também podem ser usados para substituição
+%de macros, como implementado pelo preprocessador do C
+%(CPP)\footnote{https://gcc.gnu.org/onlinedocs/cppinternals/Lexer.html}.
+
+First, the Lexical Analyser is responsible for reading a text file containing
+the Souce Code and splitting the words in the file in Tokens. As a consequence,
+it is capable of applying some filters, e.g. ignore commentaries, identify
+numerical constants, remove unnecessary spaces, and replace a token with
+another.  Lexical Analysers can also be used for macro expansion, as
+implemented in the C preprocessor
 (CPP)\footnote{https://gcc.gnu.org/onlinedocs/cppinternals/Lexer.html}.
 
 Geralmente, os Analisadores Léxicos são implementados utilizando autômatos
@@ -171,31 +638,72 @@ existência de algoritmos para minimização de estados de um autômato
 como o \texttt{Flex}\footnote{https://www.gnu.org/software/flex/}
 sejam bastante eficientes.
 
-    Em conjunto com o Analisador Léxico, o analisador sintático é
-responsável por gerar a Árvore de Sintaxe Abstrata (AST), inspecionando a
-sequência de \textit{tokens} fornecida pelo Analisador Léxico. Neste processo,
-ele certifica-se de que o código fonte respeita a gramática da linguagem,
-apontando erros caso contrário.
+Usually, Lexical Analysers are implemented using Automatas for several reasons,
+such as an attractive computational complexity of $O(n)$, where $n$ is the
+input size, the existence of algorithms to convert a regular expression to an
+Automata \citep{thompson}, and by the existence of algorithms to minimize the
+size of the Automata \citep{hopcroft1971n}. This allows that automatic Lexical
+Analysers generators such as
+\textit{Flex}\footnote{https://www.gnu.org/software/flex/} be extremely
+efficient.
 
-    Analisadores Sintáticos se apoiam nas gramáticas não ambíguas que geram uma
-linguagem livre de contexto determinística, isto porque gramáticas mais
-poderosas requerem algoritmos computacionalmente mais custosos
-\citep{sipser2012}. Existem vários algoritmos para realizar a análise sintática,
-mas destacam-se:
+
+Together with the Lexical Analyser, a Syntactic Analyzer is responsible to
+generate an Abstract Syntax Tree (AST), inspecting the sequence of tokens
+provided by the Lexical Analyser. In this process, it certifies that the Input
+Code respects the language's grammar, pointing errors otherwise.
+
+
+%    Em conjunto com o Analisador Léxico, o analisador sintático é
+%responsável por gerar a Árvore de Sintaxe Abstrata (AST), inspecionando a
+%sequência de \textit{tokens} fornecida pelo Analisador Léxico. Neste processo,
+%ele certifica-se de que o código fonte respeita a gramática da linguagem,
+%apontando erros caso contrário.
+
+Syntactic Analysers relies on Nonambiguos Grammars that generates a
+deterministic Context-Free Language, once general grammars require more
+computationally expensive algorithms \citep{sipser2012}.  There are several
+algorithms to realize this analysis, but we must highlight:
+
+%    Analisadores Sintáticos se apoiam nas gramáticas não ambíguas que geram uma
+%linguagem livre de contexto determinística, isto porque gramáticas mais
+%poderosas requerem algoritmos computacionalmente mais custosos
+%\citep{sipser2012}.
+%Existem vários algoritmos para realizar a análise sintática,
+%mas destacam-se:
 \begin{itemize}
-	\item Recursivo Descendente: Um algoritmo de caráter preditivo, que tenta
-	    construir a AST da raiz para as folhas. Uma característica desse algoritmo
-		é a sua facilidade de codificação, que utiliza chamadas de funções para
-		armazenar o contexto atual e progredir na análise conforme as regras da
-		gramática. Seu uso é devido a facilidade de codificação e mensagens de
-		erro mais informativas para o usuário.
+%	\item Recursivo Descendente: Um algoritmo de caráter preditivo, que tenta
+%	    construir a AST da raiz para as folhas. Uma característica desse algoritmo
+%		é a sua facilidade de codificação, que utiliza chamadas de funções para
+%		armazenar o contexto atual e progredir na análise conforme as regras da
+%		gramática. Seu uso é devido a facilidade de codificação e mensagens de
+%		erro mais informativas para o usuário.
 
-    \item LL($k$): Outro algoritmo de caráter preditivo, que tenta construir a AST da
+\item Recursive Descent: A predictive algorithm, which tries to match the
+grammar from the root to the leaves. Here, every non-terminal token is
+represented as a function, which we can simply call when reducing a rule. This
+results in a easy to implement algorithm, however, it has some limitations.
+
+For instance, assume that a grammar G have the following rule:
+$$A \rightarrow Aw $$
+
+A code to parse this rule would be implemented as:
+
+% void A () {
+%   A ();
+%   // more code...
+% }
+
+Which would result in an infinite loop. In fact, when implementing a Recursive
+Descent algorithm to parse a certain grammar G, it must be free of
+left-recursion.
+
+    \item LL($k$) -- \textit{Left to Right, Leftmost Derivation, k lookahead}: Outro algoritmo de caráter preditivo, que tenta construir a AST da
         raiz para as folhas. Aqui o algoritmo usa uma máquina de estados em conjunto
 		com uma pilha para armazenar o contexto atual. Sua codificação é mais
 		complexa que o anterior, e as mensagens de erro costumam ser mais precárias.
 
-    \item LR($k$): Um algoritmo que tenta construir a AST das folhas para a raiz.
+    \item LR($k$) -- \textit{Left to Right, Rightmost Derivation, k lookahead}: Um algoritmo que tenta construir a AST das folhas para a raiz.
 		  Assim como o LL($k$), este algoritmo também utiliza uma máquina de estados
 		  em conjunto com uma pilha. Apesar de sua codificação ser mais complicada,
           esse algoritmo é capaz de processar gramáticas mais complexas que
