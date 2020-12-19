@@ -2,11 +2,12 @@
 \label{chap:fundamentacao}
 
 This chapter presents a brief introduction to the concepts used in this work.
-First, we present all parts of the compiler pipeline to understand the
-compilation phases. Following that, we discuss how the GCC compiler presents
-these topics implemented, and how these parts interact with each other.
-Finally, we present some basic concepts and algorithms about Parallel
-Computing.
+First, we present some subjects about computer-theory which are heavily
+used in a compiler, then we present all parts of the compiler pipeline
+to understand the compilation phases. Following that, we discuss how the
+GCC compiler presents these topics implemented, and how these parts interact
+with each other.  Finally, we present some basic concepts and algorithms about
+Parallel Computing.
 
 %Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
 %trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
@@ -17,34 +18,69 @@ Computing.
 
 %\begin{section}{Compiladores}
 
-\begin{section}{Finite State Automatas}
+\begin{section}{Parsing Theory}
 
-A large part of compiler theory relies upon parsing text, and the simplest
-machine we can think about this is a Finite Automata. With these machines, we
-can easily build several controller machines for various applications, such as
-elevator state controllers, microwave control panels, signal detectors, and so
-on. This is because automata can be cheaply and easily be implemented using
-flip-flops, an electronic device which can hold a bit as data storage.
+\begin{subsection}{Languages}
+A large part of the compiler is dedicated onto parsing text to determine if
+it belongs to a certain Language. A \textit{langauge} is nothing more than
+a set of words, infinite or not, of some alphabet $\Si$. We denote that
+$\sigma$ is a character of the alphabet $\Si$ by expressing it as
+$\sigma \in \Si$. We can also concatenate two characters $\sigma_1 \sigma_2$
+to form a word, and we say that $\sigma_1 \sigma_2 \in \Sigma^2 = \Sigma\Sigma$.
+In fact, we denote the product of two languages $A$ and $B$ as being
+$$AB = \conj{xy}{x \in A \text{ and } b \in B}$$
+which should not be confused with the cartesian product
+$$A \times B = \conj{(x, y)}{x \in A \text{ and } b \in B}$$
+
+The Kleene Star of a certain language $A$ is defined as:
+$$A^* = \bigcup_{n \geq 0} A^n$$
+where $A^0 = \{\lambda\}$, the set containing the \textit{empty string} $\lambda$.
+Therefore, the set of all possible words over an alphabet $\Si$ is the set
+$\Sis$, and every language $L$ is a subset or equal of $\Sis$, which we will
+denote as $L \ssq \Sis$. We also define $A^+ = AA^*$. Union, intersection,
+and complement works the same way as in set theory.
+
+The \textit{length} of a word $x$, denoted as $|x|$, is the number of characters
+in the string. If $x = \lambda$, then $|x| = 0$. It should not be confused with
+the size of a set $|A|$, which is the number of elements of that set.
+
+\end{subsection}
+
+\begin{subsection}{Finite State Automata}
+
+One of the simplest machines designed to parse text are the
+Finite Automata. These machines are often used to build controllers for various
+applications, such as elevator state controllers, microwave control panels,
+signal detectors, and so on. This is because automata can be cheaply and easily
+be implemented using flip-flops, an electronic device which can hold a bit as
+data storage.
 
 Finite Automata are also used in Compilers as a Lexical Analyser as a token
 recognizer, as we will see in Section Bla. They are very useful tools since we
 can express these machines easily with Regular Expressions, and then algorithms
-can easily convert them into a finite automata.
+can easily convert them into a Finite Automata and minimize the number of
+states in it.
 
 \begin{definition}
 A Deterministic Finite Automata (\ttt{DFA}) can be defined as a 5-tuple
-$(Q. \Sigma, \delta, q_0, F)$, where
+$(Q. \Sigma, \delta, s, F)$, where
 \begin{itemize}
 
 \item $Q$ is a finite set of states.
 \item $\Sigma$ is a finite set, the language alphabet.
 \item $\delta:Q\times\Sigma \longrightarrow Q$ is the transition function.
-\item $q_0 \in Q$ is the initial state of the machine.
+\item $s \in Q$ is the initial state of the machine.
 \item $F \subseteq Q$ is the set of accept states, where the machine will
 decide the input as correct if computation terminates in one of these
 states.
 \end{itemize}
 \end{definition}
+
+We say that given an machine $\mathcal{A}$, or grammar $G$, the \textit{language}
+that it generates is denoted as $L(\mathcal)$. The machine (or grammar) accepts an input
+$w \in \Sis$ if and only if $w \in L(\mathcal{A}$. We also say that a machine
+(or grammar) recognizes a certain language $L \ssq \Sis$ if and only if
+$L(\mathcal{A}) = L$.
 
 For example of automation, let us assume that we want to detect whether a
 certain input is a non-negative integer number. Therefore, let $\Sigma$ be the
@@ -55,7 +91,7 @@ is
 
 $$ L_1 = \conj{w \in \Sis}{w \text{is a non-negative number}}$$
 
-A \texttt{flex} regex for it would be
+A \texttt{flex} regular expression for it would be
 $$\land\texttt{[0-9]+\$}$$
 and the following automata to recognize it would be
 $\mathcal{A} = (\{q_1, q_2, q_3\}, \Sigma, \delta, q_1, \{q_2\})$, where
@@ -67,9 +103,11 @@ the $\delta$ function will be defined as:
 		  q_3,& \text{if } \sigma \in \Sigma - D \text{ and } q \in \{q_1, q_2\} \\
 		\end{cases} \nonumber
 	\]
-Figure \ref{fig:a_automata} illustrates this machine.
+Figure \ref{fig:a_automata} illustrates this machine. Here we denote that
+$q_i \overset{\sigma}{\longrightarrow} q_j$ when the machine is on state
+$q_i$, after it reads an input $\sigma$, it will jump to the state $q_j$.
 
-Deterministic automatas can be easily implemented using a transition
+Any $\DFA$ can be easily implemented using a transition
 matrix. In one dimension, we have every state in the machine, in another,
 every possible character of $\Sigma$.  Therefore, by just remembering the
 last state of the machine, we can lookup this matrix and select what state
@@ -94,53 +132,78 @@ yields in a $O(n)$ algorithm to parse a word $w \in \Sigma^*$ with $|w| = n$.
 \label{fig:a_automata}
 \end{figure}
 
-
-Literature also present the Nondeterministic Finite Automata, however,
+Literature also present the Nondeterministic Finite Automata (\ttt{NFA}), however,
 if you are able to present a Nondeterministic Finite Automation to a
 certain language, you can also present a deterministic one for the same
 language, and vice versa. We will present these machines for the sake
 of completeness, as they are often used to quickly implement regex
 algorithms. There are even algorithms to convert an \ttt{NFA} to
-\ttt{DFA}, which we will not present in this work.
+\ttt{DFA}, which we will only present in this work as the following
+theorem:
+
+\begin{theorem}\label{nfa_to_dfa}
+Every \ttt{NFA} has an equivalent \ttt{DFA}
+\end{theorem}
+\begin{proof}
+	Theorem 1.39 of \citep{sipser2012} shows the Powerset Construction, an algorithm
+	that converts any \ttt{NFA} into a \ttt{DFA}.
+\end{proof}
 
 
 \begin{definition}
-A Nondeterministic Finite Automation (\ttt{NFA}) is a 5-tuple
-$(Q. \Sigma, \delta, q_0, F)$, where
+A Nondeterministic Finite Automation (\ttt{NFA}) is a 5-uple
+$(Q, \Sigma, \delta, s, F)$, where
 \begin{itemize}
 
 \item $Q$ is a finite set of states.
 \item $\Sigma$ is a finite set, the language alphabet.
 \item $\delta:Q\times\Sigma \longrightarrow 2^Q$ is the transition function.
-\item $q_0 \in Q$ is the initial state of the machine.
+\item $s \in Q$ is the initial state of the machine.
 \item $F \subseteq Q$ is the set of accept states, where the machine will
 decide the input as correct if computation terminates in one of these
 states.
 \end{itemize}
 \end{definition}
 
-\ttt{NFA}s are interesting machines, once they are often used to implement
-Regular Expressions via the Thompson Construction \citep{dragonbook}. However,
-implementation should be done with care, as these machines requires \textit{backtracking},
-which may lead to some unfortunate bugs \citep{PR86164}.
+$\NFA$ have a feature called \textit{nondeterminism}, which means that given
+a $\sigma \in \Si$ and three states $p \in Q$, $q \in Q$ and $r \in Q$, it is possible
+two have two or more transitions from a same state given the same character $\sigma$, which
+means that $p \overset{\sigma}{\longrightarrow} q$ and
+$p \overset{\sigma}{\longrightarrow} r$. Which route the $\NFA$ will proceed with
+its computation in this situation does not matter, as long as it reaches some
+state $f \in F$ reading the entire input. There is also transitions like
+$p \overset{\lambda}{\longrightarrow} q$, which means that the $\NFA$ will 
+jump from $p$ to $q$ without reading any input. These are called
+$\lambda$-\textit{transitions}. It is also worth mentioning that if a $\NFA$
+is in state $q$ with next input character $\sigma$ and there are no transitions
+of the form $q \overset{\sigma}{\longrightarrow} r$ or
+$q \overset{\lambda}{\longrightarrow} r$, then this means that the path which
+it has taken from $s$ to $q$ can not lead to a final state and therefore it must
+take another path. If there are no remaining paths, then the $\NFA$ should
+reject the input.
 
-Automatas, however, are not very expressive machines. For example, consider
-the following language:
+\ttt{NFA}s are interesting machines in both practical and theoretical aspects,
+once they are often used to implement Regular Expressions via the Thompson
+Construction \citep{dragonbook} and prove theorems related to computer-theory.
+However, implementation should be done with care, as these machines requires
+\textit{backtracking} because of its nondeterministic behaviour, which may lead
+to some unfortunate bugs \citep{PR86164}. However, both \DFA and \NFA, are not
+very expressive machines. For example, consider the following language:
 
 $$L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$$
 
-This is a stripped down version of the balanced parenthesis
-problem. Unfortunatelly, it is impossible to build an finite automata
-that can decide if a word $w \in \Sigma^*$ is in $L_2$.
+This is a stripped down version of the Parenthesis Matching Problem.
+Unfortunately, it is impossible to build an finite automata
+that recognizes $L_2$.
 
 \begin{lemma}
-There is no finite automata recognizing $L$.
+There is no $\DFA$ recognizing $L_2$.
 \end{lemma}
 \begin{proof}
-Let $\mathcal{A} = (Q, \sigma, \delta, s, F)$ be such automation,
+Let $\mathcal{A} = (Q, \Sigma, \delta, s, F)$ be such $\DFA$,
 with $\Si = \{\ttt{(}, \ttt{)}\}$.
-Since it is a finite automation, then $|Q|$ is finite, and therefore
-$|Q| = n$. Now take the following word $w = \texttt{(}^{2n}\texttt{)}^{2n}$.
+Since it is a finite automation, then $|Q|$ is finite, and therefore let
+$n = |Q|$. Now take the following word $w = \texttt{(}^{2n}\texttt{)}^{2n}$.
 Clearly, $w \in L_2$, and therefore the automation $\mathcal{A}$ should
 recognize it. Since $2n > n$, it means that in the sequence of states
 $(p_1, p_2, \cdots, p_{2n})$ there are some state $q \in Q$ and integers
@@ -151,35 +214,33 @@ $w$ in
 $$w = xyz $$
 Where $x \in \Sigma^*$ is the part of $w$ before the circuit, $y$ is
 the part of $w$ in this circuit, and $z$ is the part of $w$ after the
-circuit. Note that $x$ and $y$ constists of a sequence of $\texttt{(}$
+circuit. Note that $x$ and $y$ consists of a sequence of $\texttt{(}$
 characters, because we are processing the first $2n$ characters of $w$.
 Since $y$ is the part of $w$ in this circuit, then
 $ xyyz $
-is also recognized by $\mathcal{A}$. Let $k = |y|$. This means that
+is also recognized by $\mathcal{A}$. If $k = |y|$, this means that
 the input string
 $$ \texttt{(}^{n+k}\texttt{)}^n \not\in L_2$$
 is also recognized by $\mathcal{A}$, which means that such machine does
-not exist, and therefore there is no finite automata which can detect
+not exist, and therefore there is no $\DFA$ which can detect
 $L_2$.
 \end{proof}
 
 In fact, this proof is heavily based on the proof of the Pumping Lemma,
-a powerful tool to find if a certain language is not regonizable by an
-Finite Automata. Entering in details about this is beyound the scope of
+a powerful tool to find if a certain language is not recognizable by an
+Finite Automata. Entering in details about this is beyond the scope of
 this work.
 
-\end{section}
+\end{subsection}
 
-\begin{section}{Pushdown Finite Automatas}
-	An extension of the Finite Automatas are the Pushdown Finite Automatas,
-which is simply an Nondeterministic Finite Automata together with a infinite
-stack. This machine as it is presented is not very useful for building
-compilers, however, they are important for defining a Deterministic Pushdown
-Automatas, which are the key for defining Deterministic Context-Free Grammars,
-which can be parsed with $O(n)$ algorithms.
+\begin{subsection}{Finite Pushdown Automata}
+	An extension of the Finite Automatas are the Pushdown Finite Automatas
+	(\ttt{PDA}), which is, in a simplistic form, a $\NFA$
+	with an infinite stack. This is a very interesting machine to
+	parse grammars, which we will present in Section \ref{cfg}.
 
 \begin{definition}
-A Nondeterministic Finite Automation can be defined as a 6-tuple
+A Nondeterministic Finite Automation (\ttt{PDA}) can be defined as a 6-tuple
 $(Q, \Si, \Ga, \delta, q_0, F)$, where
 \begin{itemize}
 
@@ -195,15 +256,14 @@ states.
 \end{definition}
 Here, we denote $\Gamma_\lambda$ and $\Sigma_\lambda$ as being, respectively,
 $\Gamma \cup \{\lambda\}$ and $\Sigma \cup \{\lambda\}$, where $\lambda$ is
-the empty string, \textit{i.e}., if $w \in \Sis$, then
-$\lambda w = w \lambda = w$.
+the empty string.
 
 Those machines starts with an empty stack, and it will then choose
-to read an input based on the following notation given a transiction from $q_i \in Q$
+to read an input based on the following notation given a transition from $q_i \in Q$
 to $q_j \in Q$:
 $$\sigma, \gamma_1 \rightarrow \gamma_2$$
 which is the same as
-$$\{(q_j, \gamma_2)\} \in \delta(q_i, \sigma, \gamma_1)$$
+$$(q_j, \gamma_2) \in \delta(q_i, \sigma, \gamma_1)$$
 meaning that on input character $\sigma \in \Si_\lambda$ and with $\gamma_1 \in
 \Gamma_\lambda$ on the top of the stack, it advances one character on the input
 string, pop $\gamma_1$ from the stack, and push $\gamma_2 \in \Gamma_\lambda$
@@ -214,12 +274,13 @@ $\gamma_2 = \lambda$, then nothing is pushed on the stack. Note that these
 three cases can happen together. These notation is suffice to describe the
 $\delta$ function.  For an input $w \in \Sis$ to be accepted by such
 automation, there must exist at least one path from the starting state $q_0$ to
-a final state $q_f \in F$ consuming the entire input string $w$.
+a final state $q_f \in F$ consuming the entire input string $w$, like in
+a $\NFA$.
 
-These machines are more powerful than Deterministic and Nondeterministic Finite
-Automatas. For instance, there is a Nondeterministic Finite Automation detecting
-$L_2$, in which we proved that there is no Deterministic (and therefore there is
-also a nondeterminisic) Finite Automata for such language.
+These machines are more powerful than both \ttt{DFA} and \ttt{NFA}.
+For every \ttt{NFA}, there is a \ttt{PDA} that detects the same language.
+Furthermore, there is a $\PDA$ detecting $L_2$, in
+which we proved that there is no \ttt{DFA} for it.
 
 \begin{figure}
 \begin{tikzpicture}[node distance = 3cm, auto]
@@ -237,45 +298,66 @@ also a nondeterminisic) Finite Automata for such language.
 \end{tikzpicture}
 
 \caption{Finite Automata recognizing $L_2$}
-\label{fig:pushdown_automata}
+\label{fig:pda_l2}
 \end{figure}
 
-Figure \ref{fig:pushdown_automata} describes a Nondeterministic Finite Pushdown
-Automata which detects $L_2$. This machine works as follows: On the transition
+Figure \ref{fig:pda_l2} describes a $\PDA$ which detects $L_2$.
+This machine works as follows: On the transition
 from $q_1$, to $q_2$, the machine will push an token $\$ \in \Ga$ to mark the
 beginning of the stack. Then we may proceed reading $\ttt{(}$ through the loop
-at $q_2$, and pushing then on the stack, or avance without reading, poping or
+at $q_2$, and pushing then on the stack, or advance without reading, poping or
 pushing anything on the stack.  Once all $\ttt{(}$ has been pushed on the
 stack, it will then proceed reading all $\ttt{)}$ while poping the $\ttt{(}$
-characters on the stack.  If the machine incorrectly guesses when to switch
+characters of the stack to count how many occurrences it has seen so far.
+If the stack ends empty after this process, it means that the number of $\ttt{(}$
+is equal to the number of $\ttt{)}$. If the machine incorrectly guesses when to switch
 from $q_2$ to $q_3$ even if $w \in L_2$, this would generate an invalid path
 because the top of the stack would contain a $\ttt{(}$ and not the $\$$, and
 the same goes when $w = \ttt{(}^i\ttt{)}^j$, with $j < i$. If, however, $i >
 j$, then it is possible to $q_3$ to $q_4$, however, the entire input string
-would not be completly consumed, and therefore the machine will reject the
+would not be completely consumed, and therefore the machine will reject the
 string. The only way that an string is accepted is when $j = i$. Notice that
 this is not a formal proof that such machine works.
 
-However, as stated in the begining of this section, Nondeterministic Finite Pushdown
-Automata are not a very important machine when the topic are compilers. On Figure
-\ref{fig:pushdown_automata}, a careful reader may notice that backtracking is
-required to implement such machines because on given state, there can be
-multiple transictions on the same character. For instance, on above machine,
-when on state $q_2$, given an input character $\ttt{(}$, the transiction to
-$q_3$ is valid, since $\{(q_3, \lambda)\} \in \delta(q_2, \lambda, \lambda)$,
-as well as $\{(q_2, \ttt{(})\} \in \delta(q_2, \ttt{(}, \lambda)$.
-We are interested in a less powerful machine, the Deterministic Finite Pushdown
-Automata, which does not require Backtracking.
+Now that we showed one language that a \ttt{PDA} can recognize that a
+\ttt{NFA} can not, let's prove that any language recognizable by an
+\ttt{NFA} is recognizable by a \ttt{PDA}.
 
-\begin{section}{Deterministic Finite Pushdown Automata}
-	Let's now restrict the Nondeterministic Finite Pushdown Automatas so that
-it is possible to remove the necessary backtracking from these machines.
-The way to do it is to restrict when the machine can have certain transictions
+\begin{theorem}
+Let $L$ be a language recognizable by an \ttt{NFA}. Then there is a \ttt{PDA}
+which detects $L$.
+\end{theorem}
+\begin{proof}
+	Let $\mathcal{A} = (Q, \Si, \delta, s, F)$ be a \ttt{NFA} recognizing $L$.
+We will show how to build a \ttt{PDA} $\mathcal{P}$ that recognizes $L$.
+The idea is that a $\ttt{PDA}$ that does not uses its stack is just a \ttt{NFA}.
+
+Let $\mathcal{P} = (Q, \Si, \emptyset, \delta_p, s, F)$, with $Q, s, F$ being
+exactly the same as in $\mathcal{A}$. Now let $\delta_p$ be such that
+$$(q_j, \lambda) \in \delta_p(q_i, \sigma, \lambda) \text{ if and only if } q_j \in \delta(q_i, \sigma)$$
+where $\sigma \in \Sigma_\lambda$ and $q_i, q_j \in Q$. Then since the transiction function
+ignores what is on top of the stack, and there is no state in which a symbol is
+pushed on the stack, then $\mathcal{A}$ and $\mathcal{P}$ recognizes the same
+language.
+\end{proof}
+
+However, as these machines can use \textit{nondeterminism} to find its path
+to a final state, its implementation may require \textit{backtracking},
+and in fact, the $\PDA$ in Figure \ref{fig:pda_l2} will require it to correctly
+``guess'' when to jump from $q_2$ to $q_3$. We can eliminate the possibility
+of backtracking if we remove the nondeterminism from the machine.
+
+\end{subsection}
+
+\begin{subsection}{Deterministic Finite Pushdown Automata}
+	Let's now restrict the \ttt{PDA} so that
+it is possible to remove the possibility of backtracking from these machines.
+The way to do it is to restrict when the machine can have certain transitions
 with regard to $\delta(q, \sigma, \lambda)$, $\delta(q, \lambda, \gamma)$ and
 $\delta(q, \lambda, \lambda)$.
 
 \begin{definition}
-A Deterministic Finite Automation can be defined as a 6-tuple
+A Deterministic Finite Automation \ttt{DPDA} can be defined as a 6-uple
 $(Q, \Si, \Ga, \delta, q_0, F)$, where
 \begin{itemize}
 
@@ -289,7 +371,7 @@ decide the input as correct if computation terminates in one of these
 states.
 \end{itemize}
 
-$\delta$ must also satisfy the following condition: For every $q \in Q$, $\sigma \in \Si$,
+Furthermore, $\delta$ must also satisfy the following condition: For every $q \in Q$, $\sigma \in \Si$,
 and $\gamma \in \Ga$, one and only one of these values
 $$\delta(q, \sigma, \gamma), \delta(q, \lambda, \gamma), \delta(q, \sigma, \lambda), \delta(q, \lambda, \lambda)$$
 is not $\emptyset$.
@@ -297,20 +379,20 @@ is not $\emptyset$.
 \end{definition}
 
 By setting these restrictions on $\delta$, we prevent the machine from taking two
-distinct actions given the same input, as it is possible in the Nondeterministic
-version by setting both $\delta(q, \sigma, \gamma) \neq \emptyset$ and
+distinct actions given the same input, as it is possible in \ttt{PDA}
+by setting both $\delta(q, \sigma, \gamma) \neq \emptyset$ and
 $\delta(q, \sigma, \lambda) \neq \emptyset$. The machine can also only take an
 move of form $\delta(q, \sigma, \lambda)$ or $\delta(q, \lambda, \lambda)$ when
 the stack is empty, otherwise the machine will always reject the input. Acceptance
-happens the same way as the Nondeterministic version.
+happens the same way as in \ttt{PDA}.
 
-Let's now build a Deterministic Finite Pushdown Automata for $L_2$. We can start
-from the Nondeterminisitc version, since the only condition that is violated
-there with regard to a Deterministic machine are the transitions
+Let's now build a $\DPDA$ for $L_2$. We can start
+from the nondeterminisitc version, since the only condition that is violated
+there with regard to a $\DPDA$ are the transitions
 $\delta(q_2, \ttt{(}, \lambda)$ and $\delta(q_2, \lambda, \lambda)$: only one
-of these transictions can exist. We therefore can design the following machine
+of these transitions can exist. We therefore can design the following machine
 to address these problems, eliminating the $\delta(q_2, \lambda, \lambda)$
-transiction and adding an extra final state so that it accepts $\lambda \in L_2$.
+transition and adding an extra final state so that it accepts $\lambda \in L_2$.
 
 \begin{figure}
 \begin{tikzpicture}[node distance = 3cm, auto]
@@ -335,7 +417,10 @@ One can clearly see that such machines can be implemented with an $O(n)$ algorit
 once backtracking is not needed. Unfortunately, such machines are less powerful
 than the Nondeterministic version. For instance, the language
 $$L_3 = \conj{ww^R}{w \in \{0, 1\}^*}$$
-can not be detected by such machines.
+can not be detected by such machines, but one can clearly design a $\PDA$
+that recognizes this language: just push an certain amount of characters
+and nondeterministically ``guess'' when to start popping the characters
+from the stack and comparing to the next input characters.
 
 \begin{lemma}\label{lemma:pushdown_1}
 	There is no Deterministic Finite Pushdown Automata that detects $L_3$
@@ -344,30 +429,46 @@ Proof of such lemma is quite complicated, however the idea behind it is that
 there is no way that the machine find out when to stop pushing the symbols
 on the stack and start popping the symbols to compare for equality, once
 there is no way to discover the point exactly when $w$ stops and $w^R$ starts
-because the machine lacks Nondeterminism. This, however, shows that there
+because the machine lacks nondeterminism. This, however, shows that there
 are Languages that can be detected with Nondeterministic Finite Pushdown
 Automata.
 
 \begin{lemma}\label{lemma:pushdown_2}
-	For every Deterministic Finite Pushdown Automata $\mathbb{P}$, there is
-	an equivalent Nondeterministic Finite Pushdown Automata that detects the
+	For every \ttt{DPDA} $\mathcal{D}$, there is
+	an equivalent \ttt{PDA} $\mathcal{P}$ that recognizes the
 	same language.
 \end{lemma}
 \begin{proof}
-	See \ref{sipser:2012}
+	 It is enough to note that any \ttt{DPDA} is a \ttt{PDA}.  Let $\mathcal{D}
+	 = (Q, \Si, \Ga, \delta, s, F)$ a DPDA. Now define
+	 $\delta_p : Q\times\Si_\lambda\times\Ga_\lambda \longrightarrow 2^{Q\times\Ga_\lambda}$ such that
+
+	 $$ (q_j, \gamma_2) \in
+	 \delta_p(q_i, \sigma, \gamma_1) \text{ if and only if } \delta_p(q_i,
+	 \sigma, \gamma_1) = (q, \gamma_2)$$
+
+	 Where $\sigma \in \Si_\lambda$, and
+	 $\gamma_1, \gamma_2 \in \Ga_\lambda$. Then $\mathcal{P} = (Q, \Si, \Ga,
+	 \delta_p, s, F)$ recognizes the same language as $\mathcal{D}$.
 \end{proof}
 
-Lemma \ref{lemma:pushdown_1} and \ref{lemma:pushdown_2} shows that the Deterministic
-Finite Pushdown Automatas are not so powerful when compared to the Nondeterminisitc
-version.
+Lemma \ref{lemma:pushdown_1} and \ref{lemma:pushdown_2} shows that \ttt{DPDA} are not
+so powerful when compared to \ttt{PDA}.
 
-\end{section}
+\end{subsection}
 
-\end{section}
+\begin{subsection}{Context-Free Grammars}\label{cfg}
 
-\begin{section}{Context-Free Languages}
+Grammars are commonly used to express natural language. However, there is
+a subset of grammars that are of interest when designing
+Programming Languages, which are called Context-Free Grammars.
 
-A more powerful way to express languages are through Context-Free Grammars.
+Context-Free Grammars are a very powerful notation to express how a Programming Language
+should behave when reading a program as input, however, algorithms that parses
+such grammars in general are $O(n^3)$, where $n$ is the size of the input. Hopefuly,
+if we restrict the grammar to be a Deterministic Context-Free Grammar, we can ensure
+that parsing can take $O(n)$.
+
 \begin{definition}
 A Context-Free Grammar $G = (V, \Si, R, S)$ is a 4-uple where:
 \begin{itemize}
@@ -379,33 +480,1084 @@ A Context-Free Grammar $G = (V, \Si, R, S)$ is a 4-uple where:
 	\item $V \cap \Si = \varnothing$
 \end{itemize}
 \end{definition}
-For instance of grammar, $G = (V, \Si, R, S)$ such that
-$V = \{S\}$, $\Si = \{\ttt{(}, \ttt{)}\}$, $R = \{S \rightarrow \ttt{(}S{)}\}$
-can recognize $L = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$.
 
-Context-Free Grammars are very powerful tool to express how a Programming Language
-should behave when reading a program as input, however, algorithms that parses
-such grammars in general are $O(n^3)$, where $n$ is the size of the input. Hopefuly,
-if we restrict the grammar to be a Deterministic Context-Free Grammar, we can ensure
-that parsing can take $O(n)$.
-
+Furthermore, we also define
 
 \begin{definition}
-A Deterministic Context-Free Grammar $G = (V, \Si, R, S)$ is a 4-uple where:
+	If $A \in V$ derivate a string $x \in (V \cup \Si)^*$ in exactly one step, then
+	we denote $A \Rightarrow x$. If we can derive in zero or more steps, then
+	$A \Rightarrow^* x$. If in one or more steps, $A \Rightarrow^+ x$
+\end{definition}
+
+For instance of grammar, $G = (V, \Si, R, S)$ such that
+$V = \{S\}$, $\Si = \{\ttt{(}, \ttt{)}\}$, $R = \{S \rightarrow \ttt{(}S{)} | \lambda\}$
+can recognize $L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$, because it is clear that
+$S \Rightarrow^{n+1} \ttt{(}^n\ttt{)}^n$.
+
+There is also a important undesired detail about grammars called ambiguity.
+
+\begin{definition}
+	A grammar $G$ is ambiguous if there are multiple leftmost derivations for the same
+	word.
+\end{definition}
+\begin{definition}
+	A leftmost derivation of a word $w$ recognizable by a grammar $G$ is a derivation
+	in which we always derive the leftmost rule.
+\end{definition}
+
+For instance, let $G = (\{S\}, \{a, +, \times\}, R, S)$, where $R$ is defined
+as
+$$S \rightarrow S+S | S \times S | a $$
+it is clear that $S \Rightarrow^* w$ if $w$ is a arithmetic expression. This
+grammar is ambiguous, as there are two leftmost derivations for the same string.
+One derivation is
+$$ S \Rightarrow S + S \Rightarrow a + S \Rightarrow a + S \times S \Rightarrow a + a \times S \Rightarrow a + a \times a$$
+Another is
+$$ S \Rightarrow S \times S \Rightarrow S + S \times S \Rightarrow a + S \times S \Rightarrow a + a \times S \Rightarrow a + a \times a$$
+
+This may result in a troublesome parsing, for instance, consider the
+following sketch of a Grammar:
+
+% Avoid bug in vim 8.2
+\input{conteudo/grammar.tex}
+
+This can generate the two C code snippets in Figure \ref{fig:left_if} and
+\ref{fig:right_if}. In C, spaces and tabulations are ignored if they are
+repeated, and therefore these two codes are the same. Therefore, does that else
+belongs to the first if, or the second if? Which one should the compiler choose
+when parsing the code?
+
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.40\textwidth}
+
+		\begin{lstlisting}[
+			language=pseudocode,
+			style=pseudocode,
+			style=wider,
+			functions={},
+			specialidentifiers={},
+			]
+			if (a)
+				if (b)
+					statement;
+				else
+					another_statement;
+		\end{lstlisting}
+        \caption{\label{fig:left_if}}
+
+    \end{subfigure}
+    \begin{subfigure}[b]{0.40\textwidth}
+		\begin{lstlisting}[
+			language=pseudocode,
+			style=pseudocode,
+			style=wider,
+			functions={},
+			specialidentifiers={},
+			]
+			if (a)
+				if (b)
+					statement;
+			else
+				another_statement;
+		\end{lstlisting}
+        \caption{\label{fig:right_if}}
+\end{subfigure}
+\caption{Distinct C parse tree for the same input}
+\end{figure}
+
+In fact, the C specification states that an else should always match with the closest
+if, and therefore Figure \ref{fig:left_if} must be selected (when the concern is
+semantic) when parsing a C program, or else the compiler has a bug. This can lead
+to some unfortunate bugs in the code if the programmer is not careful enough,
+because one may write the code in \ref{fig:right_if} expecting that the
+tabulation will change the program semantic, and now you have a very hard to
+catch bug \citep{ritchie1988c}. This issue can be avoided by removing the
+ambiguity of the grammar. \cite{dragonbook} presents the following grammar
+to fix this problem for a $\LR{1}$ parser
+
+\input{conteudo/grammar_unambiguous.tex}
+however, one can design a Top-Down Recursive-Descent parser that correctly
+parses that grammar, even with the ambiguity.
+
+Let's now define what it means to a Grammar to be ``Deterministic'' by
+defining the \textit{handle} of a string.
+
+\begin{definition}
+	Let $G = (V, \Si, R, S)$ be a Context-Free Grammar that Recognizes $L$.
+	The \textbf{handle} of a string $w$ such that $S \Rightarrow^* w$ is a string
+	$h \in (V \cup \Si)^*$ such that
+	\begin{enumerate}
+	  \item $w = xhy$, where $x \in (V \cup \Si)^*, A \Rightarrow h, A \in V$,
+	  $y \in \Sis$
+	  \item $h$ is the leftmost string satisfying condition 1.
+	\end{enumerate}
+\end{definition}
+
+One can clearly see that if $G$ is unambiguous, then $w$ should have a unique
+handle, otherwise there would be another leftmost derivation of $w$ from $S$, which
+contradicts the definition of unambiguity.
+
+Furthermore, if we enforce that given a handle of a word $w = xhy$
+is also the handle of $xhz $ for all $z \in \Sis$ such that $S \Rightarrow^* w$ and
+$S \Rightarrow^* xhz$, then we have an entire
+class of languages called \textit{Determinisitic Context-Free Languages}
+
+\begin{definition}
+A Deterministic Context-Free Grammar (\ttt{DCFG}) $G = (V, \Si, R, S)$ is a 4-uple where:
+	\begin{itemize}
+		\item $(V, \Si, R, S)$ is a $\CFG$.
+		\item Given $w = xhy$ such that $S \Rightarrow^* w$, where $h$ is the handle
+		of $w$, then $h$ is the handle for all words $xhz \in L$, where $z \in \Sis$.
+	\end{itemize}
+\end{definition}
+
+$\DCFG$ are also called \ttt{LR}(0) Grammars, because it can
+be easily parsed from \texttt{L}eft-to-right, always taking the \texttt{R}ightmost
+leftmost-derivations (\textit{i.e.} leftmost reductions).
+
+\end{subsection}
+\begin{subsection}{Botton-up Parsing}
+
+With the idea of handles in mind, it is possible to design a greedy algorithm
+for reducing an input string $w$ of a $\DCFG$ $G = (V, \Sigma, R, S)$. Let $w = xhy$, where $h$ is the
+handle. Then there is some rule $A \rightarrow h \in R$, which will lead to the
+string $xAy$. Note that the string $y$ was never read so far. This new string
+may have another handle, say $h_2$ in $xA$, in which we \textbf{reduce} again
+using some production rule, or we may need to \textbf{shift} to the next caracter
+in trying to find the handle for the string. Therefore, we may get into a state
+$$u \bullet v$$
+where $u \in (V \cup \Sis)^*$ are the symbols currently \textit{on the stack},
+and $v \in \Sis$ are the characters in the input, which we never read so far.
+Note that $u$ may contain Nonterminal characters, because we may have already
+reduced strings before the $\bullet$ symbol.
+
+Once reading a character, we are interesting in how to detect that we have
+seen a handle to reduce. Therefore, we are interested in the elements of
+the following set:
+
+$$H_0 = \conj{xh}{S \Rightarrow^+ xhy, h \text{ is the handle of } xhy, x \in (V \cup \Si)^*, y \in \Sis}$$
+
+\cite{knuth1965translation} showed that this set is a \textit{regular language},
+meaning that there is a $\DFA$, say $\mathcal{DK} = (Q, V \cup \Si, \delta, s F)$, which
+recognizes $H_0$. Notice that $\mathcal{DK}$ runs on alphabet $V \cup \Si$.
+He also shows that every \textit{accept} state of the $\mathcal{DK}$ is related
+to a production rule of $G$, in which the algorithm should use to reduce the
+contents of the stack.
+
+Furthermore, \cite{sipser2012} shows that the construction of the
+\DFA can be used to test if the grammar is \DCFG by tracking two
+conflicts in its state machine:
+
 \begin{itemize}
-	\item $V$ is the set of \textit{Variables}, often named set of
-	\textit{Nonterminal} symbols.
-	\item $\Si$ is the alphabet, often named \textit{terminal} symbols.
-	\item $R \ssq V \times (\Si \cup V)^*$ is the set of \textit{derivation rules}.
-	\item $S \in V$ is the \textit{starting variable}
-	\item $V \cap \Si = \varnothing$
+	\item Shift/Reduce conflicts, when the parser can not decide when
+	to Shift (i.e. push next token onto stack) or to Reduce based on
+	some production rule.
+
+	\item Reduce/Reduce conflicts, when the parser can not decide which
+	rule to reduce to because there are two or more production rules
+	related to one $\mathcal{DK}$ accept state.
+\end{itemize}
+
+Implementation of this algorithm consists in showing a \DPDA that
+can be used to parse the input string. When reading the input string,
+the \DPDA also simulates a single character read of $\mathcal{DK}$,
+and push the current $\mathcal{DK}$ state on the stack. If
+$\mathcal{DK}$ reaches one of its accept state, it means that we
+found a handle associated with some production $A \rightarrow h$,
+in which we pop $|h|$ states from the \DPDA stack and ``emulates''
+the read of $A$ as the next read character, because a \DPDA can
+not return a character to its input, and proceed reading the input.
+If it reads the entire input string and ``emulate'' the reduction
+of the starting variable, it means that it is finished. This also
+shows that
+\begin{lemma}
+For every \DCFG there is an equivalent \DPDA
+\end{lemma}
+
+This before-mentioned \DPDA is the $\LR{0}$ algorithm.
+However, this algorithm is not so powerful just because it relies on
+\DCFG. For instance, this simple grammar $G_A = (V, \Si, R, S)$ such that
+$V = \{S, E, T\}, \Si = \{a, \times, +\}$, and $R$ be defined as the rules
+\begin{align}
+S &\rightarrow E \\
+E &\rightarrow E + T | T \\
+T &\rightarrow T \times a | a \\
+\end{align}
+
+\begin{lemma}\label{shift_reduce}
+	$G$ is not $\ttt{LR}(0)$.
+\end{lemma}
+\begin{proof}
+	Let $u = T \times a$ and $v = T$. Clearly, $S \Rightarrow^* u$ and
+	$S \Rightarrow^*v$. Since $u = v \times a$, then the handle of
+	$v$ must be equal the handle of $u$. However, the handle of $v$
+	is $E$ and the handle of u is $T$, which means that $G$ is not
+	\ttt{DCFG} and therefore can not be parsed with a $\LR{0}$
+	algorithm.
+\end{proof}
+
+Which means that this algorithm can not be used to parse even very simple
+grammars such as above, it will always face a Shift/Reduce conflict
+because on state $T\bullet$ it should reduce to $E$, however, when
+facing the input $T\bullet \times a$, it must shift.
+
+Fortunately, there are ways to expand this algorithm.
+Instead of only using the symbols that are currently on the stack for
+determining which rule to reduce, we could use the imediate next
+token on the input, the \textit{lookahead}, to decide what to do, \textit{i.e.},
+if shift or reduce. So, for instance, when facing the state
+$T\bullet \times a\$$, the parser should \textit{shift}, because
+$\times$ is the current lookeahead token, even if $T \in H_0$.
+However, on state $T\bullet + a$ and $T\bullet$, the parser should
+\textit{reduce} with regard to $E \rightarrow T$. This is exactly the
+idea behind the $\LR{1}$ parser. In fact, we can define
+
+\begin{definition}
+A $\CFG$ $G = (V, \Si, R, S)$ is $\LR{1}$ if given a string
+$w \in L(G)$ such that $w\$ = xhy \$$ with $S \Rightarrow^* w$, $h$ as
+handle, $x \in (V \cup \Si)^*$, $y \in \Sis$, and $ \$ \not\in \Si \cup V$,
+then $h$ is also the handle of $xhz\$ $ if shares the same first character of $y$, i.e.,
+$y = \sigma u$ and $z = \sigma v$.
+\end{definition}
+
+Therefore, when building the $\ttt{NFA}$ $\mathcal{DK}$, it must now also
+consider the first character imediately next of $\bullet$ in its computation.
+That is why the character $\$$ was added to the input string.
+With this change, \cite{sipser2012} proves that $G_A$ can be parsed with a
+$\LR{1}$ algorithm.
+
+Finally, these tests are widely implemented in \ttt{LR}(1) parser generators
+such as the GNU Bison \citep{manual21bison}. \ttt{LR}(1) parsers are widely
+used in practice, together with \texttt{LALR}(1) botton-up parser and the top-down,
+Recursive-Descent parser.
+
+\end{subsection}
+
+\begin{subsection}{Top-Down Parsing}
+
+Another way to parse a Context-Free Grammar is, instead of on input string $w$
+try to reduce back to the starting rule $S$, try to derive $w$ from $S$.
+A very common way of doing this in pratice is to employ an algorithm called
+Recursive-Descent.
+
+The Recursive-Descent is a technique used to parse any generic Context-Free
+Grammar that is free from left recursion, however \textit{backtracking} is
+necessary on several cases. It is also very simple to understeand, as there
+are less computer-theory background necessary to understeand how they operate
+and to implement by hand, without the use of any parse-generator tools.
+In fact, this is the parser algorithm used by GCC when compiling C, C++ and
+Objective-C, as well as the parser used in clang.
+
+Let $G = (V, \Si, R, S)$ be a Context-Free Grammar. In a Recursive Descent
+Parser, each $v \in V$ are represented as a function in a program, and
+that function is responsible to correctly match it derivation by looking
+the next input tokens. Here we are not limited to just one token of lookahead,
+however, the programmer should keep in mind that the more complex method
+he uses to determine which rule to derive to, the more he adds to the
+time complexity of the parser, and therefore it may not operate on $O(n)$,
+where $n$ is the size of the input.
+
+Here is an example of Recursive-Descent Parser. Let $G_A^2 = (V, \Si, R, S)$,
+where $V = \{S, E, T\}, \Si = \{+, \times, a\}$ and $R$ be defined as
+
+\begin{align}
+S &\rightarrow E \\
+E &\rightarrow T + E | T \\
+T &\rightarrow a \times T | a \\
+\end{align}
+
+Note that $G_A^2$ differs from $G_A$ just by the recursions in $E$ and $T$.
+We will show what happens if one tries to parse $G_A$ on these algorithms
+in the sequence, but in Figure \ref{recursive-descent} is a pseudocode for
+an algorithm that parses $G_A^2$. Note that the programmer must also take
+care of handling the syntax errors, and therefore this task can become
+very error-prone.
+
+\begin{figure}[ht]
+	\centering
+	\begin{lstlisting}[
+		language=pseudocode,
+		style=pseudocode,
+		style=wider,
+		functions={},
+		specialidentifiers={extern, TOKEN},
+		]
+		extern function syntax_error ();
+		extern function yylex ();
+
+		TOKEN current_token;
+		function next_token ()
+			current_token = yylex ();
+
+		function T ()
+			next_token ();
+
+			if (current_token != 'a')
+				syntax_error ();
+
+			next_token ();
+			if (current_token = '*')
+				T ();
+
+		function E ()
+			T ();
+			if (current_token = '+')
+				E ();
+				return;
+			
+			else if (current_token != EOF)
+				syntax_error ();
+		
+		function S ()
+			E ();
+	\end{lstlisting}
+\caption{Recusive-Descent parser for $G_A^2$}
+\label{fig:recursive-descent}
+\end{figure}
+
+Algorithm in Figure \ref{fig:recursive-descent} is able to recognize
+$G_2^A$. Now, what if we try to deploy such parsing algorithm for
+$G_2^A$? Figure \ref{fig:recursive_descent_2} presents what would be
+the function \texttt{E ()}. Notice that this function will call
+itself again right after
+it has been called. This is an infinite recursion which will lead the
+parser to an infinite loop or a crash due to an
+runtime stack overflow. Therefore, to deploy a Recursive-Descent parser,
+the following definition must hold for the grammar.
+
+\begin{figure}[ht]
+	\centering
+	\begin{lstlisting}[
+		language=pseudocode,
+		style=pseudocode,
+		style=wider,
+		functions={},
+		specialidentifiers={extern},
+		]
+		function E ()
+			E ();
+			if (current_token == '+')
+				T ();
+				return;
+			
+			else if (current_token != EOF)
+				syntax_error ();
+	\end{lstlisting}
+\caption{Parsing code for nonterminal $\protect E \in V$ of $\protect G_A$ }
+\label{fig:recursive_descent_2}
+\end{figure}
+
+\begin{definition}
+	Let $G = (V, \Si, R, S)$ be a Context-Free Language. $G$ is Free of
+	Left Recursions if, for every $A \in V$, there is no derivations
+	of the form
+	$$ A \Rightarrow^+ A \alpha$$
+	for any $\alpha \in (V \cup \Sigma)^*$
+\end{definition}
+
+Fortunately, there are algorithms for eliminating the left-recursion of
+\textit{any} \texttt{CFG}, but they are often eliminated by hand redesigning
+the grammar to avoid such problems, once $\ttt{LR}(1)$ parsers can also handle
+right recursions very well \citep{dragonbook}.
+
+There are also conditions in which an Recursive-Descent can be implemented
+without backtracking, which are the class of $\ttt{LL}(k)$ parsers,
+which we won't discuss as they are not powerful (for instance, every
+grammar that is $\ttt{LL}(k)$ is also $\ttt{LR}(k)$, but may not be otherwise),
+and they are not much used in practice.
+
+\end{subsection}
+\end{section}
+
+\begin{section}{Compiler Optimization Theory}
+
+Industrial compilers are what we call to be an ``Optimizer Compiler'', because
+it not only do a direct translation to another language, but because it
+tries to generate faster code than the input code created by the programmer
+while still maintaining its correctness.
+
+Given a program, there are two disjoint set of optimizations in which we
+operate on:
+\begin{itemize}
+	\item \textit{Architecture-Free Optimizations} -- Any optimization
+	\item \textit{Architecture-Dependent Optimizations}
+\end{itemize}
+
+\begin{subsubsection}{Three-Address Code Form}
+
+One issue with large expressions is that it is very hard to find common
+subexpressions and eliminate them. For instance, consider the mathematical
+expression
+$$y = x \times x + x \times x $$
+it is clear that this expression can be simplified to $y = 2x^2$, but how
+can a compiler know this? One could break this expression in the following
+statements sequence of statements:
+
+\begin{align}
+t_1 &= x \times x
+t_2 &= x \times x
+y &= t_1 + t_2
+\end{align}
+
+Now, some information is pretty evident here. First, is that $t_2 = t_1$,
+and therefore $t_2$ is a completely unnecessary variable, and can be
+eliminated from the program, which will lead to $y = t_1 + t_1$, which is
+evident that can be simplified further to $y = 2 \times t_1$, which will lead
+to the sequence of statements:
+
+\begin{align}
+t_1 &= x \times x
+y &= 2 \times t_1
+\end{align}
+which statisfy the following definition:
+\begin{definition}
+	A program is in Three-Adress Code (3AC) format if every expression is
+	in $c = a <op> b$ form, where $a, b, c$ are variables or
+	literal constants.
+\end{definition}
+
+\end{subsubsection}
+
+\begin{subsubsection}{Control-Flow Graph}
+	Programs consists of more than a linear sequence of statements, as there are
+	comparisons, jumps, loops, and function calls. Consider the program in
+	Figure \ref{fig:1-norm_program}. How can a compiler know that the statement
+	$\textit{sum} = 1$ has no effect at all in the program?
+
+\begin{figure}[ht]
+\centering
+  \begin{subfigure}[b]{0.40\textwidth}
+      \begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call},
+      ]
+        function norma_1(x[n])
+            sum := 0
+			i := 0
+            while (i < n) {
+                if (x[i] < 0)
+                    sum -= x[i]
+                else
+                    sum += x[i]
+				i := i + 1
+            }
+            return sum
+			sum := 1
+        end
+      \end{lstlisting}
+	  \label{fig:1-norm_program}
+	  \caption{Program that computes the 1-norm of a vector}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.40\textwidth}
+    \tikzstyle{line} = [draw, -latex]
+    \tikzstyle{node} = [draw, circle]
+    \begin{center}
+    \scalebox{0.5}{
+    \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
+        % Place nodes
+        \node [node]                    (source) {$s_0$};
+        \node [node, below of = source] (head) {for};
+        \node [node, below of = head]   (check) {if};
+        \coordinate[below of = check]            (c2);
+        \node [node, left of = c2]  (true) {true};
+        \node [node, right of = c2]   (false) {false};
+        \node [node, below of = c2]   (merge) {};
+        \node [node, left of = head]   (return) {return};
+        \coordinate[right of=false]    (c3);
+
+        % Draw edges
+        \draw[->]    (source)         -- (head);
+        \draw[->]    (head)           -- (check);
+        \draw[->]    (check)          -- (true);
+        \draw[->]    (check)          -- (false);
+        \draw[->]    (true)       -- (merge);
+        \draw[->]    (false)      --  (merge);
+        \draw    (merge.east) to [out=0, in=-90]  (c3);
+        \draw[->]    (c3) to [out=90, in=0]  (head);
+
+        \draw[->]    (head.west)  to [out=180, in=180] (return.east);
+    \end{tikzpicture}
+    }
+    \end{center}
+  \label{fig:1-norm_program:cfg}
+  \caption{Control-Flow Graph of the Program}
+  \end{subfigure}
+\end{figure}
+
+One interesting way of doing this is to model the behavior of the Control-Flow
+in the program, expliciting branches and jumps in the execution. In Figure
+\ref{fig:1-norm_program}, the first two statements $i := 0$ and
+$\textit{sum} = 0$ are always executed in the sequence, so there is no need to
+explicit any kind of jump between these two statements. However, the
+\texttt{if} and \texttt{else} will result in a \textit{flow-divergence}
+depending on the value of \texttt{x[i]}. This motivates the following
+definition
+\begin{definition}
+A \textbf{basic-block} is the maximum sequence of statements in which there is
+no flow-divergence.
+\end{definition}
+
+So, for instance, both statements $i := 0$ and $\textit{sum} = 0$ belongs
+to the same basic-block, as there are no \textit{flow-divergence} between
+those two statements. However, \texttt{if (x[i] < 0)} and \texttt{sum += x[i]}
+belongs to distinct basic-blocks. Figure \ref{fig:1-norm_program:cfg} shows
+the basic block for the program.
+
+\begin{definition}
+	A Control-Flow Graph (CFGraph) $G = (V, E, s_0, F)$ is a directed-graph,
+	where each $v \in V$ is a basic-block containing a list of statements,
+	an edge $(u, v) \in E \ssq V \times V$ if the flow can jump from
+	$u$ to $v$, $s_0 \in V$ is the source node, in which the execution
+	starts, and $F \ssq V$ is the set of end blocks, in which there
+	are no outgoing edges to other nodes.
+\end{definition}
+
+\end{subsubsection}
+
+\begin{subsection}{Posets and Lattices}
+
+One of the mathematical theories to model \textit{order between binary relations} is
+called \textit{Lattice Theory}. One clear example of order in mathematics
+is the set $\mathcal{Z}$ with the binary, partial order relation $\leq$. However,
+when the set in which we are working on is abstract, such order relation turn out to be
+convoluted. Nevertheless, finding such order in these abstract structures may be
+helpful, and in fact it is when analysing Control Flow Graphs.
+
+\begin{definition}
+A Partial Order $\sqsq$ over a set $S$ is a binary relation that is:
+\begin{itemize}
+	\item Reflexive: For all $s \in S$, $s \sqsq s$.
+	\item Transitive: For all $q, r, s \in S$, if $q \sqsq r$ and $r \sqsq s$, then
+	$q \sqsq s$.
+	\item Anti-Symmetric: For all $r, s \in S$, if $r \sqsq s$ and $s \sqsq r$,
+	then $r = s$.
+
+A partially ordered set (poset) denoted by $\mathcal{P} = (S, \sqsq)$, is a
+set $S$ with a partial order $\sqsq$. Furthermore, we say that $x \in \mathcal{P}$
+if and only if $x \in S$.
 \end{itemize}
 \end{definition}
 
+We can also define an operation on posets based on order, which is useful if
+it denotes the amount of information we currently have so far.
+
+\begin{definition}
+Let $\mathcal{P} = (L, \sqsq)$ be a poset. A subset $S \ssq L$ has an
+\textit{upper-bound} $l \in L$ if for every $r \in S$, then $r \sqsq l$.
+Furthermore, $l$ is the \textit{least upper-bound} if for every other
+upper-bound $x \in L$ of $S$, $r \sqsq x$.
+\end{definition}
+
+\begin{definition}
+Let $\mathcal{P} = (L, \sqsq)$ be a poset. A subset $S \ssq L$ has an
+\textit{lower-bound} $l \in L$ if for every $r \in S$, then $l \sqsq r$.
+Furthermore, $l$ is the \textit{greatest lower-bound} if for every other
+lower-bound $x \in L$ of $S$, $x \sqsq r$.
+\end{definition}
+
+\begin{definition}
+The binary \textit{join} operator, denoted as $l \sqcup r$, is the
+least upper-bound of the subset $\{r, s\}$ of a poset $\mathcal{P}$.
+\end{definition}
+
+\begin{definition}
+The binary \textit{meet} operator, denoted as $l \sqcap r$, is the
+greatest upper-bound of $\{r, s\}$ of a poset $\mathcal{P}$.
+\end{definition}
+
+One can clearly see that both $\sqcup$ and $\sqcap$ satisfact the
+following three properties:
+
+\begin{itemize}
+	\item Idempotence: For all $r \in S$: $r \sqcup r = r$, and $r \sqcap r = r$ 
+	\item Commutativity: For all $r, l \in S$: $l \sqcup r = r \sqcup l$, and
+	$l \sqcap r = r \sqcap l$
+	\item Associativity: For all $l, r, s \in S$: $(l \sqcap y) \sqcap s = l \sqcap (r \sqcap s)$
+\end{itemize}
+
+%Now, a desired condition to have in a poset is the \textit{ascending chain} (or
+%\textit{descending chain}, according to the analysis) condition, so that we know
+%that we know that eventually the propagation in the graph stabilizes.
+%
+%\begin{definition}
+%A totally ordered chain $S = {s_1, s_2, \cdots}$ of a poset $\mathcal P$ is a
+%\textit{ascending chain} if given two integers $1 \leq i \leq j$, then
+%$s_i \sqsq s_j$. Analogously, $S$ is a \textit{descending chain} if
+%$x_j \sqsq x_i$.
+%\end{definition}
+
+Notice that for a poset, the result of both $\sqcup$ and $\sqcap$ is not
+required to be in the poset (\textit{i.e.} the operation is not closed).
+That is the main difference between a poset and a \textit{lattice}.
+
+%\begin{definition}
+%	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{lattice} if for every
+%	non-empty finite subset $S \ssq L$, both $\left(\bigsqcup_{s \in S} s\right) \in L$
+%	and $\bigsqcap_{s \in S} s \in L$.
+%\end{definition}
+%
+%\begin{definition}
+%	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{complete lattice} if
+%	for every subset $S \ssq L$, both $\left( \bigsqcup_{s \in S} s \right) \in L$
+%	and $\left(\bigsqcap_{s \in S} s \right) \in L$.
+%\end{definition}
+
+It is also useful to denote the greatest and the smallest element of a complete lattice.
+
+\begin{definition}
+	The \textbf{top} element of a lattice $\mathcal{L}$ is $\top = \bigsqcup_{l \in \mathcal{L}} l$. Similarly, the \textbf{bottom} element is $\bot = \bigsqcap_{l \in \mathcal{L}} l$.
+\end{definition}
+
+However, it is not required to work on a complete lattice. A meet semi-lattice is
+enough to define a dataflow framework.
+
+\begin{definition}
+	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{meet semi-lattice} if
+	for every non-empty subset $S \ssq L$, $\left(\bigsqcap_{s \in S} s \right) \in L$.
+\end{definition}
+
+
+In the same way that functions can be defined in $\mathbb{R}$, we can also
+define functions over a lattice. From all functions that could be defined
+over a lattice, we are interested in monotone functions, which helps ensuring
+that some analysis ends with a result.
+
+\begin{definition}
+	A function $f:\mathcal{L} \longrightarrow \mathcal{L}$ is monotonic if and only if
+	for $x, y \in \mathcal{L}$:
+	$$x \sqsq y \Rightarrow f(x) \sqsq f(y)$$.
+\end{definition}
+
+\end{subsection}
+
+\begin{subsection}{Dataflow Analysis}
+	When analysing a program's function, it is useful to know in a certain point,
+	what properties do hold in order to decide for an optimization. Incorrectly
+	guessing some property may result in an incorrect transformation. Therefore,
+	it is useful to employ a way to propagate information across the Control Flow
+	Graph of a function. This is where Dataflow Analysis is useful.
+
+	Dataflow Analysis is a technique to collect and propagate information across a
+	Control-Flow Graph. It is used not only in compilers, but also in static
+	code analysis in general.
+
+	Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct
+	a complete or meet lattice $\mathcal{L}$, which represents a set of
+	possible information that is true in a certain point of a program.
+	Then, we define a set of \textit{flow functions}
+	$\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$, where $f_v: \mathcal{L} \longrightarrow \mathcal{L}$,
+	for each node $v \in V$. These functions will generate, destroy, or transform information contained in each vertex of the graph. These functions must be of the form of \textit{forward
+	analysis}, which yields Equation \ref{eq:forward}, or \textit{backward analysis},
+	which yields Equation \ref{eq:backward}.
+
+\begin{equation}\label{eq:forward}
+	\texttt{in[} v \texttt{]} = \begin{cases}
+	  BI,& \text{if } v = s_0 \\
+	  \bigsqcap_{p \in \text{pred}(v)}f_p(\texttt{in[}p\texttt{]}) ,& \text{otherwise} \\
+	\end{cases}
+\end{equation}
+
+\begin{equation}\label{eq:backward}
+	\texttt{out[} v \texttt{]} = \begin{cases}
+	  BI,& \text{if } v \in F \\
+	  \bigsqcap_{p \in \text{succ}(v)}f_p(\texttt{out[}p\texttt{]}) ,& \text{otherwise} \\
+	\end{cases}
+\end{equation}
+
+	Equations \ref{eq:forward} and \ref{eq:backward} can be solved by
+	\textit{propagation}, that is, just apply the equation to each vertex until
+	there is no more new information being generated or destroyed (in other
+	words, the equation \textit{converges}). Some tricks can be employed for a faster
+	convergence, \textit{e.g.}, start propagation from $s_0$ in
+	forward analysis, and from any $v \in F$ in the backward analysis.
+	Algorithms for solving in general way can be found in
+	\citep{khedker2009data}.
+
+	Figure \ref{fig:functions_dataflow} illustrates how each function of $\mathcal{F}_G$
+	are related to each node of the $G$. Furthermore, Figure \ref{fig:meet_dataflow}
+	illustrates how the meet operator $\bigsqcap$ is used to combine the information
+	generated by the predecessors and send to the sucessors of a node, for
+	the \textit{forward analysis} case.
+
+\begin{figure}[ht]
+\centering
+  \begin{subfigure}[b]{0.40\textwidth}
+	 \includegraphics[scale=0.2]{functions_dataflow.png}
+	  \label{fig:functions_dataflow}
+	  \caption{Dataflow Flow Functions. One for each vertice of $G$. \citep{khedker2009data}}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.40\textwidth}
+	 \includegraphics[scale=0.2]{meet_dataflow.png}
+	  \label{fig:meet_dataflow}
+	  \caption{Meet operation on a vertice, combining the generated information. \citep{khedker2009data}}
+  \end{subfigure}
+  \label{fig:dataflow}
+\end{figure}
+
+	Therefore, in abstract ways, we can define a dataflow framework instance as
+	\begin{definition}
+		An instance of dataflow framework is a 4-uple $(G, \mathcal{L}, \sqcap, \mathcal{F}_G)$,
+		where
+		\begin{itemize}
+			\item $G = (V, E, s_0, F)$ is a Control-Flow Graph.
+			\item $\mathcal{L}$ is a meet semitlattice satysfying the descending chain condition.
+			\item $\bigsqcap$ is the meet operator of $\mathcal{L}$.
+			\item $\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$ is the set of monotonic transfer
+			functions, one for each node $v \in V$, of the form of Equation (\ref{eq:foward}) or (\ref{eq:backward}).
+		\end{itemize}
+	\end{definition}
+
+	
+
+	\begin{subsubsection}{Liveness Analysis}
+		One example of problem that can be solved with dataflow analysis is the \textit{liveness analysis},
+		which is useful in the register selection phase. The purpose of this is to find, given a point
+		in a CFGraph, if a certain variable will be used in the future. \cite{khedker2009data} defines the liveness analysis formaly as:
+\begin{definition}
+	Let $G = (V, E, s_0, F)$ be a CFGraph and $\mathbb{V}$ be the set of all variables
+	of $G$. A variable $x \in \mathbb{V}$ is \textbf{live} at a program point $v \in V$
+	if there exists a path from $v$ to $w \in F$ which contains a use of $x$ which is
+	not preceeded by its definition.
+\end{definition}
+
+Therefore, a CGraph $G$, a dataflow framework instance for this would be:
+$(G, \mathcal{L}, \bigsqcap, \mathcal{F}_G)$, where
+\begin{itemize}
+	\item $\mathcal{L} = (2^\mathbb{V}, \ssq)$, where $\mathbb{V}$ is the set of variables in the function represented by $G$.
+	\item $\bigsqcap$ is the union operator $\bigcup$.
+	\item $F_G = \conj{\texttt{in[} v \texttt{]}}{v \in V}$ where
+	$\texttt{in[} v \texttt{]} = (\texttt{out[} v \texttt{]} - \texttt{kill[} v \texttt{]}) \cup \texttt{gen[} v \texttt{]}$.
+\end{itemize}
+which yields the dataflow equation:
+\begin{equation}\label{eq:liveness}
+\begin{split}
+	\texttt{in[} v \texttt{]} &= (\texttt{out[} v \texttt{]} - \texttt{kill[} v \texttt{]}) \cup \texttt{gen[} v \texttt{]} \\
+	\texttt{out[} v \texttt{]} &= 
+	\begin{cases}
+	  \emptyset,& \text{if } v \in F \\
+	  \bigcup_{p \in \text{succ}(v)}\texttt{in[}p\texttt{]} ,& \text{otherwise} \\
+	\end{cases}
+\end{split}
+\end{equation}
+
+In this equation, $\texttt{gen[} v \texttt{]}$ represents the variables which turns
+to be line at vertex $v$, and $\texttt{kill[} v \texttt{]}$ are the variables which
+liveness are no longer valid at vertex $v$. For instance, consider the CFGraph
+in Figure \ref{fig:cfg_liveness}. Here, we work on the set $\mathbb{V} = \{a, b, c, d\}$.
+Solving Equation \ref{eq:liveness} using the propagation tecnique, simulated in Table
+\ref{fig:table_cfg}. There, for instance, we can see that $d$ is not used anywhere
+in the program because $d \not\in \ttt{out[}n_1\ttt{]}$.
+
+\begin{figure}
+\centering
+	 \includegraphics[scale=0.3]{cfg_liveness.png}
+	  \caption{Example of CFGraph of a program function \citep{khedker2009data}.}
+	  \label{fig:cfg_liveness}
+\end{figure}
+
+\begin{table}[]
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multirow{3}{*}{Vertex} & \multicolumn{2}{c|}{\multirow{2}{*}{Local Generation}}  & \multicolumn{4}{c|}{Global Information}                             \\ \cline{4-7} 
+                        & \multicolumn{2}{c|}{}                                   & \multicolumn{2}{c|}{Iteration 1} & \multicolumn{2}{c|}{Iteration 2} \\ \cline{2-7} 
+                        & $\texttt{gen[}n\ttt{]}$                        & $\ttt{kill[}n\ttt{]}$                   & $\ttt{out[}n\ttt{]}$             & $\ttt{in[} n\ttt{]}$             & $\ttt{out[}n\ttt{]}$             & $\ttt{in[} n\ttt{]}$            \\ \hline
+$n_8$                   & $\{a, b, c\}$                & $\emptyset          $            & $\emptyset$               & $\{a, b, c\}$    & $\emptyset          $     & $\{a, b, c\}$    \\ \hline
+$n_7$                   & $\{a, b\}$                   & $\emptyset          $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b, c\}$    \\ \hline
+$n_6$                   & $\{b, c\}$                   & $\emptyset          $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b, c\}$    \\ \hline
+$n_5$                   & $\{a, b\}$                   & $\{d\}      $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b, c\}$    \\ \hline
+$n_4$                   & $\{a, b\}$                   & $\{c\}      $            & $\{a, b, c\}$     & $\{a, b\}   $    & $\{a, b, c\}$     & $\{a, b\}   $    \\ \hline
+$n_3$                   & $\{b, c\}$                   & $\{c\}      $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b\}   $    \\ \hline
+$n_2$                   & $\{a, c\}$                   & $\{b\}      $            & $\{a, b, c\}$     & $\{a, c\}   $    & $\{a, b, c\}$     & $\{a, c\}   $    \\ \hline
+$n_1$                   & $\{c\}   $                   & $\{a, b, d\}$            & $\{a, b, c\}$     & $\{c\}      $    & $\{a, b, c\}$     & $\{c\}      $    \\ \hline
+
+\end{tabular}
+\caption{Solving the Equation \ref{eq:liveness} for Figure \ref{fig:cfg_liveness} 
+\citep{khedker2009data}.}
+\label{fig:table_cfg}
+\end{table}
+
+\end{subsubsection}
+
+\end{subsection}
+
+\begin{subsection}{Dominator Tree}
+	One data structure used on optimization are
+	\textit{dominator trees}. First we must define what \textit{domination} means:
+
+	\begin{definition}
+		Let $G = (V, E, s_0, F)$ be a Control-Flow Graph and $u, v \in V$. We say
+		that $u$ \textbf{dominates} $v$ if every path from $s_0$ to $v$ go through
+		$u$.
+	\end{definition}
+
+	That means that if some node $u$ dominates $v$, then it is certain that, in
+	the current thread, the code in $u$ will be executed before $v$.
+	\cite{georgiadis2006finding} presents a forward dataflow equation
+	to compute the set of all dominators of a node:
+
+
+\begin{equation}\label{eq:domtree_dataflow}
+\begin{split}
+	\texttt{dom[} v \texttt{]} &= 
+	\begin{cases}
+	  \{v\},& \text{if } v = s_0 \\
+	  \left(\bigcap_{p \in \text{pred}(v)}\texttt{dom[}p\texttt{]}\right) \cup \{v\} ,& \text{otherwise} \\
+	\end{cases}
+\end{split}
+\end{equation}
+
+	However, instead of solving Equation \ref{eq:domtree_dataflow}
+	every time we want to know if there is such dominance, or avoid
+	holding a table containing \textit{every} dominator of a node,
+	it is convenient to build a data structure that can quickly query
+	such information. Such data structure is the \textit{dominator tree}
+	of a CFGraph. Figure \ref{fig:domtree} presents the dominator tree of the CFGraph
+	presented in Figure \ref{fig:cfg_liveness}.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[sibling distance=3em,
+  every node/.style = {shape=circle,
+    draw, align=center}]]
+  \node {$n_1$}
+    child { node {$n_2$} }
+    child { node {$n_3$}
+      child { node {$n_4$} }
+      child { node {$n_5$}
+        child { node {$n_6$} } }
+      child { node {$n_7$} } }
+  	child { node {$n_8$} };
+\end{tikzpicture}
+\caption{Dominator tree of Figure \ref{fig:cfg_liveness}}
+\label{fig:domtree}
+\end{figure}
+
+
+	Dominator trees are often used to build the Static Single Form
+	(SSA) of a CFGraph, and to detect loops in the Control-Flow
+	Graph. \cite{appel2004modern} provides algorithms to detect
+	loops using the CFGraph, which is useful when the language
+	supports \texttt{goto}s. A faster algorithm
+	(but complexier than the dataflow equation) algorithms to build
+	the Dominator tree of a CFGraph is presented by
+	\cite{georgiadis2006finding}.
+
+\end{subsection}
+
+
+\begin{subsection}{Static Single Assignment Form (SSA)}
+
+Consider the following sequence of statements:
+\begin{align}
+x &= 2 \nonumber \\
+y &= x \times x \nonumber \\
+y &= y + 1 \nonumber \\
+y &= 1 \nonumber
+\end{align}
+
+Clerly, the second and third statements can be discarded, and the first
+and last statement can be discarded as well if there are no further use of $x$ and
+$y$ in the program. However, how can the compiler know that? SSA form make
+this clear. The idea is that variables can not be redefined, only new variables
+can be created, which motivates the following defition.
+
+\begin{definition}
+	A program is in SSA form if there are at least one assignment for each
+	variable.
+\end{definition}
+
+How can we represent the presented sequence of statement in this form then?
+Create a new variable for each left-hand-side of the assignment
+
+\begin{align}
+x &= 2 \nonumber \\
+y_1 &= x \times x \nonumber \\
+y_2 &= y_1 + 1 \nonumber \\
+y_3 &= 1 \nonumber
+\end{align}
+
+This will lead to the variable $y_2$ being unused because it is nowhere present
+on the left-hand-side of any assignment, meaning that it can be discarded;
+which will then imply that $y_1$ will be unused and can be discarded as well.
+
+However, SSA form can get trickier to implement if there are jumps in the
+programs, which is often the case with \texttt{if} and \texttt{while}
+statements. In Figure \ref{fig:code_normal}, the value of \texttt{u}
+depends upon which path the execution was taken, which depends on the
+\textit{condition}. The solution fot this is to introduce a $\phi$
+function, which will select the correct variable. Figure \ref{fig:code_ssa_form}
+illustrates this.
+
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.40\textwidth}
+
+        \begin{lstlisting}[
+            language=pseudocode,
+            style=pseudocode,
+            style=wider,
+            functions={},
+            specialidentifiers={extern, call},
+            ]
+            if (condition) then
+                a = -1;
+            else
+                a = 1;
+            end
+            u = a*v;
+        \end{lstlisting}
+        \caption{\label{fig:code_normal}}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.40\textwidth}
+        \begin{lstlisting}[
+                language=pseudocode,
+                style=pseudocode,
+                style=wider,
+                functions={},
+                specialidentifiers={extern, call, PHI},
+              ]
+            if (condition) then
+                $a_1$ = -1;
+            else
+                $a_2$ = 1;
+            end
+            $a_3$ = $\phi$($a_1$, $a_2$)
+            u = $a_3$*v;
+        \end{lstlisting}
+        \caption{\label{fig:code_ssa_form}}
+\end{subfigure}
+\caption{A program (a) and its SSA representation (b)}
+\end{figure}
+
+However, this illustration explains little about when to
+place $\phi$ functions. A way of determine it is to use
+the \textit{dominance frontier criteria}
+
+\begin{definition}
+	Let $G = (V, E, s_0, F)$ be a CFGraph and $u, v \in V$. We say that
+	$u$ \textbf{strictly dominates} $v$ if $u$ dominates $v$, but
+	$u \neq v$. We denote that $u$ idom $v$.
+\end{definition}
+
+\begin{definition}
+	The \textbf{dominance frontier} of a node $x \in V$ is the set of all nodes $w \in V$
+	such that $x$ dominates a predecessor of $w$, but does not strictly dominate $w$ \citep{appel2004modern}.
+	Or, in set theory notation:
+\end{definition}
+\vspace*{-1cm}
+	$$\texttt{dfront[}x\texttt{]} = \conj{w \in V}{x \text{ dom } y \text{ for some } y \in \text{pred}(w) \text{ and } y \text{ does not sdom } w}$$
+
+This definition looks blury, but it can be easily understeand as the
+\textit{border of nodes where the dominance stops}.  Figure \ref{fig:dom_frontier} illustrates this
+concept with a plot of the dominated nodes of $v_5$ in the beige area, and the dominance frontier
+in the green area.
+
+\begin{figure}[ht]
+ \centering
+ \includegraphics[scale=1.0]{dom_frontier.pdf}
+ \caption{Dominance frontier of node $v_5$. Beige is dominated by $v_5$. Green is in dominance frontier of $v5$.}
+ \label{fig:dom_frontier}
+\end{figure}
+
+The criteria to place $\phi$-functions are the following: When a node $x$ contains a defintion
+of a variable $a$, then any node $z$ in the dominance frontier of $x$ needs a $\phi$ function
+for $a$ \cite{appel2004modern}.
+
+\end{subsection}
+
+\begin{section}{Callgraphs and Inter-Procedural Analysis}
+
+Some optimizations requires interaction with other functions, one clear example
+of this are \textit{function inlining}. When there is a function call, the
+call itself consumes time, and therefore it may be interesting to copy and
+paste the content of the function being called and remove the call at all.
+Therefore, a data structure is required to model the interactions between
+functions.
+
+That is the purpose of a \textit{callgraph}: each vertex denotes a function,
+and each edge represents a call between two functions. 
+
+\begin{definition}
+	A callgraph is a graph $G = (V, E)$, where $V = \{f_1, f_2, \cdots, f_{|V|}\}$
+	are the set of functions, and $E = \conj{(u, v)}{u, v \in V}$ are the set
+	of edges representing a function call. Given $e = (u, v) \in E$, this means
+	that $u$ calls $v$. $u$ is the caller function, and $v$ is the callee function.
+\end{definition}
+
+Figure \ref{fig:call_graph} gives an example of a callgraph. When applying
+Inter-Procedural Optimizations, each vertex can also hold some sort of
+\textit{summary} of the function instead the entire function, because often
+the program being compiled is large enough that there is not enough memory
+to hold the contents of the functions. This is the case when working with
+the Link Time Optimization technique.
+
+There are some extenstions to the dataflow frameworks to work on Inter-Procedural
+Optimizations \citep{khedker2009data}, however their require complete information
+about the function in memory, which may not be present in this stage on compilers
+such as GCC \citep{gcc_ipa}.
+
+\begin{figure}[ht]
+\centering
+  \begin{subfigure}[b]{0.40\textwidth}
+      \begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call},
+      ]
+        extern function g,h
+
+        function f()
+            call $g$
+            call $h$
+        end
+
+        function main()
+            call $f$
+            call $h$
+        end
+      \end{lstlisting}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.40\textwidth}
+    \tikzstyle{line} = [draw, -latex]
+    \tikzstyle{node} = [draw, circle]
+    \begin{center}
+    \scalebox{1.0}{
+    \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
+        % Place nodes
+        \node [node]                    (main) {\texttt{main}};
+        \node [node, below of = main]        (f) {\texttt{f}};
+        \node [node, below of = f]           (g) {\texttt{g}};
+        \node [node, right of = f]           (h) {\texttt{h}};
+
+        % Draw edges
+        \draw[->]    (main)           -- (f);
+        \draw[->]    (f)              -- (g);
+        \draw[->]    (f)              -- (h);
+        \draw[->]    (main)           -- (h);
+    \end{tikzpicture}
+    }
+    \end{center}
+  \end{subfigure}
+  \caption{Um programa e seu respectivo grafo de chamada de funções}
+  \label{fig:call_graph}
+\end{figure}
+
+\begin{subsection}
+
+
+\end{subsection}
 
 \end{section}
 
-\begin{section}{Compilers}
+\end{section}
+
+\begin{section}{Software Engineering in Compilers}
 
 %Para evitar confusões a respeito das diferentes linguagens que um compilador
 %trabalha em seus muitos estágios, é adotado a seguinte nomenclatura neste trabalho:
@@ -629,203 +1781,56 @@ another.  Lexical Analysers can also be used for macro expansion, as
 implemented in the C preprocessor
 (CPP)\footnote{https://gcc.gnu.org/onlinedocs/cppinternals/Lexer.html}.
 
-Geralmente, os Analisadores Léxicos são implementados utilizando autômatos
-por diversos motivos, entre eles sua atrativa complexidade computacional
-$O(n)$, onde $n$ é o tamanho da entrada, pela existência de algoritmos
-para converter expressões regulares em autômatos \citep{thompson}, e pela
-existência de algoritmos para minimização de estados de um autômato
-\citep{hopcroft1971n}. Isto possibilita que geradores de analisadores léxicos
-como o \texttt{Flex}\footnote{https://www.gnu.org/software/flex/}
-sejam bastante eficientes.
+%Geralmente, os Analisadores Léxicos são implementados utilizando autômatos
+%por diversos motivos, entre eles sua atrativa complexidade computacional
+%$O(n)$, onde $n$ é o tamanho da entrada, pela existência de algoritmos
+%para converter expressões regulares em autômatos \citep{thompson}, e pela
+%existência de algoritmos para minimização de estados de um autômato
+%\citep{hopcroft1971n}. Isto possibilita que geradores de analisadores léxicos
+%como o \texttt{Flex}\footnote{https://www.gnu.org/software/flex/}
+%sejam bastante eficientes.
 
-Usually, Lexical Analysers are implemented using Automatas for several reasons,
-such as an attractive computational complexity of $O(n)$, where $n$ is the
-input size, the existence of algorithms to convert a regular expression to an
-Automata \citep{thompson}, and by the existence of algorithms to minimize the
-size of the Automata \citep{hopcroft1971n}. This allows that automatic Lexical
-Analysers generators such as
-\textit{Flex}\footnote{https://www.gnu.org/software/flex/} be extremely
-efficient.
-
+Usually, Lexical Analysers are implemented using $\DFA$, in which each
+acceptance state corresponds to a generated token. This yields a fast,
+$O(n)$ algorithm for detecting tokens in the code, which will be feeded
+to the Lexical Analyser. There are even Lexical Analyser Generators such
+as \textit{Flex}\footnote{https://www.gnu.org/software/flex/}, which
+are extremelly efficient.
 
 Together with the Lexical Analyser, a Syntactic Analyzer is responsible to
 generate an Abstract Syntax Tree (AST), inspecting the sequence of tokens
-provided by the Lexical Analyser. In this process, it certifies that the Input
-Code respects the language's grammar, pointing errors otherwise.
+provided by the Lexical Analyser, or point out why the input string is
+not valid. The objective of a Syntatic Analyser is to construct
+an Abstract Syntax Tree (AST) by keeping track of the reduction decisions
+(in the case of the Botton-Up parser such as $\LR{1}$) or the derivation
+decisions (which is the case of a Top-Down parser such as Recursive-Descent)
+of the input string. The decision of doing type analysis, checking for
+undefined usage of variables, etc, can be done while building this
+AST, or postergated to a next stage, called the Semantic Analysis,
+which is still part of the Front-End.
 
-
-%    Em conjunto com o Analisador Léxico, o analisador sintático é
-%responsável por gerar a Árvore de Sintaxe Abstrata (AST), inspecionando a
-%sequência de \textit{tokens} fornecida pelo Analisador Léxico. Neste processo,
-%ele certifica-se de que o código fonte respeita a gramática da linguagem,
-%apontando erros caso contrário.
-
-Syntactic Analysers relies on Nonambiguos Grammars that generates a
-deterministic Context-Free Language, once general grammars require more
-computationally expensive algorithms \citep{sipser2012}.  There are several
-algorithms to realize this analysis, but we must highlight:
-
-%    Analisadores Sintáticos se apoiam nas gramáticas não ambíguas que geram uma
-%linguagem livre de contexto determinística, isto porque gramáticas mais
-%poderosas requerem algoritmos computacionalmente mais custosos
-%\citep{sipser2012}.
-%Existem vários algoritmos para realizar a análise sintática,
-%mas destacam-se:
-\begin{itemize}
-%	\item Recursivo Descendente: Um algoritmo de caráter preditivo, que tenta
-%	    construir a AST da raiz para as folhas. Uma característica desse algoritmo
-%		é a sua facilidade de codificação, que utiliza chamadas de funções para
-%		armazenar o contexto atual e progredir na análise conforme as regras da
-%		gramática. Seu uso é devido a facilidade de codificação e mensagens de
-%		erro mais informativas para o usuário.
-
-\item Recursive Descent: A predictive algorithm, which tries to match the
-grammar from the root to the leaves. Here, every non-terminal token is
-represented as a function, which we can simply call when reducing a rule. This
-results in a easy to implement algorithm, however, it has some limitations.
-
-For instance, assume that a grammar G have the following rule:
-$$A \rightarrow Aw $$
-
-A code to parse this rule would be implemented as:
-
-% void A () {
-%   A ();
-%   // more code...
-% }
-
-Which would result in an infinite loop. In fact, when implementing a Recursive
-Descent algorithm to parse a certain grammar G, it must be free of
-left-recursion.
-
-    \item LL($k$) -- \textit{Left to Right, Leftmost Derivation, k lookahead}: Outro algoritmo de caráter preditivo, que tenta construir a AST da
-        raiz para as folhas. Aqui o algoritmo usa uma máquina de estados em conjunto
-		com uma pilha para armazenar o contexto atual. Sua codificação é mais
-		complexa que o anterior, e as mensagens de erro costumam ser mais precárias.
-
-    \item LR($k$) -- \textit{Left to Right, Rightmost Derivation, k lookahead}: Um algoritmo que tenta construir a AST das folhas para a raiz.
-		  Assim como o LL($k$), este algoritmo também utiliza uma máquina de estados
-		  em conjunto com uma pilha. Apesar de sua codificação ser mais complicada,
-          esse algoritmo é capaz de processar gramáticas mais complexas que
-          o LL($k$), conforme proposto por \cite{knuth1965translation}.
-          Outra vantagem interessante é a existência de
-          \textit{softwares} como o
-          \texttt{Bison}\footnote{https://www.gnu.org/software/bison/}, capaz
-          de gerar um analisador LR($1$) a partir da especificação da gramática.
-\end{itemize}
-	A complexidade dos analisadores LL($k$) e LR($k$) é $O(n)$, onde $n$ 
-	é o tamanho da entrada. Já o Recursivo Descendente a complexidade pode variar
-	dependendo da implementação.
-    Por fim, uma descrição mais detalhada do funcionamento destes algoritmos
-pode ser encontrada em \citep{appel2004modern}.
-
-    Uma vez gerada a AST, é possível fazer verificações extras de semântica
-relacionada a linguagem de programação. Em seguida, essa AST normalmente é
-traduzida para uma Linguagem Intermediária, onde serão feitas otimizações
-independentes da linguagem alvo no código. Por fim, o controle é passado
-para o \textit{Middle End} do compilador.
+After the AST is generated and the Semantic Analsysis are completed, it is
+often converted to an Intermediate Representation (IR), where Target-Independent
+Optimizations are performed. This yields the control to the Middle-End of
+the compiler.
 
 \end{subsection}
 
-\begin{subsection}{\textit{Middle End}}
+\begin{subsection}{Middle End}
 
-    O \textit{Middle End} é responsável por trabalhar em uma ou mais
- Linguagens Intermediárias do compilador, com a finalidade de efetuar
-otimizações no código e possíveis verificações de erro que possam ser
-postergadas até essa fase. Essas linguagens devem ser projetadas
-de maneira a capturar a semântica da Linguagem Fonte, na qual o programa original foi
-escrito.
+The Middle-End is responsible to work on one or more Intermediate Representations
+(IR) of the compiler. If there are checks which can be postponed in the Front-End
+to this stage, it is preferible, once it avoids these checks on every Source
+Langue's Front-End.
+
+There are several representations for a IR, however, we will focus on those
+used in GIMPLE to avoid extending this text unecessary.
+
 Existem várias representações convenientes para a Linguagem Intermediária,
 mas destaca-se para fins de otimização
 a \textit{Three-Address Code}, que normalmente é usada em conjunto com
 a \textit{Static Single Assignment} (SSA).
 
-\begin{subsubsection}{\textit{Three-Address Code}}
-
-Nesta representação, expressões como $a*x + b$ são
-representadas como:
-$$ t_1 = a*x$$
-\vspace{-1cm}
-$$ t_2 = t_1 + b $$
-ou seja, todas as expressões são transformadas em uma sequência de expressões
-contendo apenas dois operandos e uma operação de atribuição. Para isso,
-novas variáveis são declaradas para conter os valores intermediários
-possibilitando também a remoção de sub-expressões em comum. Também nesta
-linguagem, fluxo de código e laços são transformados em uma sequência de
-\texttt{if}s e \texttt{goto}s para facilitar a construção de um grafo de
-controle de fluxo, possibilitando análises nessa estrutura.
-
-Esta representação é demasiada útil por facilitar o processo de alocação
-de registradores, uma vez que nela, a maneira de como os processadores
-operam instruções aritméticas é representada com fidelidade\citep{lattner2002llvm}.
-
-\end{subsubsection}
-\begin{subsubsection}{\textit{Static Single Assignment}}
-
-O \textit{Static Single Assignment} (SSA) é uma linguagem intermediária
-onde uma variável é atribuída uma única vez. Sendo assim, toda vez que
-uma variável no código original é modificada, é necessário crar na representação SSA uma
-nova variável para registrar essa atribuição. Isto facilita diversas
-otimizações no controle de fluxo do programa, assim como possibilita a remoção
-de variáveis não utilizadas ou que não serão mais utilizadas em um
-trecho de código, processo conhecido como \textit{Liveness Analysis}.
-
-Entretanto, quando essa representação é
-usada em conjunto com um fluxo de execução, como \texttt{if-else}, isso pode gerar um problema. Considere o código
-na Figura \ref{fig:code_normal}. Neste código há dois valores possíveis para
-$a$ quando a expressão $u = a*v$ for executada, sendo necessário
-anotar qual versão de $a$ utilizar. A solução é introduzir uma
-função $\phi$, que seleciona a variável corretamente utilizando a informação
-do arco usado para se chegar no bloco contendo a sentença com a função $\phi$,
-conforme ilustrado na Figura \ref{fig:code_ssa_form}.
-
-\begin{figure}[ht]
-    \centering
-    \begin{subfigure}[b]{0.40\textwidth}
-
-        \begin{lstlisting}[
-            language=pseudocode,
-            style=pseudocode,
-            style=wider,
-            functions={},
-            specialidentifiers={extern, call},
-            ]
-            if (condition) then
-                a = -1;
-            else
-                a = 1;
-            end
-            u = a*v;
-        \end{lstlisting}
-        \caption{\label{fig:code_normal}}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.40\textwidth}
-        \begin{lstlisting}[
-                language=pseudocode,
-                style=pseudocode,
-                style=wider,
-                functions={},
-                specialidentifiers={extern, call, PHI},
-              ]
-            if (condition) then
-                $a_1$ = -1;
-            else
-                $a_2$ = 1;
-            end
-            $a_3$ = $\phi$($a_1$, $a_2$)
-            u = $a_3$*v;
-        \end{lstlisting}
-        \caption{\label{fig:code_ssa_form}}
-\end{subfigure}
-\caption{Um programa (a) e sua representação em SSA em (b)}
-\end{figure}
-
-Quanto a implementação de SSA em compiladores, \cite{cytron1991efficiently}
-discute com detalhes os algoritmos para construir tal representação. Já
-\cite{appel2004modern} discute tal representação em alto nível, evidenciando
-possíveis otimizações nesta representação.
-
-\end{subsubsection}
 
 \begin{subsubsection}{Otimizações Independente de Arquitetura}
 

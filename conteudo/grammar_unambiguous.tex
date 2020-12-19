@@ -1,0 +1,8 @@
+%This is here because VIM coloring glitches with this input.
+
+\begin{align}
+\textit{stmt} &\rightarrow \textit{matched\_stmt} \text{ | } \textit{open\_stmt} \\
+\textit{matched\_stmt} &\rightarrow \textbf{if } \textbf{(}\textit{expr}\textbf{) } \textit{matched\_stmt} \textbf{ else } \textit{matched\_stmt} \\
+\textit{open\_stmt} &\rightarrow \textbf{if } \textbf{(}\textit{expr}\textbf{) } \textit{stmt} \\
+&\phantom{\rightarrow}| \hspace{0.15cm} \textbf{if } \textbf{(}\textit{expr}\textbf{) } \textit{matched\_stmt} \textbf{ else } \textit{open\_stmt}
+\end{align}
