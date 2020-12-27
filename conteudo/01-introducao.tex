@@ -4,13 +4,15 @@
 
 \begin{section}{Motivation}
 
-The recent advances in both technological and computational fields induced a
-huge expansion of the software system ecosystem. New programs are created to
-supply the needs of the most diverse domains, either through web systems coded
-in script languages; or by components to an operating system destined to
-control some hardware resources. Independently of the reason behind its
-development, it is true that such code will be transformed into machine
-language by a compiler or assembler, even if it is executed by an interpreter. 
+The recent advances in both technological and computational fields induced an
+increasingly faster expansion of software ecosystems. Developers create new
+programs to supply the needs of the most diverse domains, either through web
+systems coded in script languages; or by components to an operating system
+destined to control some hardware resources. Independently of the reason behind
+the development of such systems, it is true that their code will be, in some
+point, transformed into machine language by a compiler or assembler, even if it
+is executed by an interpreter.
+
 
 %Os avanços nos campos tecnológicos e computacionais levaram uma enorme expansão
 %Dos ecossistemas de \textit{software}. Novos programas são criados para
@@ -26,13 +28,13 @@ programming language $A$ to another language $B$ \citep{dragonbook}.  Compilers
 are enormous programs, largely adopted by industry and academy, where a great
 effort was and still is employed so that they produce efficient code -- but
 without any sacrifice in correctness --. There are huge projects destined to
-develop and improve them, such as the GNU Compiler Collectioni
+develop and improve them, such as the GNU Compiler Collections
 (GCC\footnote{https://gcc.gnu.org/}), capable of translate several languages
 such as C, C++, and Fortran, to machine language. There are also smaller
 projects such as F2C\footnote{https://www.netlib.org/f2c/}, a Fortran to C
 compiler, used in systems that there is no Fortran compiler available. Such
 compilers that translate from a high-level language to another high-level
-language is often called a Transpiler.
+language is often called a \textit{transpiler}.
 
 %Um compilador nada mais é que um \textit{software} que traduz um código em uma linguagem
 %de programação $A$ para outra linguagem $B$ \citep{dragonbook}.  Compiladores
@@ -46,7 +48,7 @@ language is often called a Transpiler.
 %Fortran para C, utilizado em ambientes onde não há um compilador Fortran
 %disponível.
 
-Although it is possible to write code in machine language, turning a compiler
+Although it is possible to write code in machine language, which turns a compiler
 unnecessary, this is extremely expensive and error-prone, apart from being an
 uncommon practice in projects contemporary to this work \citep{githuboctoverse}
 (see Figure \ref{fig:github_2017}). An example of this is the Internal Revenue
@@ -107,25 +109,26 @@ increasingly common nowadays.
 %gera um gargalo na compilação do projeto em máquinas \textit{manycore}, pois o
 %GCC não é capaz de compilar um arquivo em paralelo de maneira incremental.
 
-The GCC is a largely used  Open Source compiler both in the academic and
-industry environments. Being a large project, GCC has an additional language
-created to better express and facilitate optimizations in code generation, that
-is compiled into C++ to (1) reuse the optimizations already implemented in the
+The GCC is a largely used Open Source compiler in both academic and industry
+environments. Being a large project, GCC has an additional language created to
+better express and facilitate optimizations in code generation, which is
+compiled into C++ to (1) reuse the optimizations already implemented in the
 compiler, and (2) avoid rewriting several functionalities already implemented.
-Unfortunately, this process highlights a bottleneck in the project compilation
-on manycore machines, because GCC is not capable of compiling a file in
-parallel in an incremental way.
+This process generates large files that must be compiled, causing a compilation
+bottleneck in the project because GCC is not capable of compiling a single file
+in parallel.
 
-Currently, all parallelism in the compilation stage is provided eighter by the
+Currently, all parallelism in the compilation stage is provided either by the
 GNU Make\footnote{https://www.gnu.org/software/make/}, which only provides a
 per-file level granularity; or through the LTO infrastructure, which we
 approach in Section \ref{chap:related_works}. This bottleneck can look to be a
 peculiar characteristic of the GCC project, but after some discussion with the
 community, the users' related similar issues in their projects. That problem
 can be mitigated by a compiler that is capable of compile one file in parallel
-\citep{mailgcc}.  Another solution would be split the files into smaller files,
-and use the parallelism feature already present in GNU Make, but this implies
-in a modification to the project structure, which may not be ideal.
+\citep{mailgcc}.  Another solution would be to split the files into smaller
+files, and use the parallelism feature already present in GNU Make, but this
+implies in a modification to the project structure, which may not be ideal.
+
 
 %Atualmente, todo o paralelismo na fase de compilação é provido pelo GCC de
 %duas maneiras distintas: ou pelo GNU Make\footnote{https://www.gnu.org/software/make/},
@@ -139,14 +142,15 @@ in a modification to the project structure, which may not be ideal.
 %paralelismo já existente do GNU Make, mas isto implica em uma modificação na
 %estrutura do projeto, o que pode não ser o ideal.
 
-Since today the processors' manufacturers are increasing its products power
-through parallelism over raw sequential power, compilers that can profit from
-this resource could reduce the time taken when compiling a project, or even
-reduce execution time on script languages that rely on JIT compilation. It
-means a reduction in resource usage, such cases such as power, time, and thus
-money. So far, every parallelism found internally in optimizing compilers was a
-consequence of a structure created to allow more aggressive optimizations, such
-as the LTO \citep{glek2010optimizing}.
+Since today the processors' manufacturers are increasing the power of their
+products through parallelism over raw sequential power, compilers that can
+profit from this resource could reduce the time taken when compiling a project
+or even reduce execution time on script languages that rely on Just in Time
+(JIT) compilation. It means a reduction in resource usage, such cases such as
+power, time, and thus money. So far, every parallelism found internally in
+optimizing compilers was a consequence of a structure created to allow more
+aggressive optimizations, such as the LTO \citep{glek2010optimizing}.
+
 
 %Considerando que atualmente há uma tendência para que os processadores sejam
 %cada vez mais paralelos, compiladores que usufruam deste recurso poderiam
@@ -184,11 +188,9 @@ which parallelism is not trivial \citep{lumsdaine2007challenges}.
 Therefore, this work dedicates in the following research questions:
 
 \begin{description}
-    \item[\textit{RQ1}] - In which points a compiler can use from parallelism?
-
+    \item[\textit{RQ1}] - What is the main point of a compiler can be improved with parallelism?
     \item[\textit{RQ2}] - What is the performance improvement after parallelizing a compiler?
 	\item[\textit{RQ3}] - When compiling in parallel is faster than compiling sequentially?
-
 	\item[\textit{RQ4}] - How does this impact the power consumption?
 \end{description}
 
@@ -213,7 +215,7 @@ their software using parallelism.
 
 This work is divided into the following chapters: in Chapter
 \ref{chap:fundamentacao}, we present some theoretical concepts regarding
-Compiler Theory and Parallel Computing, to clarify some topics about this work.
+Compiler Theory, the GCC,  and Parallel Computing; to clarify some topics about this work.
 Following that, Chapter \ref{chap:related_works} presents related work until
 the state of art on this topic, with a brief discussion about their positive
 and negative points.  Lastly, Chapter \ref{chap:proposta} presents a general
