@@ -10,17 +10,15 @@ generate the code.
 
 Compilers are large projects destined for the translation of source code
 between distinct programming languages. Usually, compilers translate high-level
-languages such as C, to assembly language. However, this is not a rule once
-there exist compilers designed for the translation between high-level language.
-Such compilers are called a \textit{transpiler}.
+languages such as C, to assembly language, and those are the focus of our work.
 
 This chapter presents a brief introduction to the concepts used in this work.
 First, we present some subjects about computer-theory which are heavily
 used in a compiler, then we present all parts of the compiler pipeline
-to understand the compilation phases. Following that, we discuss how the
+to understand the compilation phases. Following that, we briefly discuss how the
 GCC compiler presents these topics implemented, and how these parts interact
 with each other.  Finally, we present some basic concepts and algorithms about
-Parallel Computing.
+Parallel Computing and some intuition about power and energy.
 
 %Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
 %trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
@@ -34,9 +32,9 @@ Parallel Computing.
 \begin{section}{Parsing Theory}
 
 \begin{subsection}{Languages}
-A large part of the compiler is dedicated onto parsing text to determine if
-it belongs to a certain Language. A \textit{langauge} is nothing more than
-a set of words, infinite or not, of some alphabet $\Si$. We denote that
+A large part of a compiler is dedicated to parsing text to determine if
+it belongs to a certain language. A \textit{language} is nothing more than
+a set of words, infinite or not, over some alphabet $\Si$. We denote that
 $\sigma$ is a character of the alphabet $\Si$ by expressing it as
 $\sigma \in \Si$. We can also concatenate two characters $\sigma_1 \sigma_2$
 to form a word, and we say that $\sigma_1 \sigma_2 \in \Sigma^2 = \Sigma\Sigma$.
@@ -51,7 +49,8 @@ where $A^0 = \{\lambda\}$, the set containing the \textit{empty string} $\lambda
 Therefore, the set of all possible words over an alphabet $\Si$ is the set
 $\Sis$, and every language $L$ is a subset or equal of $\Sis$, which we will
 denote as $L \ssq \Sis$. We also define $A^+ = AA^*$. Union, intersection,
-and complement works the same way as in set theory.
+and complement works the same way as in set theory. The \textit{power set}
+of some set $A$ is denoted by $2^A$.
 
 The \textit{length} of a word $x$, denoted as $|x|$, is the number of characters
 in the string. If $x = \lambda$, then $|x| = 0$. It should not be confused with
@@ -62,21 +61,20 @@ the size of a set $|A|$, which is the number of elements of that set.
 \begin{subsection}{Finite State Automata}
 
 One of the simplest machines designed to parse text are the
-Finite Automata. These machines are often used to build controllers for various
+Finite State Automata. These machines are often used to build controllers for various
 applications, such as elevator state controllers, microwave control panels,
 signal detectors, and so on. This is because automata can be cheaply and easily
 be implemented using flip-flops, an electronic device which can hold a bit as
 data storage.
 
-Finite Automata are also used in Compilers as a Lexical Analyser as a token
-recognizer, as we will see in Section Bla. They are very useful tools since we
-can express these machines easily with Regular Expressions, and then algorithms
-can easily convert them into a Finite Automata and minimize the number of
-states in it.
+Finite Automata are also used in Compilers as a Lexical Analyser for
+recognizing tokens.  They are very useful tools since we can express these
+machines easily with \textit{regular expressions}, and then algorithms can easily
+convert them into a Finite Automata and minimize the number of states in it.
 
 \begin{definition}
-A Deterministic Finite Automata (\ttt{DFA}) can be defined as a 5-tuple
-$(Q. \Sigma, \delta, s, F)$, where
+A Deterministic Finite Automata (\ttt{DFA}) is defined as a 5-tuple
+$(Q, \Sigma, \delta, s, F)$, where
 \begin{itemize}
 
 \item $Q$ is a finite set of states.
@@ -89,10 +87,10 @@ states.
 \end{itemize}
 \end{definition}
 
-We say that given an machine $\mathcal{A}$, or grammar $G$, the \textit{language}
-that it generates is denoted as $L(\mathcal)$. The machine (or grammar) accepts an input
-$w \in \Sis$ if and only if $w \in L(\mathcal{A}$. We also say that a machine
-(or grammar) recognizes a certain language $L \ssq \Sis$ if and only if
+We say that given an machine $\mathcal{A}$, the \textit{language}
+that it generates is denoted as $L(\mathcal{A})$. The machine accepts an input
+$w \in \Sis$ if and only if $w \in L(\mathcal{A})$. We also say that a machine
+recognizes a certain language $L \ssq \Sis$ if and only if
 $L(\mathcal{A}) = L$.
 
 For example of automation, let us assume that we want to detect whether a
@@ -137,7 +135,7 @@ yields in a $O(n)$ algorithm to parse a word $w \in \Sigma^*$ with $|w| = n$.
   \draw[->]   (q1) edge[above, bend left] node{$\sigma \in D$} (q2);
   \draw[->]   (q1) edge[below, bend right] node{$\sigma \in \Sigma - D$} (q3);
   \draw[->]   (q2) edge[loop above] node{$\sigma \in D$} (q2);
-  \draw[->]   (q2) edge[above, bend left] node{$\sigma \in D - \Sigma$} (q3);
+  \draw[->]   (q2) edge[above, bend left] node{$\sigma \in \Sigma - D$} (q3);
   \draw[->]   (q3) edge[loop above] node{$\sigma \in \Sigma$} (q3);
 \end{tikzpicture}
 
@@ -145,23 +143,7 @@ yields in a $O(n)$ algorithm to parse a word $w \in \Sigma^*$ with $|w| = n$.
 \label{fig:a_automata}
 \end{figure}
 
-Literature also present the Nondeterministic Finite Automata (\ttt{NFA}), however,
-if you are able to present a Nondeterministic Finite Automation to a
-certain language, you can also present a deterministic one for the same
-language, and vice versa. We will present these machines for the sake
-of completeness, as they are often used to quickly implement regex
-algorithms. There are even algorithms to convert an \ttt{NFA} to
-\ttt{DFA}, which we will only present in this work as the following
-theorem:
-
-\begin{theorem}\label{nfa_to_dfa}
-Every \ttt{NFA} has an equivalent \ttt{DFA}
-\end{theorem}
-\begin{proof}
-	Theorem 1.39 of \citep{sipser2012} shows the Powerset Construction, an algorithm
-	that converts any \ttt{NFA} into a \ttt{DFA}.
-\end{proof}
-
+There is also a slight variant of this machine called Nondeterministic Finite Automata (\ttt{NFA}).
 
 \begin{definition}
 A Nondeterministic Finite Automation (\ttt{NFA}) is a 5-uple
@@ -179,11 +161,11 @@ states.
 \end{definition}
 
 $\NFA$ have a feature called \textit{nondeterminism}, which means that given
-a $\sigma \in \Si$ and three states $p \in Q$, $q \in Q$ and $r \in Q$, it is possible
+a $\sigma \in \Si$ and three states $p, q, r \in Q$, it is possible
 two have two or more transitions from a same state given the same character $\sigma$, which
 means that $p \overset{\sigma}{\longrightarrow} q$ and
-$p \overset{\sigma}{\longrightarrow} r$. Which route the $\NFA$ will proceed with
-its computation in this situation does not matter, as long as it reaches some
+$p \overset{\sigma}{\longrightarrow} r$ can both be present in the machine. Which route the $\NFA$ will proceed with
+its computation in this situation does not matter as long as it reaches some final
 state $f \in F$ reading the entire input. There is also transitions like
 $p \overset{\lambda}{\longrightarrow} q$, which means that the $\NFA$ will 
 jump from $p$ to $q$ without reading any input. These are called
@@ -194,6 +176,23 @@ $q \overset{\lambda}{\longrightarrow} r$, then this means that the path which
 it has taken from $s$ to $q$ can not lead to a final state and therefore it must
 take another path. If there are no remaining paths, then the $\NFA$ should
 reject the input.
+
+
+Interestingly, if you are able to present a Nondeterministic Finite Automation to a
+certain language, you can also present a deterministic one for the same
+language, and vice versa. We will present these machines for the sake
+of completeness, as they are often used to quickly implement regex
+algorithms. There are even algorithms to convert an \ttt{NFA} to
+\ttt{DFA}, which we will only present in this work as the following
+theorem:
+
+\begin{theorem}\label{nfa_to_dfa}
+Every \ttt{NFA} has an equivalent \ttt{DFA}
+\end{theorem}
+\begin{proof}
+	Theorem 1.39 of \citep{sipser2012} shows the Powerset Construction, an algorithm
+	that converts any \ttt{NFA} into a \ttt{DFA}.
+\end{proof}
 
 \ttt{NFA}s are interesting machines in both practical and theoretical aspects,
 once they are often used to implement Regular Expressions via the Thompson
@@ -215,31 +214,36 @@ There is no $\DFA$ recognizing $L_2$.
 \begin{proof}
 Let $\mathcal{A} = (Q, \Sigma, \delta, s, F)$ be such $\DFA$,
 with $\Si = \{\ttt{(}, \ttt{)}\}$.
-Since it is a finite automation, then $|Q|$ is finite, and therefore let
+Since it is a finite automation, then $Q$ is finite, so let
 $n = |Q|$. Now take the following word $w = \texttt{(}^{2n}\texttt{)}^{2n}$.
 Clearly, $w \in L_2$, and therefore the automation $\mathcal{A}$ should
-recognize it. Since $2n > n$, it means that in the sequence of states
-$(p_1, p_2, \cdots, p_{2n})$ there are some state $q \in Q$ and integers
-$i$ and $j$ such as $1 \leq i < j \leq 2n$ where $p_i = p_j = q$,
-\textit{i.e.} a circuit, when processing the first part of the $w$
-that only contains $\texttt{(}^{2n}$. Therefore, we can split
-$w$ in 
-$$w = xyz $$
-Where $x \in \Sigma^*$ is the part of $w$ before the circuit, $y$ is
-the part of $w$ in this circuit, and $z$ is the part of $w$ after the
+recognize it. Therefore, there is a sequence of states
+$(p_0, p_1, \cdots, p_{4n})$ when processing $w$ from $p_0 = s$ which leads to a
+final state $p_{4n}$. Furthermore, the subsequence $(p_0, p_1, \cdots, p_{2n})$ is
+related to the processing of the first part of the word containing only
+$\texttt{(}^{2n}$. But since $2n > n$, this means that some of these
+states are repeated, and therefore there is some state $q \in Q$ and integers
+$i$ and $j$ such as $0 \leq i < j \leq 2n$ where $p_i = p_j = q$,
+\textit{i.e.} a circuit in the graph, when processing this first part of the $w$.
+Therefore, we can split $w$ in 
+$$w = xyz$$
+Where $x \in \Sigma^*$ is the part of $w$ before the circuit, $y \in \Sis$ is
+the part of $w$ in this circuit, and $z \in \Sis$ is the part of $w$ after the
 circuit. Note that $x$ and $y$ consists of a sequence of $\texttt{(}$
-characters, because we are processing the first $2n$ characters of $w$.
+characters, because we are processing the first $2n$ characters of $w$,
+and $|y| \geq 1$ because in this circuit, some characters were
+read.
 Since $y$ is the part of $w$ in this circuit, then
 $ xyyz $
 is also recognized by $\mathcal{A}$. If $k = |y|$, this means that
 the input string
 $$ \texttt{(}^{n+k}\texttt{)}^n \not\in L_2$$
-is also recognized by $\mathcal{A}$, which means that such machine does
+is also recognized by $\mathcal{A}$, implying that such machine can
 not exist, and therefore there is no $\DFA$ which can detect
 $L_2$.
 \end{proof}
 
-In fact, this proof is heavily based on the proof of the Pumping Lemma,
+In fact, this proof is heavily based on the proof of the \textit{pumping lemma},
 a powerful tool to find if a certain language is not recognizable by an
 Finite Automata. Entering in details about this is beyond the scope of
 this work.
@@ -268,7 +272,7 @@ states.
 \end{itemize}
 \end{definition}
 Here, we denote $\Gamma_\lambda$ and $\Sigma_\lambda$ as being, respectively,
-$\Gamma \cup \{\lambda\}$ and $\Sigma \cup \{\lambda\}$, where $\lambda$ is
+$\Gamma_\lambda = \Gamma \cup \{\lambda\}$ and $\Sigma_\lambda = \Sigma \cup \{\lambda\}$, where $\lambda$ is
 the empty string.
 
 Those machines starts with an empty stack, and it will then choose
@@ -284,7 +288,7 @@ on top of the stack. There are some special cases: when $\sigma = \lambda$,
 then the machine will not advance on the input string. When $\gamma_1 =
 \lambda$, it will not check nor pop anything from the stack. Finally, when
 $\gamma_2 = \lambda$, then nothing is pushed on the stack. Note that these
-three cases can happen together. These notation is suffice to describe the
+three cases can happen together. This notation is enough to describe the
 $\delta$ function.  For an input $w \in \Sis$ to be accepted by such
 automation, there must exist at least one path from the starting state $q_0$ to
 a final state $q_f \in F$ consuming the entire input string $w$, like in
@@ -315,7 +319,7 @@ which we proved that there is no \ttt{DFA} for it.
 \end{figure}
 
 Figure \ref{fig:pda_l2} describes a $\PDA$ which detects $L_2$.
-This machine works as follows: On the transition
+A sketch of why this machine works is as follows: on the transition
 from $q_1$, to $q_2$, the machine will push an token $\$ \in \Ga$ to mark the
 beginning of the stack. Then we may proceed reading $\ttt{(}$ through the loop
 at $q_2$, and pushing then on the stack, or advance without reading, poping or
@@ -327,10 +331,9 @@ is equal to the number of $\ttt{)}$. If the machine incorrectly guesses when to 
 from $q_2$ to $q_3$ even if $w \in L_2$, this would generate an invalid path
 because the top of the stack would contain a $\ttt{(}$ and not the $\$$, and
 the same goes when $w = \ttt{(}^i\ttt{)}^j$, with $j < i$. If, however, $i >
-j$, then it is possible to $q_3$ to $q_4$, however, the entire input string
+j$, then it is possible to jump from $q_3$ to $q_4$, however, the entire input string
 would not be completely consumed, and therefore the machine will reject the
-string. The only way that an string is accepted is when $j = i$. Notice that
-this is not a formal proof that such machine works.
+string. The only way that an string is accepted is when $j = i$..
 
 Now that we showed one language that a \ttt{PDA} can recognize that a
 \ttt{NFA} can not, let's prove that any language recognizable by an
@@ -345,13 +348,14 @@ which detects $L$.
 We will show how to build a \ttt{PDA} $\mathcal{P}$ that recognizes $L$.
 The idea is that a $\ttt{PDA}$ that does not uses its stack is just a \ttt{NFA}.
 
-Let $\mathcal{P} = (Q, \Si, \emptyset, \delta_p, s, F)$, with $Q, s, F$ being
+Let $\mathcal{P} = (Q, \Si, \emptyset, \delta_p, s, F)$, with $Q, \Si, s, F$ being
 exactly the same as in $\mathcal{A}$. Now let $\delta_p$ be such that
 $$(q_j, \lambda) \in \delta_p(q_i, \sigma, \lambda) \text{ if and only if } q_j \in \delta(q_i, \sigma)$$
-where $\sigma \in \Sigma_\lambda$ and $q_i, q_j \in Q$. Then since the transiction function
-ignores what is on top of the stack, and there is no state in which a symbol is
-pushed on the stack, then $\mathcal{A}$ and $\mathcal{P}$ recognizes the same
-language.
+where $\sigma \in \Sigma_\lambda$ and $q_i, q_j \in Q$. This means that given an
+input string $w \in L(\mathcal{A})$, its sequence of states $(p_0, p_1, \cdots, p_{|w|})$
+with $p_0 = s$ and $p_{|w|} \in F$, is also a valid sequence of states in $\mathcal{P}$,
+implying that $w \in L(\mathcal{P})$, and vice versa. This means that $\mathcal{A}$ and
+$\mathcal{P}$ recognizes the same language.
 \end{proof}
 
 However, as these machines can use \textit{nondeterminism} to find its path
@@ -457,8 +461,8 @@ Automata.
 	 $\delta_p : Q\times\Si_\lambda\times\Ga_\lambda \longrightarrow 2^{Q\times\Ga_\lambda}$ such that
 
 	 $$ (q_j, \gamma_2) \in
-	 \delta_p(q_i, \sigma, \gamma_1) \text{ if and only if } \delta_p(q_i,
-	 \sigma, \gamma_1) = (q, \gamma_2)$$
+	 \delta_p(q_i, \sigma, \gamma_1) \text{ if and only if } \delta(q_i,
+	 \sigma, \gamma_1) = (q_j, \gamma_2)$$
 
 	 Where $\sigma \in \Si_\lambda$, and
 	 $\gamma_1, \gamma_2 \in \Ga_\lambda$. Then $\mathcal{P} = (Q, \Si, \Ga,
@@ -503,24 +507,28 @@ Furthermore, we also define
 \end{definition}
 
 For instance of grammar, $G = (V, \Si, R, S)$ such that
-$V = \{S\}$, $\Si = \{\ttt{(}, \ttt{)}\}$, $R = \{S \rightarrow \ttt{(}S{)} | \lambda\}$
+$V = \{S\}$, $\Si = \{\ttt{(}, \ttt{)}\}$, and $R$ is defined such that
+$$S \rightarrow \ttt{(}S\texttt{)} \; | \; \lambda$$
 can recognize $L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$, because it is clear that
 $S \Rightarrow^{n+1} \ttt{(}^n\ttt{)}^n$.
 
-There is also a important undesired detail about grammars called ambiguity.
+There is also a important undesired detail about grammars called ambiguity, which
+allows a string to have multiple derivations. This can confuse a parser into
+generating a distinct parse tree from the one that is intended by the grammar
+designer.
 
 \begin{definition}
 	A grammar $G$ is ambiguous if there are multiple leftmost derivations for the same
 	word.
 \end{definition}
 \begin{definition}
-	A leftmost derivation of a word $w$ recognizable by a grammar $G$ is a derivation
+	A leftmost derivation of a word $w$ from a grammar $G$ is a derivation
 	in which we always derive the leftmost rule.
 \end{definition}
 
 For instance, let $G = (\{S\}, \{a, +, \times\}, R, S)$, where $R$ is defined
 as
-$$S \rightarrow S+S | S \times S | a $$
+$$S \rightarrow S+S \; | \; S \times S \; | \; a $$
 it is clear that $S \Rightarrow^* w$ if $w$ is a arithmetic expression. This
 grammar is ambiguous, as there are two leftmost derivations for the same string.
 One derivation is
@@ -580,12 +588,12 @@ when parsing the code?
 \end{figure}
 
 In fact, the C specification states that an else should always match with the closest
-if, and therefore Figure \ref{fig:left_if} must be selected (when the concern is
-semantic) when parsing a C program, or else the compiler has a bug. This can lead
+if, and therefore Figure \ref{fig:left_if} must be selected
+when parsing a C program, or else the compiler has a bug. This can lead
 to some unfortunate bugs in the code if the programmer is not careful enough,
 because one may write the code in \ref{fig:right_if} expecting that the
-tabulation will change the program semantic, and now you have a very hard to
-catch bug \citep{ritchie1988c}. This issue can be avoided by removing the
+tabulation will change the program semantic, and now you have a bug which is
+very hard to catch \citep{ritchie1988c}. This issue can be avoided by removing the
 ambiguity of the grammar. \cite{dragonbook} presents the following grammar
 to fix this problem for a $\LR{1}$ parser
 
@@ -627,20 +635,20 @@ A Deterministic Context-Free Grammar (\ttt{DCFG}) $G = (V, \Si, R, S)$ is a 4-up
 
 $\DCFG$ are also called \ttt{LR}(0) Grammars, because it can
 be easily parsed from \texttt{L}eft-to-right, always taking the \texttt{R}ightmost
-leftmost-derivations (\textit{i.e.} leftmost reductions).
+derivations (\textit{i.e.} leftmost reductions).
 
 \end{subsection}
 \begin{subsection}{Botton-up Parsing}
 
 With the idea of handles in mind, it is possible to design a greedy algorithm
 for reducing an input string $w$ of a $\DCFG$ $G = (V, \Sigma, R, S)$. Let $w = xhy$, where $h$ is the
-handle. Then there is some rule $A \rightarrow h \in R$, which will lead to the
+handle. Then there is some rule $\left(A \rightarrow h \right) \in R$, which will lead to the
 string $xAy$. Note that the string $y$ was never read so far. This new string
 may have another handle, say $h_2$ in $xA$, in which we \textbf{reduce} again
 using some production rule, or we may need to \textbf{shift} to the next caracter
 in trying to find the handle for the string. Therefore, we may get into a state
 $$u \bullet v$$
-where $u \in (V \cup \Sis)^*$ are the symbols currently \textit{on the stack},
+where $u \in (V \cup \Si)^*$ are the symbols currently \textit{on the stack},
 and $v \in \Sis$ are the characters in the input, which we never read so far.
 Note that $u$ may contain Nonterminal characters, because we may have already
 reduced strings before the $\bullet$ symbol.
@@ -693,34 +701,34 @@ However, this algorithm is not so powerful just because it relies on
 \DCFG. For instance, this simple grammar $G_A = (V, \Si, R, S)$ such that
 $V = \{S, E, T\}, \Si = \{a, \times, +\}$, and $R$ be defined as the rules
 \begin{align}
-S &\rightarrow E \\
-E &\rightarrow E + T | T \\
-T &\rightarrow T \times a | a \\
+S &\rightarrow E \nonumber \\
+E &\rightarrow E + T \; | \; T \nonumber \\
+T &\rightarrow T \times a \; | \; a \nonumber
 \end{align}
 
 \begin{lemma}\label{shift_reduce}
-	$G$ is not $\ttt{LR}(0)$.
+	$G_A$ is not $\ttt{LR}(0)$.
 \end{lemma}
 \begin{proof}
 	Let $u = T \times a$ and $v = T$. Clearly, $S \Rightarrow^* u$ and
 	$S \Rightarrow^*v$. Since $u = v \times a$, then the handle of
 	$v$ must be equal the handle of $u$. However, the handle of $v$
-	is $E$ and the handle of u is $T$, which means that $G$ is not
+	is $E$ and the handle of $u$ is $T$, which means that $G$ is not
 	\ttt{DCFG} and therefore can not be parsed with a $\LR{0}$
 	algorithm.
 \end{proof}
 
-Which means that this algorithm can not be used to parse even very simple
+This means that this algorithm can not be used to parse even very simple
 grammars such as above, it will always face a Shift/Reduce conflict
 because on state $T\bullet$ it should reduce to $E$, however, when
 facing the input $T\bullet \times a$, it must shift.
 
 Fortunately, there are ways to expand this algorithm.
 Instead of only using the symbols that are currently on the stack for
-determining which rule to reduce, we could use the imediate next
+determining which rule to reduce, we could use the immediate next
 token on the input, the \textit{lookahead}, to decide what to do, \textit{i.e.},
 if shift or reduce. So, for instance, when facing the state
-$T\bullet \times a\$$, the parser should \textit{shift}, because
+$T\bullet \times a$, the parser should \textit{shift}, because
 $\times$ is the current lookeahead token, even if $T \in H_0$.
 However, on state $T\bullet + a$ and $T\bullet$, the parser should
 \textit{reduce} with regard to $E \rightarrow T$. This is exactly the
@@ -728,21 +736,21 @@ idea behind the $\LR{1}$ parser. In fact, we can define
 
 \begin{definition}
 A $\CFG$ $G = (V, \Si, R, S)$ is $\LR{1}$ if given a string
-$w \in L(G)$ such that $w\$ = xhy \$$ with $S \Rightarrow^* w$, $h$ as
+$w$ such that $w\$ = xhy \$$ with $S \Rightarrow^* w$, $h$ as
 handle, $x \in (V \cup \Si)^*$, $y \in \Sis$, and $ \$ \not\in \Si \cup V$,
 then $h$ is also the handle of $xhz\$ $ if shares the same first character of $y$, i.e.,
 $y = \sigma u$ and $z = \sigma v$.
 \end{definition}
 
 Therefore, when building the $\ttt{NFA}$ $\mathcal{DK}$, it must now also
-consider the first character imediately next of $\bullet$ in its computation.
+consider the first character immediately next of $\bullet$ in its computation.
 That is why the character $\$$ was added to the input string.
 With this change, \cite{sipser2012} proves that $G_A$ can be parsed with a
 $\LR{1}$ algorithm.
 
 Finally, these tests are widely implemented in \ttt{LR}(1) parser generators
 such as the GNU Bison \citep{manual21bison}. \ttt{LR}(1) parsers are widely
-used in practice, together with \texttt{LALR}(1) botton-up parser and the top-down,
+used in practice, together with \texttt{LALR}(1) bottom-up parser and the top-down,
 Recursive-Descent parser.
 
 \end{subsection}
@@ -751,19 +759,19 @@ Recursive-Descent parser.
 
 Another way to parse a Context-Free Grammar is, instead of on input string $w$
 try to reduce back to the starting rule $S$, try to derive $w$ from $S$.
-A very common way of doing this in pratice is to employ an algorithm called
+A very common way of doing this in practice is to employ an algorithm called
 Recursive-Descent.
 
 The Recursive-Descent is a technique used to parse any generic Context-Free
 Grammar that is free from left recursion, however \textit{backtracking} is
-necessary on several cases. It is also very simple to understeand, as there
-are less computer-theory background necessary to understeand how they operate
+necessary on several cases. It is also very simple to understand, as there
+are less computer-theory background necessary to understand how they operate
 and to implement by hand, without the use of any parse-generator tools.
-In fact, this is the parser algorithm used by GCC when compiling C, C++ and
-Objective-C, as well as the parser used in clang.
+In fact, this is the parser algorithm used by GCC when compiling C \citep{myers_parser}
+, as well as the parser used in clang \citep{clang_parser}. 
 
 Let $G = (V, \Si, R, S)$ be a Context-Free Grammar. In a Recursive Descent
-Parser, each $v \in V$ are represented as a function in a program, and
+Parser, each $v \in V$ are represented as a function in the algorithm, and
 that function is responsible to correctly match it derivation by looking
 the next input tokens. Here we are not limited to just one token of lookahead,
 however, the programmer should keep in mind that the more complex method
@@ -775,14 +783,14 @@ Here is an example of Recursive-Descent Parser. Let $G_A^2 = (V, \Si, R, S)$,
 where $V = \{S, E, T\}, \Si = \{+, \times, a\}$ and $R$ be defined as
 
 \begin{align}
-S &\rightarrow E \\
-E &\rightarrow T + E | T \\
-T &\rightarrow a \times T | a \\
+S &\rightarrow E \nonumber \\
+E &\rightarrow T + E \; | \; T  \nonumber \\
+T &\rightarrow a \times T \; | \; a \nonumber \\
 \end{align}
 
 Note that $G_A^2$ differs from $G_A$ just by the recursions in $E$ and $T$.
 We will show what happens if one tries to parse $G_A$ on these algorithms
-in the sequence, but in Figure \ref{recursive-descent} is a pseudocode for
+in the sequence, but in Figure \ref{fig:recursive-descent} is a pseudocode for
 an algorithm that parses $G_A^2$. Note that the programmer must also take
 care of handling the syntax errors, and therefore this task can become
 very error-prone.
@@ -825,14 +833,14 @@ very error-prone.
 		function S ()
 			E ();
 	\end{lstlisting}
-\caption{Recusive-Descent parser for $G_A^2$}
+\caption{Recursive-Descent parser for $G_A^2$}
 \label{fig:recursive-descent}
 \end{figure}
 
 Algorithm in Figure \ref{fig:recursive-descent} is able to recognize
 $G_2^A$. Now, what if we try to deploy such parsing algorithm for
 $G_2^A$? Figure \ref{fig:recursive_descent_2} presents what would be
-the function \texttt{E ()}. Notice that this function will call
+the function \texttt{E()}. Notice that this function will call
 itself again right after
 it has been called. This is an infinite recursion which will lead the
 parser to an infinite loop or a crash due to an
@@ -888,40 +896,42 @@ and they are not much used in practice.
 Industrial compilers are what we call to be an ``Optimizer Compiler'', because
 it not only do a direct translation to another language, but because it
 tries to generate faster code than the input code created by the programmer
-while still maintaining its correctness. Several concepts are briefly, however,
-more information can be found in the references.
+while still maintaining its correctness.
 
-Given a program, there are two disjoint set of optimizations in which we
-operate on:
-\begin{itemize}
-	\item \textit{Architecture-free Optimizations}: Any optimization that
-	does not require any interaction with anything specific about the target
-	machine in which the code is being compiled to. Example: \textit{constant
-	propagation}.
+There are several datastructures and frameworks which is often used to
+develop optimizations, which we briefly present here.
 
+%Given a program, there are two disjoint set of optimizations in which we
+%operate on:
+%\begin{itemize}
+%	\item \textit{Architecture-free Optimizations}: Any optimization that
+%	does not require any interaction with anything specific about the target
+%	machine in which the code is being compiled to. Example: \textit{constant
+%	propagation}.
+%
+%
+%	\item \textit{Architecture-dependent Optimizations}: Any optimization that
+%	require interaction with something specific about the target machine in
+%	which the code is being compiled to. Example: \textit{register allocation}.
+%\end{itemize}
+%
+%Furthermore, we can also separate the set of all optimizations is two
+%others disjoint sets:
+%
+%\begin{itemize}
+%	\item \textit{Intraprocedural Optimizations}: Optimizations which only uses
+%	information inside the function. Example: \textit{register allocation}.
+%
+%	\item \textit{Interprocedural Optimizations}: Any optimization that
+%	require interaction with something specific about the target machine in
+%	which the code is being compiled to. Example: \textit{function inlining}.
+%\end{itemize}
+%
+%This last one is very interesting in the point of parallelization. Intraprocedural
+%Optimizations can be run in parallel per function, as there is no dependency between
+%two functions. Interprocedural, by the other hand, has no clear parallelization point.
 
-	\item \textit{Architecture-dependent Optimizations}: Any optimization that
-	require interaction with something specific about the target machine in
-	which the code is being compiled to. Example: \textit{register allocation}.
-\end{itemize}
-
-Furthermore, we can also separate the set of all optimizations is two
-others disjoint sets:
-
-\begin{itemize}
-	\item \textit{Intraprocedural Optimizations}: Optimizations which only uses
-	information inside the function. Example: \textit{register allocation}.
-
-	\item \textit{Interprocedural Optimizations}: Any optimization that
-	require interaction with something specific about the target machine in
-	which the code is being compiled to. Example: \textit{function inlining}.
-\end{itemize}
-
-This last one is very interesting in the point of parallelization. Intraprocedural
-Optimizations can be run in parallel per function, as there is no dependency between
-two functions. Interprocedural, by the other hand, has no clear parallelization point.
-
-\begin{subsubsection}{Three-Address Code Form}
+\begin{subsection}{Three-Address Code Form}
 
 One issue with large expressions is that it is very hard to find common
 subexpressions and eliminate them. For instance, consider the mathematical
@@ -932,35 +942,43 @@ can a compiler know this? One could break this expression in the following
 statements sequence of statements:
 
 \begin{align}
-t_1 &= x \times x
-t_2 &= x \times x
-y &= t_1 + t_2
+t_1 &= x \times x \nonumber \\
+t_2 &= x \times x \nonumber \\
+y &= t_1 + t_2 \nonumber
 \end{align}
 
-Now, some information is pretty evident here. First, is that $t_2 = t_1$,
+Now, some information is evident here. First is that $t_2 = t_1$,
 and therefore $t_2$ is a completely unnecessary variable, and can be
 eliminated from the program, which will lead to $y = t_1 + t_1$, which is
 evident that can be simplified further to $y = 2 \times t_1$, which will lead
 to the sequence of statements:
 
 \begin{align}
-t_1 &= x \times x
-y &= 2 \times t_1
+t_1 &= x \times x \nonumber \\
+y &= 2 \times t_1 \nonumber
 \end{align}
-which statisfy the following definition:
+which satisfy the following definition:
 \begin{definition}
 	A program is in Three-Address Code (3AC) format if every expression is
-	in $c = a <op> b$ form, where $a, b, c$ are variables or
+	in $c = a \texttt{<op>} b$ form, where $a, b, c$ are variables or
 	literal constants.
 \end{definition}
 
-\end{subsubsection}
+\end{subsection}
 
-\begin{subsubsection}{Control-Flow Graph}
-	Programs consists of more than a linear sequence of statements, as there are
-	comparisons, jumps, loops, and function calls. Consider the program in
-	Figure \ref{fig:1-norm_program}. How can a compiler know that the statement
-	$\textit{sum} = 1$ has no effect at all in the program?
+\begin{subsection}{Control-Flow Graph}
+	Programs consists of more than a linear sequence of statements, as there
+	are jumps, loops, and gotos, in which we call
+	\textit{flow-divergence}. Those divergences can be modeled through a
+	\textit{Control-Flow Graph}, which illustrates jumps explicitly.
+
+	For example,
+	consider the program in Figure \ref{fig:1-norm_program}.  Here, the first
+	two statements $i \leftarrow 0$ and $\textit{sum} \leftarrow 0$ are always
+	executed in the sequence, so there is no need to explicitly show any kind of jump
+	between these two statements. However, the \texttt{if} and \texttt{else}
+	will result in a \textit{flow-divergence} depending on the value of
+	\texttt{x[i]}, which is illustrated in Figure \ref{fig:1-norm_program:cfg}. 
 
 \begin{figure}[ht]
 \centering
@@ -972,7 +990,7 @@ which statisfy the following definition:
         functions={},
         specialidentifiers={extern, call},
       ]
-        function norma_1(x[n])
+        function norm_1(x[n])
             sum := 0
 			i := 0
             while (i < n) {
@@ -983,21 +1001,20 @@ which statisfy the following definition:
 				i := i + 1
             }
             return sum
-			sum := 1
         end
       \end{lstlisting}
-	  \label{fig:1-norm_program}
 	  \caption{Program that computes the 1-norm of a vector}
+	  \label{fig:1-norm_program}
   \end{subfigure}
   \begin{subfigure}[b]{0.40\textwidth}
     \tikzstyle{line} = [draw, -latex]
-    \tikzstyle{node} = [draw, circle]
+    \tikzstyle{node} = [draw, rectangle]
     \begin{center}
     \scalebox{0.5}{
     \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
         % Place nodes
         \node [node]                    (source) {$s_0$};
-        \node [node, below of = source] (head) {for};
+        \node [node, below of = source] (head) {while};
         \node [node, below of = head]   (check) {if};
         \coordinate[below of = check]            (c2);
         \node [node, left of = c2]  (true) {true};
@@ -1020,29 +1037,25 @@ which statisfy the following definition:
     \end{tikzpicture}
     }
     \end{center}
-  \label{fig:1-norm_program:cfg}
   \caption{Control-Flow Graph of the Program}
+  \label{fig:1-norm_program:cfg}
   \end{subfigure}
 \end{figure}
 
-One interesting way of doing this is to model the behavior of the Control-Flow
-in the program, expliciting branches and jumps in the execution. In Figure
-\ref{fig:1-norm_program}, the first two statements $i := 0$ and
-$\textit{sum} = 0$ are always executed in the sequence, so there is no need to
-explicit any kind of jump between these two statements. However, the
-\texttt{if} and \texttt{else} will result in a \textit{flow-divergence}
-depending on the value of \texttt{x[i]}. This motivates the following
-definition
+It is useful to model when those flow-divergences jumps will occur, which
+motivates the definition of a \textit{basic-block}.
+
 \begin{definition}
 A \textbf{basic-block} is the maximum sequence of statements in which there is
 no flow-divergence.
 \end{definition}
 
-So, for instance, both statements $i := 0$ and $\textit{sum} = 0$ belongs
+For instance, both statements $i \leftarrow 0$ and $\textit{sum} \leftarrow 0$ belongs
 to the same basic-block, as there are no \textit{flow-divergence} between
 those two statements. However, \texttt{if (x[i] < 0)} and \texttt{sum += x[i]}
 belongs to distinct basic-blocks. Figure \ref{fig:1-norm_program:cfg} shows
-the basic block for the program.
+the basic block for the program. The definition of a Control-Flow Graph is
+as follows.
 
 \begin{definition}
 	A Control-Flow Graph (CFGraph) $G = (V, E, s_0, F)$ is a directed-graph,
@@ -1053,16 +1066,17 @@ the basic block for the program.
 	are no outgoing edges to other nodes.
 \end{definition}
 
-\end{subsubsection}
+\end{subsection}
 
 \begin{subsection}{Posets and Lattices}
 
 One of the mathematical theories to model \textit{order between binary relations} is
 called \textit{Lattice Theory}. One clear example of order in mathematics
-is the set $\mathcal{Z}$ with the binary, partial order relation $\leq$. However,
+is the set of all integers $\mathbb{Z}$ with the binary, partial order relation $\leq$.
+However,
 when the set in which we are working on is abstract, such order relation turn out to be
 convoluted. Nevertheless, finding such order in these abstract structures may be
-helpful, and in fact it is when analysing Control Flow Graphs.
+helpful, and in fact it is when analysing Control-Flow Graphs.
 
 \begin{definition}
 A Partial Order $\sqsq$ over a set $S$ is a binary relation that is:
@@ -1106,7 +1120,7 @@ The binary \textit{meet} operator, denoted as $l \sqcap r$, is the
 greatest upper-bound of $\{r, s\}$ of a poset $\mathcal{P}$.
 \end{definition}
 
-One can clearly see that both $\sqcup$ and $\sqcap$ satisfact the
+One can clearly see that both $\sqcup$ and $\sqcap$ satisfies the
 following three properties:
 
 \begin{itemize}
@@ -1130,38 +1144,41 @@ following three properties:
 Notice that for a poset, the result of both $\sqcup$ and $\sqcap$ is not
 required to be in the poset (\textit{i.e.} the operation is not closed).
 That is the main difference between a poset and a \textit{lattice}.
-
-%\begin{definition}
-%	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{lattice} if for every
-%	non-empty finite subset $S \ssq L$, both $\left(\bigsqcup_{s \in S} s\right) \in L$
-%	and $\bigsqcap_{s \in S} s \in L$.
-%\end{definition}
-%
-%\begin{definition}
-%	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{complete lattice} if
-%	for every subset $S \ssq L$, both $\left( \bigsqcup_{s \in S} s \right) \in L$
-%	and $\left(\bigsqcap_{s \in S} s \right) \in L$.
-%\end{definition}
-
-It is also useful to denote the greatest and the smallest element of a complete lattice.
-
-\begin{definition}
-	The \textbf{top} element of a lattice $\mathcal{L}$ is $\top = \bigsqcup_{l \in \mathcal{L}} l$. Similarly, the \textbf{bottom} element is $\bot = \bigsqcap_{l \in \mathcal{L}} l$.
-\end{definition}
-
-However, it is not required to work on a complete lattice. A meet semi-lattice is
-enough to define a dataflow framework.
+If $\sqcap$ is closed, we have a \textit{meet semi-lattice}.
 
 \begin{definition}
 	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{meet semi-lattice} if
 	for every non-empty subset $S \ssq L$, $\left(\bigsqcap_{s \in S} s \right) \in L$.
 \end{definition}
 
+There is also structures which satisfies stronger claims, which is the case
+of \textit{lattices} and \textit{complete lattices}.
 
-In the same way that functions can be defined in $\mathbb{R}$, we can also
-define functions over a lattice. From all functions that could be defined
-over a lattice, we are interested in monotone functions, which helps ensuring
-that some analysis ends with a result.
+\begin{definition}
+	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{lattice} if for every
+	non-empty finite subset $S \ssq L$, both $\left(\bigsqcup_{s \in S} s\right) \in L$
+	and $\bigsqcap_{s \in S} s \in L$.
+\end{definition}
+
+\begin{definition}
+	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{complete lattice} if
+	for every subset $S \ssq L$, both $\left( \bigsqcup_{s \in S} s \right) \in L$
+	and $\left(\bigsqcap_{s \in S} s \right) \in L$.
+\end{definition}
+
+It is also useful to denote the greatest and the smallest element of a lattice.
+
+\begin{definition}
+	The \textbf{top} element of a lattice $\mathcal{L}$ is $\top = \bigsqcup_{l \in \mathcal{L}} l$. Similarly, the \textbf{bottom} element is $\bot = \bigsqcap_{l \in \mathcal{L}} l$.
+\end{definition}
+
+However, for dataflow frameworks, it is not required to work on a complete
+lattice. A meet semi-lattice is enough.
+
+We can also define functions over a lattice in a similar way that functions can
+be defined in $\mathbb{Z}$. From all functions that could be defined over a
+lattice, we are interested in monotone functions, which helps ensuring that
+some analysis ends after a finite number of iterations.
 
 \begin{definition}
 	A function $f:\mathcal{L} \longrightarrow \mathcal{L}$ is monotonic if and only if
@@ -1172,15 +1189,16 @@ that some analysis ends with a result.
 \end{subsection}
 
 \begin{subsection}{Dataflow Analysis}
-	When analysing a program's function, it is useful to know in a certain point,
-	what properties do hold in order to decide for an optimization. Incorrectly
-	guessing some property may result in an incorrect transformation. Therefore,
-	it is useful to employ a way to propagate information across the Control Flow
-	Graph of a function. This is where Dataflow Analysis is useful.
 
 	Dataflow Analysis is a technique to collect and propagate information across a
 	Control-Flow Graph. It is used not only in compilers, but also in static
 	code analysis in general.
+
+	When analysing a program's function, it is useful to know in a certain point,
+	what properties do hold in order to decide for an optimization. Incorrectly
+	guessing some property may result in an incorrect transformation. Therefore,
+	it is useful to employ a way to propagate information across the Control-Flow
+	Graph of a function. This is where Dataflow Analysis is useful.
 
 	Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct
 	a complete or meet lattice $\mathcal{L}$, which represents a set of
@@ -1206,12 +1224,12 @@ that some analysis ends with a result.
 \end{equation}
 
 	Equations \ref{eq:forward} and \ref{eq:backward} can be solved by
-	\textit{propagation}, that is, just apply the equation to each vertex until
+	\textit{propagation}, just applying the equation to each vertex until
 	there is no more new information being generated or destroyed (in other
 	words, the equation \textit{converges}). Some tricks can be employed for a faster
 	convergence, \textit{e.g.}, start propagation from $s_0$ in
 	forward analysis, and from any $v \in F$ in the backward analysis.
-	Algorithms for solving in general way can be found in
+	Algorithms for solving those equations in general way can be found in
 	\citep{khedker2009data}.
 
 	Figure \ref{fig:functions_dataflow} illustrates how each function of $\mathcal{F}_G$
@@ -1224,27 +1242,27 @@ that some analysis ends with a result.
 \centering
   \begin{subfigure}[b]{0.40\textwidth}
 	 \includegraphics[scale=0.2]{functions_dataflow.png}
-	  \label{fig:functions_dataflow}
 	  \caption{Dataflow Flow Functions. One for each vertice of $G$. \citep{khedker2009data}}
+	  \label{fig:functions_dataflow}
   \end{subfigure}
   \begin{subfigure}[b]{0.40\textwidth}
 	 \includegraphics[scale=0.2]{meet_dataflow.png}
-	  \label{fig:meet_dataflow}
 	  \caption{Meet operation on a vertice, combining the generated information. \citep{khedker2009data}}
+	  \label{fig:meet_dataflow}
   \end{subfigure}
   \label{fig:dataflow}
 \end{figure}
 
-	Therefore, in abstract ways, we can define a dataflow framework instance as
+	Therefore, in an abstract way, we can define a dataflow framework instance as
 	\begin{definition}
-		An instance of dataflow framework is a 4-uple $(G, \mathcal{L}, \sqcap, \mathcal{F}_G)$,
+		An instance of dataflow framework is a 4-uple $(G, \mathcal{L}, \bigsqcap, \mathcal{F}_G)$,
 		where
 		\begin{itemize}
 			\item $G = (V, E, s_0, F)$ is a Control-Flow Graph.
-			\item $\mathcal{L}$ is a meet semitlattice satysfying the descending chain condition.
+			\item $\mathcal{L}$ is a meet semi-lattice satisfying the descending chain condition.
 			\item $\bigsqcap$ is the meet operator of $\mathcal{L}$.
 			\item $\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$ is the set of monotonic transfer
-			functions, one for each node $v \in V$, of the form of Equation (\ref{eq:foward}) or (\ref{eq:backward}).
+			functions, one for each node $v \in V$, of the form of Equation \ref{eq:forward} or \ref{eq:backward}.
 		\end{itemize}
 	\end{definition}
 
@@ -1285,7 +1303,7 @@ In this equation, $\texttt{gen[} v \texttt{]}$ represents the variables which tu
 to be line at vertex $v$, and $\texttt{kill[} v \texttt{]}$ are the variables which
 liveness are no longer valid at vertex $v$. For instance, consider the CFGraph
 in Figure \ref{fig:cfg_liveness}. Here, we work on the set $\mathbb{V} = \{a, b, c, d\}$.
-Solving Equation \ref{eq:liveness} using the propagation tecnique, simulated in Table
+Solving Equation \ref{eq:liveness} using the propagation technique, simulated in Table
 \ref{fig:table_cfg}. There, for instance, we can see that $d$ is not used anywhere
 in the program because $d \not\in \ttt{out[}n_1\ttt{]}$.
 
@@ -1396,20 +1414,21 @@ y &= y + 1 \nonumber \\
 y &= 1 \nonumber
 \end{align}
 
-Clerly, the second and third statements can be discarded, and the first
+Clearly, the second and third statements can be discarded, and the first
 and last statement can be discarded as well if there are no further use of $x$ and
 $y$ in the program. However, how can the compiler know that? SSA form make
 this clear. The idea is that variables can not be redefined, only new variables
-can be created, which motivates the following defition.
+can be created, which motivates the following definition.
 
 \begin{definition}
-	A program is in SSA form if there are at least one assignment for each
+	A program is in SSA form if there is exactly one assignment for each
 	variable.
 \end{definition}
 
-How can we represent the presented sequence of statement in this form then?
-Create a new variable for each left-hand-side of the assignment
-
+We can convert the presented sequence of statements in this form by creating
+a new variable for each left-hand-side of the assignment. Therefore, if a
+variable has multiple definitions, we can eliminate that by creating a new
+variable for that value, which yields
 \begin{align}
 x &= 2 \nonumber \\
 y_1 &= x \times x \nonumber \\
@@ -1425,8 +1444,8 @@ However, SSA form can get trickier to implement if there are jumps in the
 programs, which is often the case with \texttt{if} and \texttt{while}
 statements. In Figure \ref{fig:code_normal}, the value of \texttt{u}
 depends upon which path the execution was taken, which depends on the
-\textit{condition}. The solution fot this is to introduce a $\phi$
-function, which will select the correct variable. Figure \ref{fig:code_ssa_form}
+\textit{condition}. The solution fot this is to introduce a $\phi$-function,
+which will select the correct variable. Figure \ref{fig:code_ssa_form}
 illustrates this.
 
 \begin{figure}[ht]
@@ -1496,43 +1515,48 @@ in the green area.
 \begin{figure}[ht]
  \centering
  \includegraphics[scale=1.0]{dom_frontier.pdf}
- \caption{Dominance frontier of node $v_5$. Beige is dominated by $v_5$. Green is in dominance frontier of $v5$.}
+ \caption{Dominance frontier of node $v_5$. Beige is dominated by $v_5$. Green is in dominance frontier of $v_5$.}
  \label{fig:dom_frontier}
 \end{figure}
 
 The criteria to place $\phi$-functions are the following: When a node $x$ contains a defintion
 of a variable $a$, then any node $z$ in the dominance frontier of $x$ needs a $\phi$ function
-for $a$ \cite{appel2004modern}.
+for $a$. \citep{appel2004modern}.
+
+SSA makes the optimizing compiler fast because it avoids relying on dataflow
+bitvector equations. One example is to compute the \textit{def-use} chains
+of some variable. By using SSA, the compiler can quickly find where a certain
+variable was defined and when it is used \citep{appel2004modern}.
 
 \end{subsection}
 
-\begin{section}{Callgraphs and Inter-Procedural Analysis}
+\begin{section}{Callgraphs and Interprocedural Analysis}
 
 Some optimizations requires interaction with other functions, one clear example
-of this are \textit{function inlining}. When there is a function call, the
-call itself consumes time, and therefore it may be interesting to copy and
-paste the content of the function being called and remove the call at all.
-Therefore, a data structure is required to model the interactions between
-functions.
+of this is the \textit{function inlining} optimization. When there is a
+function call, the call itself consumes time, and therefore it may be
+interesting to copy and paste the content of the function being called and
+remove the call at all.  Therefore, a data structure is required to model the
+interactions between functions.
 
-That is the purpose of a \textit{callgraph}: each vertex denotes a function,
+That is the purpose of a \textit{Callgraph}: each vertex denotes a function,
 and each edge represents a call between two functions. 
 
 \begin{definition}
-	A callgraph is a graph $G = (V, E)$, where $V = \{f_1, f_2, \cdots, f_{|V|}\}$
+	A Callgraph is a graph $G = (V, E)$, where $V = \{f_1, f_2, \cdots, f_{|V|}\}$
 	are the set of functions, and $E = \conj{(u, v)}{u, v \in V}$ are the set
-	of edges representing a function call. Given $e = (u, v) \in E$, this means
-	that $u$ calls $v$. $u$ is the caller function, and $v$ is the callee function.
+	of edges representing a function call. Given $(u, v) \in E$, this means
+	that $u$ (the \textbf{caller}) calls $v$ (the \textbf{callee}).
 \end{definition}
 
-Figure \ref{fig:call_graph} gives an example of a callgraph. When applying
-Inter-Procedural Optimizations, each vertex can also hold some sort of
+Figure \ref{fig:call_graph} gives an example of a Callgraph. When applying
+Interprocedural Optimizations, each vertex can also hold some sort of
 \textit{summary} of the function instead the entire function, because often
 the program being compiled is large enough that there is not enough memory
 to hold the contents of the functions. This is the case when working with
-the Link Time Optimization technique.
+the Link Time Optimization (LTO) technique.
 
-There are some extenstions to the dataflow frameworks to work on Inter-Procedural
+There are some extensions to the dataflow frameworks to work on Interprocedural
 Optimizations \citep{khedker2009data}, however their require complete information
 about the function in memory, which may not be present in this stage on compilers
 such as GCC \citep{gcc_ipa}.
@@ -1591,12 +1615,12 @@ such as GCC \citep{gcc_ipa}.
 	memories are a very scarce resource in a processor, and therefore this resource
 	must be administered very carefully.
 
-	This is the purpose of \textit{register allocation}. An code in an IR
-	can contain an arbitrary number of temporary variables, and the goal
-	here is to rewrite the code such that it uses no more temporaries
-	than there are registers in the machine. For example, consider the
-	Figure \ref{fig:register_ir}. In (a), we have an sketch of program,
-	and in (b) we have the rewrite using at most 4 registers.
+	This is the purpose of \textit{register allocation}. An code in an
+	Intermediary Representation can contain an arbitrary number of temporary
+	variables, and the goal here is to rewrite the code such that it uses no
+	more temporaries than there are registers in the machine. For example,
+	consider the Figure \ref{fig:register_ir}. In (a), we have an sketch of
+	program, and in (b) we have the rewrite using at most 4 registers.
 
 \begin{figure}[ht]
     \centering
@@ -1683,7 +1707,8 @@ However, there is nothing preventing that there are no nodes $v$ such that
 $d(v) \geq k$. In this case, there is no alternative other than allocate the
 variable in memory. This is called \textit{spilling}.
 
-Once this is done, variables can be renamed accordingly.
+Once this process is completed, variables can be renamed accordingly to its
+register, or memory location.
 
 \end{subsection}
 
@@ -1697,8 +1722,8 @@ Once this is done, variables can be renamed accordingly.
 
 	There are several techniques to select instruction. One of the simplest
 	are the \textit{macro translation}, where each statement are replaced
-	by the final code locally for each line of the IR. This has the advantage
-	of being a fast and quick to implement way to translate the code, but
+	by the final code locally for each line of the Intermediate Representation. This has the advantage
+	of being a fast way to implement way to translate the code, but
 	very often generate poor final code, as illustrated in
 	Figure \ref{fig:macro_exp}. There are optimizations that can be employed
 	to improve the result of such translations, such as
@@ -1738,7 +1763,7 @@ Once this is done, variables can be renamed accordingly.
 \end{figure}
 
 
-	Another approach is to treat the IR as a \textit{tree}, then try to pattern-match
+	Another approach is to treat the Intermediate Representation as a \textit{tree}, then try to pattern-match
 	a set of nodes in which this pattern is known to have an efficient translation.
 	Figure \ref{fig:tree-matching} illustrates this process, in general.
 
@@ -1788,10 +1813,10 @@ Once this is done, variables can be renamed accordingly.
 	minimal cost $\texttt{PD[}n\texttt{]}$ is:
 
 \[
-    \texttt{PD[}n\texttt{]} =
+    \texttt{pd[}n\texttt{]} =
      \begin{cases}
-       \min_{p \in P_n} \texttt{COST[}p\texttt{]}  &\quad\text{if } n \text{ is leaf}\\
-       \min_{p \in P_n} \texttt{COST[}p\texttt{]} + \sum_{f \in \text{succ}(p)} \texttt{PD[}f\texttt{]} &\quad\text{otherwise}\\
+       \min_{p \in P_n} \texttt{cost[}p\texttt{]}  &\quad\text{if } n \text{ is leaf}\\
+       \min_{p \in P_n} \texttt{cost[}p\texttt{]} + \sum_{f \in \text{succ}(p)} \texttt{pd[}f\texttt{]} &\quad\text{otherwise}\\
      \end{cases}
 \]
 
@@ -1831,7 +1856,7 @@ Once this is done, variables can be renamed accordingly.
 %maneira a acelerar o código a ser produzido, substituindo trechos de código por
 %outros mais eficientes, reordenando as instruções do programa, etc.
 
-Compilers are a large program. Because if this, there is a great interest in
+Compilers are large programs. Because if this, there is a great interest in
 avoiding rewriting a compiler when a new language is proposed, or when new
 hardware is created. For that, compiler writers usually adopt the following
 modularization \citep{redhat} \citep{llvm}, as illustrated by Figure
@@ -2055,7 +2080,7 @@ AST, or postergated to a next stage, called the Semantic Analysis,
 which is still part of the Front-End.
 
 After the AST is generated and the Semantic Analsysis are completed, it is
-often converted to an Intermediate Representation (IR), where Target-Independent
+often converted to an IR, where Target-Independent
 Optimizations are performed. This yields the control to the Middle-End of
 the compiler.
 
@@ -2063,14 +2088,14 @@ the compiler.
 
 \begin{subsection}{Middle End}
 
-The Middle-End is responsible to work on one or more Intermediate Representations
-(IR) of the compiler. If there are checks which can be postponed in the Front-End
+The Middle-End is responsible to work on one or more IR
+of the compiler. If there are checks which can be postponed in the Front-End
 to this stage, it is preferible, once it avoids these checks on every Source
 Language's Front-End.
 
 Here, we construct data structures in which might be necessary for the hardware
 independent optimizations, such as the Control-Flow Graph, the Callgraph, the
-SSA representation, and so on. After that, the indeed run these optimizations.
+SSA representation, and so on. After that, the compiler indeed run these optimizations.
 
 The Middle End is where the most effort is spent in development. Every new
 optimization here will improve the code for every target machine that the
@@ -2558,12 +2583,12 @@ optimization are applied only local to its Compilation Unit.
 GCC is a free software program, and its development is often done by
 contribuitors worldwide, paid or not. As every Free Software project,
 contribution must be sent in a specific manner and fullfil a list
-of attributes to check its quality.
+of attributes to enusre quality of the contribution.
 
 \begin{subsection}{Cloning GCC}
 
 Since 2020, GCC switched its main software versioning system from Subversion
-to Git \cite{gcc_git}. In order to work on GCC, you must create a working
+to Git \citep{gcc_git}. In order to work on GCC, you must create a working
 copy of the latest revision of GCC, which can be archived by \textit{cloning}
 the GCC repository. Assuming you have git installed, you can clone
 gcc by
@@ -2645,7 +2670,8 @@ correct. Compile some toy programs to check if the compiler is indeed working.
 
 When modifying the GCC code, you must always check if you broke something
 that is already working, however, since you cloned a development branch,
-it is possible that \textit{something was already broken}, and when you
+it is possible that \textit{something was already broken} in the upstream
+itself, and when you
 run the testsuite, you may think that you broke something when in fact
 you did not. Therefore, you should run the testsuite before and after your
 development, and take down notes about the tests in which are failing.
@@ -2867,19 +2893,19 @@ however two of then must be hilighted:
 	are vectorial processors that allows a single operation to be executed
 	simultaneously in every element of a vector. Some examples are the
 	Intel SSE instruction set, and also the \textit{Graphics Processing Units} (GPU)
-	although this last one is not consired a purely SIMD architecture.
+	although this last one is not consired a pure SIMD architecture.
 
     \item \textbf{MIMD} - \textit{Multiple Instruction, Multiple Data}. Those
 	are the completely indepentent multicore systems, capable of
 	executing tasks asynchronously. Here we find both shared memory and distributed
-	memory architecture.
+	memory architectures.
 
 \end{enumerate}
 \end{subsection}
 
 \begin{subsection}{Parallel Programming in Shared Memory}
 	One way of doing Parallel Computing is through a shared memory
-	between the cores or processors. Here, a shared memory is connected
+	behind the cores or processors. Here, a shared memory is connected
 	through a bus to all processors, allowing read and write of data.
 	To avoid concurrency problems, both locking and synchronization mechanisms
 	are required.
@@ -2921,7 +2947,7 @@ however two of then must be hilighted:
 	sharing sharing information between processes must be done through
 	Interprocess Communication (IPC). One example of such is the
 	\texttt{shmget} call, from \texttt{System V}, in which Linux still
-	supports \citep{shmget}, or through a Pipe \cite{pipe}.
+	supports \citep{shmget}, or through a Pipe \citep{pipe}.
 
 %	Um \textit{Processo} é um modelo de abstração do Sistema Operacional que
 %dá a um programa a ilusão de que ele tem o monopólio do processador
@@ -2951,7 +2977,7 @@ Unix processes are created through a system call named \textit{fork}. On
 Linux, forking will clone the current process into another, and copy
 the pages only when modified, a process named Copy on Write (CoW). This
 may turn into an additional overhead when processes are chosen instead
-of threads.
+of threads \citep{abbas_cow}.
 
 %Cada processo contém pelo menos um fluxo de execução, e cada fluxo de
 %execução é chamado de \textit{thread}. Cada \textit{thread} dentro
@@ -3089,23 +3115,30 @@ in Linux through the \texttt{semaphore.h} interface.
 
 \begin{section}{Power and Energy}
 
-When we want to measure how much enery a computer is drawing, sensors
-measure the \textit{Instantaneous Power}. However, power $P$ is defined
-by the derivative of energy over time. Therefore, to compute energy
-measuring the power:
-$$P = \frac{dE}{dt} \Rightarrow E = \int_{0}^{t'} P(t)dt$$
+When we want to measure how much enery a computer is consuming, there are
+sensors to measure the \textit{Instantaneous Power}. However, power $P$ is defined
+as the time rate of energy transfered \citep{young2006sears}. Therefore, to
+compute energy measuring the power consumption of a system:
+$$P = \frac{dE}{dt} \quad \Rightarrow \quad E = \int_{0}^{t'} P(t)dt$$
 where $t'$ is the elapsed time of the experiment. However, we can only
 measure information of the sensor in discrete time, and not continuously.
-Therefore we can approximate this integral by using two Riemman sum.
+Therefore we can approximate this integral by using two Riemman sums.
 
-Given two measured points at time $t_i$ and $t_{i+1}$, define:
+Assume that we collected $n$ measurements of the sensor at times
+$t_1, t_2, \cdots, t_n$ with a distance of $\Delta t$ from each other.
+Now, given two measured points at time
+$t_i$ and $t_{i+1}$, we define a \textit{minimum} and \textit{maximum} $m_i$ and $M_i$
+such that:
 $$m_i = \min\{P(t_i), P(t_{i+1})\} \quad \text{ and } \quad M_i = \max\{P(t_i), P(t_{i+1})\}$$
 Then, assuming that for every $x \in [t_i, t_{i+1}]$ we have
 $$m_i \leq P(x) \leq M_i$$
 this means that:
 $$\sum_{i=1}^{n-1} m_i\Delta t \leq E \leq \sum_{i=1}^{n-1} M_i\Delta t$$
-Which can give us a way to measure the \textit{error} of our measurement.
-
+Which can give us a way to measure the \textit{error} of our integration
+process just by computing $\sum_{i=1}^{n-1} M_i\Delta t -
+\sum_{i=1}^{n-1} m_i\Delta t = \epsilon$. This can also capture the error of the sensor
+itself by representing the real value as between a range of two values, and
+the lower bound on $m_i$ and the upper bound in $M_i$.
 
 \end{section}
 
