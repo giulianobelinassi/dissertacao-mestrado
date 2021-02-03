@@ -135,39 +135,39 @@
 %\dowithsubdir{extras/}{\usepackage[square,sort,nonamebreak,comma]{natbib-ime}}
 
 % citação bibliográfica textual(plainnat-ime.bst)
-%\dowithsubdir{extras/}{\usepackage[round,sort,nonamebreak]{natbib-ime}}
+\dowithsubdir{extras/}{\usepackage[round,sort,nonamebreak]{natbib-ime}}
 
 %%%%%%%%%%%
 
 
 %%%%%%%%%%% Usando biblatex (preferido): %%%%%%%%%%%
 
-\usepackage[
-  % "natbib=true" faz biblatex reconhecer comandos no estilo
-  % do pacote natbib (\citet, \citep)
-  natbib=true,
-  %
-  % Aqui definimos estilo de citação e de lista
-  % de referências usado por biblatex
-  %
-  % Estilo similar a plainnat, uma variante de autor-data
-  style=extras/plainnat-ime,
-  % Estilo similar a alpha
-  %style=alphabetic,
-  % O estilo numérico é comum em artigos
-  %style=numeric,
-  % autor-data "padrão" do biblatex
-  %style=authoryear-comp,
-  % APA, uma variante de autor-data muito usada
-  %style=apa,
-  % Um estilo que busca ser compatível com a ABNT:
-  %style=abnt,
-  %style=bwl-FU,
-]{biblatex}
-
+%\usepackage[
+%  % "natbib=true" faz biblatex reconhecer comandos no estilo
+%  % do pacote natbib (\citet, \citep)
+%  natbib=true,
+%  %
+%  % Aqui definimos estilo de citação e de lista
+%  % de referências usado por biblatex
+%  %
+%  % Estilo similar a plainnat, uma variante de autor-data
+%  style=extras/plainnat-ime,
+%  % Estilo similar a alpha
+%  %style=alphabetic,
+%  % O estilo numérico é comum em artigos
+%  %style=numeric,
+%  % autor-data "padrão" do biblatex
+%  %style=authoryear-comp,
+%  % APA, uma variante de autor-data muito usada
+%  %style=apa,
+%  % Um estilo que busca ser compatível com a ABNT:
+%  %style=abnt,
+%  %style=bwl-FU,
+%]{biblatex}
+%
 % O arquivo com os dados bibliográficos para biblatex; você pode usar
 % este comando mais de uma vez para acrescentar múltiplos arquivos
-\addbibresource{bibliografia.bib}
+%\addbibresource{bibliografia.bib}
 
 %%%%%%%%%%%
 
@@ -333,17 +333,17 @@
 
 %%%%%%%%% Bibliografia com bibtex (preterido): %%%%%%%%%
 %\bibliographystyle{extras/alpha-ime}% citação bibliográfica alpha
-%\bibliographystyle{extras/plainnat-ime} % citação bibliográfica textual
-%\bibliography{bibliografia}  % associado ao arquivo: 'bibliografia.bib'
+\bibliographystyle{extras/plainnat-ime} % citação bibliográfica textual
+\bibliography{bibliografia}  % associado ao arquivo: 'bibliografia.bib'
 
 %%%%%%%% Bibliografia com biblatex (preferido): %%%%%%%%
 
-\printbibliography[
-  title=\refname\label{bibliografia}, % "Referências", recomendado pela ABNT
-  %title=\bibname\label{bibliografia}, % "Bibliografia"
-  % Inclui a bibliografia no sumário
-  heading=bibintoc,
-]
+%\printbibliography[
+%  title=\refname\label{bibliografia}, % "Referências", recomendado pela ABNT
+%  %title=\bibname\label{bibliografia}, % "Bibliografia"
+%  % Inclui a bibliografia no sumário
+%  heading=bibintoc,
+%]
 
 % imprime o índice remissivo no documento (opcional)
 \printindex

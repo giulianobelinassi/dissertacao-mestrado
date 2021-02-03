@@ -1,0 +1,283 @@
+From bfbc96339ac3fd649c5bbb1cb5663682fdab87cf Mon Sep 17 00:00:00 2001
+From: Melissa Wen <melissa.srw@gmail.com>
+Date: Thu, 28 Jan 2021 16:10:12 -0300
+Subject: [PATCH] a middle ground
+
+---
+ samplepaper.tex | 139 ++++++++++++++++++++++++------------------------
+ 1 file changed, 70 insertions(+), 69 deletions(-)
+
+diff --git a/samplepaper.tex b/samplepaper.tex
+index 154e1de..57cfa14 100644
+--- a/samplepaper.tex
++++ b/samplepaper.tex
+@@ -315,14 +315,16 @@ time it finally launches \textit{ld}. This process can be seen by launching GCC
+ \section{A Middle Ground} \label{sec:work}
+ 
+ As presented in Section \ref{lto_section}, LTO was created to allow expensive
+-optimizations in industrial sized programs, and has a serial part (WPA), which
+-might impose a bottleneck on manycore machines. Classical Compilation scheme,
+-however, can not partition its Compilation Unit for parallel compilation, which can also
++%% é expensive mesmo?
++optimizations in industrial-sized programs and has a serial part (WPA),
++imposing a bottleneck on manycore machines. On the other hand, Classical Compilation scheme
++cannot partition its Compilation Unit for parallel compilation, which can also
+ bottleneck the compilation if it is too large. Therefore, can we transplant the
+ LTO partitioner to the Classical Compilation scheme, and make it work
+ \textit{without} having the context of the \textit{entire} program?
+ The answer is \textit{yes}, and we show that by showing the details
+ of our implementation in GCC.
++%% Não sei se eu gostei desse formato pergunta-resposta. Dá para mudar para só afirmações?
+ 
+ Our approach differs from LTO mainly in how we handle the Interprocedural
+ Optimization. An optimization is called Interprocedural if it requires
+@@ -331,7 +333,7 @@ An example of such optimizations is the \textit{inliner}.
+ LTO handles these optimizations with the context of the whole program, while
+ our approach will only have the context of the original Compilation Unit.
+ This allows optimizations as good as they are in the Classical
+-Compilation scheme, while benefiting of the extra parallelism opportunity
++Compilation scheme while benefiting from the extra parallelism opportunity
+ available in the LTO's LTRANS stage.
+ 
+ In this section, we will first discuss the internals of some parts of GCC,
+@@ -341,47 +343,47 @@ User Experience perspective: the \texttt{gcc} \textit{driver}. Then, in
+ Subsection \ref{sec:lto_partitioner} we present a short algorithm for making
+ the LTO partitioner work for our proposal. In Subsection
+ \ref{sec:partition_mask} we present a necessary change we had to do in our work
+-about how partitions are applied in GCC, and finally we discuss about how to
++about how partitions are applied in GCC, and finally, we discuss how to
+ solve Name Clashing without having the context of the entire program.
+ 
+ \subsection{The GCC driver}\label{sec:gcc_driver}
+ 
+-An large program can be written in several languages, with each of them having
+-its own compiler. From a Compiler Theory perspective, a compiler is a software
+-that translates a program from a language $A$ to an language $B$
+-\cite{dragonbook}.  In the case of GCC, it translates several languages, such
+-as C, to Assembler of some architecture (\textit{e.g.} x86). This means that
++A large program can be written in several languages, with each of them having
++its own compiler. From a Compiler Theory perspective, a compiler
++translates a program from language $A$ to language $B$
++\cite{dragonbook}.  In GCC, it translates several languages, such
++as C, to Assembler of some architecture (e.g., x86). This means that
+ encapsulating code in object files, or linking the code in an executable, are
+ not tasks of the compiler. However, the user can launch \texttt{gcc -o binary
+ file.c} and get a working binary. That is because the driver will launch the
+ necessary programs for the user, and in fact this line launches three programs,
+ as illustrated in Fig. \ref{fig:gnu_toolchain}.
+ 
+-Therefore, if we want that our changes not break the building scripts
+-(\textit{e.g.} Makefile) used by most
++Therefore, if we want our changes do not break the building scripts
++(e.g., Makefile) used by most
+ projects -- which is mostly launching \texttt{gcc file.c -c} and creating an object file \texttt{file.o} -- we must ensure that we create a single object file for each file,
+-and not multiple, as does the LTO partitioner. Fortunately we can rely on GNU \textit{ld}
++not multiple, as does the LTO partitioner. Fortunately, we can rely on GNU \textit{ld}
+ partial linking for merging objects file into one. Therefore, the solution this problem
+ is:
+ \begin{enumerate}
+ 	\item Patch the \textit{partitioner} to communicate the location of
+-	each files created to the \textit{driver}. If the \textit{partitioner}
+-	is the compiler (which is the case of GCC), then it should communicate
++	each file created to the \textit{driver}. If the \textit{partitioner}
++	is the compiler (which is the case of GCC), it should communicate
+ 	the location of each generated \textit{assembler file}. This can be
+ 	archived by passing a hidden flag \texttt{-fadditional-asm=<file>}
+ 	by the driver to the partitioner, which the last will write to. This file can also
+-	be replaced with a Named Pipe for better performance, if needed.
++	be replaced with a Named Pipe for better performance if needed.
+ 
+ 	Then, the partitioner checks if this flag has been passed to the compiler. If yes, then
+ 	a \textit{compatible version} of the driver is installed. If the
+ 	partitioner decides to partition the Compilation Unit, it should
+-	\textit{retarget} the destination assembler file, and write the retarget
++	\textit{retarget} the destination assembler file and write the retarget
+ 	name to the communication file.
+ 
+ 	\item Patch the driver to pass this hidden flag to the
+-	\textit{partitioner}.  Then check if this file exist. If not, it means that
++	\textit{partitioner}.  Then check if this file exists. If not, it means that
+ 	either the compiler is incompatible (assuming it did not halt with an
+-	error) or it has chosen to not partition the Compilation Unit. In the first
++	error) or it has chosen not to partition the Compilation Unit. In the first
+ 	case, the driver should call \textit{as} to every assembler file generated, and call
+ 	the linker to generate the expected final object file. In the second case,
+ 	simply fallback to the previous compilation logic.
+@@ -389,21 +391,21 @@ is:
+ 
+ Fig. \ref{fig:gnu_toolchain_patched} illustrates the code flow after these
+ changes.  The execution starts in the highlighted node \textit{Driver}, which
+-calls the compiler with the necessary flag to stablish a communication between
+-the parts. The compiler then will partition the Compilation Unit and forks
++calls the compiler with the necessary flag to establish a communication between
++the parts. The compiler partition the Compilation Unit and forks
+ itself into several child processes, one for each partition. Although there is
+ a clear difference between a \textit{process} and a \textit{thread}, we will
+ use this term interchangeable in this work.
+ 
+-Once multiple processes are created, then the compiler will communicate its
++Once multiple processes are created, the compiler will communicate its
+ output .s file to the driver, and the driver then will launch the \textit{as}
+ to assemble it, and then launch \textit{ld} to merge them all into a single
+ object file.
+ 
+ After these changes, a good way to check if the changes are working is to
+ bootstrap the compiler with a single partition, but writing the output
+-path into the communication channel. Bootstrapping can be an resource
+-intensive task, therefore this is an excellent opportunity to write automated
++path into the communication channel. Bootstrapping can be a resource
++intensive task; therefore, this is an excellent opportunity to write automated
+ tests covering every case necessary for the bootstrap. This may also expose
+ some extreme cases, for instance, the C compiler being called to process macros
+ in files of distinct languages.
+@@ -462,32 +464,32 @@ after our changes}
+ \subsection{Adapting the LTO Partitioner}\label{sec:lto_partitioner}
+ 
+ In GCC, a Compilation Unit is represented as a callgraph. Every function,
+-global variable, or their clones (which may represent a function to be inlined)
+-are represented as nodes in a callgraph. If there is a function call from $f$
+-to $g$, then there is an edge from $f$ to $g$. Similarly, if there is an
+-reference to an global variable $v$ in $f$, then there is also an edge from $f$
++global variable, or clones (which may represent a function to be inlined)
++is represented as nodes in a callgraph. If there is a function call from $f$
++to $g$, then there is an edge from $f$ to $g$. Similarly, if there is a
++reference to a global variable $v$ in $f$, then there is also an edge from $f$
+ to $v$. This means that Compilation Unit partitioning can be represented as
+ a Graph Partitioning problem. 
+ 
+-When LTO is enabled and GCC is in WPA stage, the body of these nodes
+-are not present, just a \textit{summary} of it (\textit{e.g.} the size
++When LTO is enabled and GCC is in the WPA stage, the body of these nodes
++is not present, just a \textit{summary} of it (e.g., the size
+ in lines of code it had). This is done to conserve memory. However,
+-when LTO is disabled, the function body is present, and this
+-resulted in some assertions failure, which were fixed after some debugging.
++when LTO is disabled, the function body is present, resulting
++in some assertion failures, which were fixed after some debugging.
+ 
+ Then comes the partitioner algorithm \textit{de facto}. In LTO, GCC tries to create
+ partitions of similar size, and always try to keep nodes together. The
+-heuristic used there is quite complicated in order to run in linear time, and turned
++heuristic used there is quite complicated to run in linear time, and turned
+ out to be complex to find the issues that were causing the partitioning to fail.
+ Therefore, we decided to design a new partitioning algorithm for this project.
+ 
+-This partitioning algorithm works as follows: For each node, we check if they
++This partitioning algorithm works as follows: for each node, we check if they
+ have some desired property, such as being a member of a COMDAT group, and
+-merged into the same partition. We then propagate outside of this COMDAT group
++merged it into the same partition. We then propagate outside of this COMDAT group;
+ checking for every node that may trigger the COMDAT to be copied into other
+ partitions, and also add them to the same partition. In practice,
+ this means to include every node hit by a Depth-First
+-Search (DFS) from the group to an non-cloned node outside of the group.
++Search (DFS) from the group to a non-cloned node outside of the group.
+ Fig. \ref{fig:comdat_frontier} represents a sketch of this process.
+ 
+ \begin{figure}
+@@ -498,70 +500,69 @@ Fig. \ref{fig:comdat_frontier} represents a sketch of this process.
+ 	  \label{fig:comdat_frontier}
+ \end{figure}
+ 
+-At first we we also did this process for private functions to avoid having to
+-promote them to public, once external access would be necessary if they go
+-into distinct partitions. However, results showed that this have a strong
++At first, we also did this process for private functions to avoid
++promoting them to the public, once external access would be necessary if they go
++into distinct partitions. However, results showed that this has a strong
+ negative hit in any parallelism opportunity. For grouping the nodes together,
+ we used an Union Find with Path Compression, which yields an attractive
+ computational complexity of $O(E + N \lg^*N)$ to our partitioner, where $N$ is the
+ number of nodes and $E$ is the number of edges in the callgraph \cite{feufiloff}.
+ 
+ Once the partitions are computed, we need to compute its \textit{boundary}.
+-If function $f$ calls $g$, but they were assigned into distinct partitions,
+-then we must include a version of $g$ in $f$'s partitions without its body,
+-then check if $g$ is a private function. If yes, them $g$ must be promoted
++If function $f$ calls $g$, they were assigned into distinct partitions. Therefore,
++we must include a version of $g$ in $f$'s partitions without its body
++and check if $g$ is a private function. If yes, $g$ must be promoted
+ to a public function. There is also extra complexity if a version of $g$
+ is marked to be inlined in $f$, which means that its body has to be
+ streamed somehow. Fortunately, most of this logic is already present
+-in LTO and we could simply reuse them. However, some issues were found
+-when handling inline functions and global variables marked as being part
+-of the boundary. The first being some functions marked to be inlined into 
++in LTO and we could reuse them. However, some issues were found
++when handling inline functions and global variables marked as part
++of the boundary. First, some functions marked to be inlined into 
+ functions inside the partition were incorrectly marked to be removed.
+-The second being variables marked as in the boundary (and therefore
+-not in the partition) not being correctly promoted to external. These issues
+-were hard to find the reason of, but easy to fix.
++Second, variables marked as in the boundary (and therefore
++not in the partition) not being correctly promoted to external. The reason for these issues
++were hard to find but easy to fix.
+ 
+-Furthermore, there were some issues with
+-regard to how GCC handle partitions, which we discuss in the next subsection.
++Furthermore, there were some issues concerning
++how GCC handles partitions, which we discuss in the next subsection.
+ 
+ \subsection{Applying a Partition Mask}\label{sec:partition_mask}
+ 
+-Once partitions are computed, the only presented way to apply it (\textit{i.e.}
++Once partitions are computed, the only presented way to apply it (i.e.,
+ remove every unnecessary node from the Compilation Unit) was to reload the
+-compiler, and let it load the phony object files, which are not available in our
++compiler and enable it loads the phony object files, which are not available in our
+ project because we are not running in LTO mode. We developed another method for this.
+ We used the Unix \textit{fork} function to spawn a child process, and then
+ we implemented our own method to apply the partition without having to load
+-there phony object files. Fortunately, this consisted
+-of four cases:
++phony object files. Fortunately, this consisted of four cases:
+ \begin{itemize}
+-	\item Node is in partition. Nothing has to be done.
+-	\item Node is in boundary, but keep its body: We mark that this function
++	\item \textit{Node is in partition.} Nothing has to be done.
++	\item \textit{Node is in boundary, but keep its body.} We mark that this function
+ 	is available in other partition, but we do not release its body or
+ 	datastructures.
+-	\item Node is in boundary: We mark this mode as having its body removed,
+-	but we never actually do remove it. This is because the node may share the
+-	body contents with another node in the partition. We then remove
+-	every edge from its functions to it callees, all references to variables,
+-	the content of the dominator tree, and also its Control-Flow Graph. This
++	\item \textit{Node is in boundary.} We mark this mode as having its body removed,
++	but we never actually remove it. This is because the node may share the
++	body contents with another node in the partition. Therefore, we remove
++	every edge from its functions to its callees, all references to variables,
++	the content of the dominator tree, and its Control-Flow Graph. This
+ 	is now a function which this partition only know that it exists.
+-	\item Node not in boundary: We remove the node, and all its content.
++	\item \textit{Node not in boundary.} We remove the node, and all its content.
+ \end{itemize}
+ 
+ After this, it retargets the output assembler file to another file private
+-to this partition,
+-and write its partition number together with the path to the communication
++to this partition
++and writes its partition number and the path to the communication
+ file, which the driver will read in the future. The partition number is
+ important to guarantee that the build is reproducible, as we will discuss
+ later.
+ 
+ It is also important that some early step in the compiler does not emit assembler
+-too early, as were the issue with the Gimplifier in GCC, or else the output
+-file will be incomplete. We had to fix the gimplifier to avoid that.
++too early, such as the issue with the Gimplifier in GCC, or else the output
++file will be incomplete. We had to fix the Gimplifier to avoid that.
+ 
+-Once the partition is applied to the current process, then it can
+-continue with the compilation. It should be running in parallel
+-now by the number of partitions.
++Once the partition is applied to the current process, it can
++continue the compilation. It should now be running in parallel
++by the number of partitions.
+ 
+ \section{Name Clash Resolution}
+ 
+-- 
+2.29.2
+
