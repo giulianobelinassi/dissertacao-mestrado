@@ -13,12 +13,17 @@ between distinct programming languages. Usually, compilers translate high-level
 languages such as C, to assembly language, and those are the focus of our work.
 
 This chapter presents a brief introduction to the concepts used in this work.
-First, we present some subjects about computer-theory which are heavily
-used in a compiler, then we present all parts of the compiler pipeline
-to understand the compilation phases. Following that, we briefly discuss how the
-GCC compiler presents these topics implemented, and how these parts interact
-with each other.  Finally, we present some basic concepts and algorithms about
-Parallel Computing and some intuition about power and energy.
+In Section \ref{sec:parsing} we present some subjects about computer-theory
+which are heavily used in a compiler. In Section \ref{sec:optimization} we
+present all parts of the compiler pipeline to understand the compilation
+phases. In Section \ref{sec:engineering} we discuss some software engineering
+techniques that are employed when implementing compilers.  In Section
+\ref{sec:gcc_compiler} we discuss the internals of the GCC compiler, with some
+introduction about how is the contribution process. In Section
+\ref{sec:parallel_computing} we present some concepts from parallel computing,
+which we use in this dissertation. And finally, Section \ref{sec:power}
+briefly present the concepts behind electrical power and energy calculation,
+which we used on our experiments.
 
 %Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
 %trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
@@ -29,7 +34,7 @@ Parallel Computing and some intuition about power and energy.
 
 %\begin{section}{Compiladores}
 
-\begin{section}{Parsing Theory}
+\begin{section}{Parsing Theory}\label{sec:parsing}
 
 \begin{subsection}{Languages}
 A large part of a compiler is dedicated to parsing text to determine if
@@ -39,9 +44,9 @@ $\sigma$ is a character of the alphabet $\Si$ by expressing it as
 $\sigma \in \Si$. We can also concatenate two characters $\sigma_1 \sigma_2$
 to form a word, and we say that $\sigma_1 \sigma_2 \in \Sigma^2 = \Sigma\Sigma$.
 In fact, we denote the product of two languages $A$ and $B$ as being
-$$AB = \conj{xy}{x \in A \text{ and } b \in B}$$
+$$AB = \conj{xy}{x \in A \text{ and } y \in B}$$
 which should not be confused with the cartesian product
-$$A \times B = \conj{(x, y)}{x \in A \text{ and } b \in B}$$
+$$A \times B = \conj{(x, y)}{x \in A \text{ and } y \in B}$$
 
 The Kleene Star of a certain language $A$ is defined as:
 $$A^* = \bigcup_{n \geq 0} A^n$$
@@ -89,7 +94,7 @@ states.
 
 We say that given an machine $\mathcal{A}$, the \textit{language}
 that it generates is denoted as $L(\mathcal{A})$. The machine accepts an input
-$w \in \Sis$ if and only if $w \in L(\mathcal{A})$. We also say that a machine
+$w \in \Sis$ if $w \in L(\mathcal{A})$. We also say that a machine
 recognizes a certain language $L \ssq \Sis$ if and only if
 $L(\mathcal{A}) = L$.
 
@@ -100,7 +105,7 @@ characters in the ASCII table, let $D = \{\texttt{0}, \texttt{1}, \cdots,
 character being read. A \textit{language} describing this subset of words
 is
 
-$$ L_1 = \conj{w \in \Sis}{w \text{is a non-negative number}}$$
+$$ L_1 = \conj{w \in \Sis}{w \text{ is a non-negative integer}}$$
 
 A \texttt{flex} regular expression for it would be
 $$\land\texttt{[0-9]+\$}$$
@@ -162,7 +167,7 @@ states.
 
 $\NFA$ have a feature called \textit{nondeterminism}, which means that given
 a $\sigma \in \Si$ and three states $p, q, r \in Q$, it is possible
-two have two or more transitions from a same state given the same character $\sigma$, which
+two have to or more transitions from a same state given the same character $\sigma$, which
 means that $p \overset{\sigma}{\longrightarrow} q$ and
 $p \overset{\sigma}{\longrightarrow} r$ can both be present in the machine. Which route the $\NFA$ will proceed with
 its computation in this situation does not matter as long as it reaches some final
@@ -244,7 +249,7 @@ $L_2$.
 \end{proof}
 
 In fact, this proof is heavily based on the proof of the \textit{pumping lemma},
-a powerful tool to find if a certain language is not recognizable by an
+a powerful tool to find if a certain language is not recognizable by a
 Finite Automata. Entering in details about this is beyond the scope of
 this work.
 
@@ -512,7 +517,7 @@ $$S \rightarrow \ttt{(}S\texttt{)} \; | \; \lambda$$
 can recognize $L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$, because it is clear that
 $S \Rightarrow^{n+1} \ttt{(}^n\ttt{)}^n$.
 
-There is also a important undesired detail about grammars called ambiguity, which
+There is also an important undesired detail about grammars called ambiguity, which
 allows a string to have multiple derivations. This can confuse a parser into
 generating a distinct parse tree from the one that is intended by the grammar
 designer.
@@ -544,9 +549,9 @@ following sketch of a Grammar:
 
 This can generate the two C code snippets in Figure \ref{fig:left_if} and
 \ref{fig:right_if}. In C, spaces and tabulations are ignored if they are
-repeated, and therefore these two codes are the same. Therefore, does that else
-belongs to the first if, or the second if? Which one should the compiler choose
-when parsing the code?
+repeated, and therefore these two codes are the same. Therefore, that
+\textbf{else} could belong to both first and last \textbf{if} because of
+ambiguity. 
 
 \begin{figure}[ht]
     \centering
@@ -587,7 +592,7 @@ when parsing the code?
 \caption{Distinct C parse tree for the same input}
 \end{figure}
 
-In fact, the C specification states that an else should always match with the closest
+However, the C specification states that an else should always match with the closest
 if, and therefore Figure \ref{fig:left_if} must be selected
 when parsing a C program, or else the compiler has a bug. This can lead
 to some unfortunate bugs in the code if the programmer is not careful enough,
@@ -595,8 +600,8 @@ because one may write the code in \ref{fig:right_if} expecting that the
 tabulation will change the program semantic, and now you have a bug which is
 very hard to catch \citep{ritchie1988c}. This issue can be avoided by removing the
 ambiguity of the grammar. \cite{dragonbook} presents the following grammar
-to fix this problem for a $\LR{1}$ parser
-
+to fix this problem for a $\LR{1}$ parser:
+\vspace*{-0.5cm}
 \input{conteudo/grammar_unambiguous.tex}
 however, one can design a Top-Down Recursive-Descent parser that correctly
 parses that grammar, even with the ambiguity.
@@ -660,7 +665,7 @@ the following set:
 $$H_0 = \conj{xh}{S \Rightarrow^+ xhy, h \text{ is the handle of } xhy, x \in (V \cup \Si)^*, y \in \Sis}$$
 
 \cite{knuth1965translation} showed that this set is a \textit{regular language},
-meaning that there is a $\DFA$, say $\mathcal{DK} = (Q, V \cup \Si, \delta, s F)$, which
+meaning that there is a $\DFA$, say $\mathcal{DK} = (Q, V \cup \Si, \delta, s, F)$, which
 recognizes $H_0$. Notice that $\mathcal{DK}$ runs on alphabet $V \cup \Si$.
 He also shows that every \textit{accept} state of the $\mathcal{DK}$ is related
 to a production rule of $G$, in which the algorithm should use to reduce the
@@ -687,7 +692,7 @@ and push the current $\mathcal{DK}$ state on the stack. If
 $\mathcal{DK}$ reaches one of its accept state, it means that we
 found a handle associated with some production $A \rightarrow h$,
 in which we pop $|h|$ states from the \DPDA stack and ``emulates''
-the read of $A$ as the next read character, because a \DPDA can
+the read of $A$ as the next read character, once a \DPDA can
 not return a character to its input, and proceed reading the input.
 If it reads the entire input string and ``emulate'' the reduction
 of the starting variable, it means that it is finished. This also
@@ -891,7 +896,7 @@ and they are not much used in practice.
 \end{subsection}
 \end{section}
 
-\begin{section}{Compiler Optimization Theory}
+\begin{section}{Compiler Optimization Theory}\label{sec:optimization}
 
 Industrial compilers are what we call to be an ``Optimizer Compiler'', because
 it not only do a direct translation to another language, but because it
@@ -1279,10 +1284,10 @@ some analysis ends after a finite number of iterations.
 	not preceeded by its definition.
 \end{definition}
 
-Therefore, a CGraph $G$, a dataflow framework instance for this would be:
+Therefore, a CFGraph $G$, a dataflow framework instance for this would be:
 $(G, \mathcal{L}, \bigsqcap, \mathcal{F}_G)$, where
 \begin{itemize}
-	\item $\mathcal{L} = (2^\mathbb{V}, \ssq)$, where $\mathbb{V}$ is the set of variables in the function represented by $G$.
+	\item $\mathcal{L} = (2^\mathbb{V}, \supseteq)$, where $\mathbb{V}$ is the set of variables in the function represented by $G$.
 	\item $\bigsqcap$ is the union operator $\bigcup$.
 	\item $F_G = \conj{\texttt{in[} v \texttt{]}}{v \in V}$ where
 	$\texttt{in[} v \texttt{]} = (\texttt{out[} v \texttt{]} - \texttt{kill[} v \texttt{]}) \cup \texttt{gen[} v \texttt{]}$.
@@ -1507,7 +1512,7 @@ the \textit{dominance frontier criteria}
 \vspace*{-1cm}
 	$$\texttt{dfront[}x\texttt{]} = \conj{w \in V}{x \text{ dom } y \text{ for some } y \in \text{pred}(w) \text{ and } y \text{ does not sdom } w}$$
 
-This definition looks blury, but it can be easily understeand as the
+This definition looks blury, but it can be easily understand as the
 \textit{border of nodes where the dominance stops}.  Figure \ref{fig:dom_frontier} illustrates this
 concept with a plot of the dominated nodes of $v_5$ in the beige area, and the dominance frontier
 in the green area.
@@ -1530,7 +1535,7 @@ variable was defined and when it is used \citep{appel2004modern}.
 
 \end{subsection}
 
-\begin{section}{Callgraphs and Interprocedural Analysis}
+\begin{subsection}{Callgraphs and Interprocedural Analysis}
 
 Some optimizations requires interaction with other functions, one clear example
 of this is the \textit{function inlining} optimization. When there is a
@@ -1609,17 +1614,19 @@ such as GCC \citep{gcc_ipa}.
   \label{fig:call_graph}
 \end{figure}
 
+\end{subsection}
+
 \begin{subsection}{Register Allocation}
 	Registers are very fast, but small memories inside a processor, which data is
 	required to be loaded for operations like add, subtract, multiply, etc. These
 	memories are a very scarce resource in a processor, and therefore this resource
 	must be administered very carefully.
 
-	This is the purpose of \textit{register allocation}. An code in an
+	This is the purpose of \textit{register allocation}. A code in an
 	Intermediary Representation can contain an arbitrary number of temporary
 	variables, and the goal here is to rewrite the code such that it uses no
 	more temporaries than there are registers in the machine. For example,
-	consider the Figure \ref{fig:register_ir}. In (a), we have an sketch of
+	consider the Figure \ref{fig:register_ir}. In (a), we have a sketch of
 	program, and in (b) we have the rewrite using at most 4 registers.
 
 \begin{figure}[ht]
@@ -1658,7 +1665,7 @@ This information is used to build an \textit{interference graph}, which an
 example is presented in Figure \ref{fig:interf_graph}.
 
 \begin{definition}
-	An interference graph G = (V, E) is a graph where $V = \mathbb{V}$ is the
+	An interference graph $G = (V, E)$ is a graph where $V = \mathbb{V}$ is the
 	set of variables in the program, and $E \ssq V \times V$ are the set of
 	edges. An edge $(u, v) \in E$ if $u$ and $v$ are simultaneously live at
 	at some program point $p$.
@@ -1722,7 +1729,7 @@ register, or memory location.
 
 	There are several techniques to select instruction. One of the simplest
 	are the \textit{macro translation}, where each statement are replaced
-	by the final code locally for each line of the Intermediate Representation. This has the advantage
+	by the final code locally for each line of the IR. This has the advantage
 	of being a fast way to implement way to translate the code, but
 	very often generate poor final code, as illustrated in
 	Figure \ref{fig:macro_exp}. There are optimizations that can be employed
@@ -1763,7 +1770,7 @@ register, or memory location.
 \end{figure}
 
 
-	Another approach is to treat the Intermediate Representation as a \textit{tree}, then try to pattern-match
+/bin/bash: line 1: ]: command not found
 	a set of nodes in which this pattern is known to have an efficient translation.
 	Figure \ref{fig:tree-matching} illustrates this process, in general.
 
@@ -1834,7 +1841,7 @@ register, or memory location.
 
 \end{section}
 
-\begin{section}{Software Engineering in Compilers}
+\begin{section}{Software Engineering in Compilers}\label{sec:engineering}
 
 %Para evitar confusões a respeito das diferentes linguagens que um compilador
 %trabalha em seus muitos estágios, é adotado a seguinte nomenclatura neste trabalho:
@@ -1856,7 +1863,7 @@ register, or memory location.
 %maneira a acelerar o código a ser produzido, substituindo trechos de código por
 %outros mais eficientes, reordenando as instruções do programa, etc.
 
-Compilers are large programs. Because if this, there is a great interest in
+Compilers are large programs. Because of this, there is a great interest in
 avoiding rewriting a compiler when a new language is proposed, or when new
 hardware is created. For that, compiler writers usually adopt the following
 modularization \citep{redhat} \citep{llvm}, as illustrated by Figure
@@ -1907,7 +1914,7 @@ However, this modularization is completely optional: older compilers destined
 to simply doing a direct translation between languages, such as the UNIX C
 Compiler, do not have an IR \citep{ritchie1979tour}. Not only that, several
 textbooks about compilers do not mention the Middle-End part, being a part of
-the Beck-End of the compiler \citep{dragonbook}. Not adopting this
+the Back-End of the compiler \citep{dragonbook}. Not adopting this
 modularization simplifies the project, but also complicates the insertion of
 new programming languages, as well as adding support to new hardware.
 
@@ -2180,16 +2187,15 @@ illustrates this queue.
 
 \end{subsection}
 \end{section}
-\end{section}
 
-\begin{section}{The GCC Compiler}
+\begin{section}{The GCC Compiler}\label{sec:gcc_compiler}
 
 The GNU Compiler Collection, also known as GCC, is a project started by
 Richard Stallman with the first public release in March of 1987. Back then,
 it only supported C language, but already allowed code generation for
 several architectures \citep{gcc_first_ver}.
 
-Today, GCC supports sereval source languages, such as C, C++, Fortran, Go, Ada;
+Today, GCC supports several source languages, such as C, C++, Fortran, Go, Ada;
 and several architectures, such as i386, amd64, riscv, arm, ppc, and pdp-11. GCC
 is also an optimizer compiler, that means it can modify the input code to generate
 a more efficient version without changing the program semantic. This is archived
@@ -2806,7 +2812,7 @@ however, you might need to configure \texttt{git send-email} before you can use 
 
 \end{section}
 
-\begin{section}{Parallel Computing}
+\begin{section}{Parallel Computing}\label{sec:parallel_computing}
 \label{sec:parallel_comp}
 
 	Parallel Computing is the act of coordinate several execution
@@ -3113,7 +3119,7 @@ in Linux through the \texttt{semaphore.h} interface.
 
 \end{subsubsection}
 
-\begin{section}{Power and Energy}
+\begin{section}{Power and Energy}\label{sec:power}
 
 When we want to measure how much enery a computer is consuming, there are
 sensors to measure the \textit{Instantaneous Power}. However, power $P$ is defined

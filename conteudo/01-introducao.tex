@@ -8,10 +8,10 @@ The recent advances in both technological and computational fields induced an
 increasingly faster expansion of software ecosystems. Developers create new
 programs to supply the needs of the most diverse domains, either through web
 systems coded in script languages; or by components to an operating system
-destined to control some hardware resources. Independently of the reason behind
-the development of such systems, it is true that their code will be, in some
-point, transformed into machine language by a compiler or assembler, even if it
-is executed by an interpreter.
+destined to control some hardware resources. Regardless of the reason behind
+the development of them, it is true that their code will be, at some
+point, transformed into machine language by a compiler or assembler, even if an
+interpreter executes it.
 
 
 %Os avanços nos campos tecnológicos e computacionais levaram uma enorme expansão
@@ -23,11 +23,16 @@ is executed by an interpreter.
 %Do \textit{software}, é certo que, em alguma etapa, seu código será transformado em linguagem de máquina por um compilador, mesmo que ele seja executado por um
 %Interpretador.
 
+. There are huge projects destined
+to develop and improve them, such as the GNU Compiler Collections
+(GCC)\footnote{https://gcc.gnu.org/} and LLVM\footnote{https://llvm.org/}, capable
+of translating several languages such as C, C++, and Fortran, to machine language.
+
 A compiler is nothing more than a software that translates code from a
-programming language $A$ to another language $B$ \citep{dragonbook}.  Compilers
-are enormous programs, largely adopted by industry and academy, where a great
-effort was and still is employed so that they produce efficient code -- but
-without any sacrifice in correctness --. There are huge projects destined to
+programming language $A$ to another language $B$ \citep{dragonbook}.
+Compilers are enormous programs, largely adopted by industry and academia, where
+a great effort has been employed to produce efficient code --
+but without any sacrifice in correctness --. There are huge projects destined to
 develop and improve them, such as the GNU Compiler Collections
 (GCC\footnote{https://gcc.gnu.org/}), capable of translate several languages
 such as C, C++, and Fortran, to machine language. There are also smaller
@@ -109,25 +114,25 @@ increasingly common nowadays.
 %gera um gargalo na compilação do projeto em máquinas \textit{manycore}, pois o
 %GCC não é capaz de compilar um arquivo em paralelo de maneira incremental.
 
-The GCC is a largely used Open Source compiler in both academic and industry
-environments. Being a large project, GCC has an additional language created to
-better express and facilitate optimizations in code generation, which is
-compiled into C++ to (1) reuse the optimizations already implemented in the
-compiler, and (2) avoid rewriting several functionalities already implemented.
-This process generates large files that must be compiled, causing a compilation
-bottleneck in the project because GCC is not capable of compiling a single file
-in parallel.
+%The GCC is a largely used Open Source compiler in both academic and industry
+%environments. Being a large project, GCC has an additional language created to
+%better express and facilitate optimizations in code generation, which is
+%compiled into C++ to (1) reuse the optimizations already implemented in the
+%compiler, and (2) avoid rewriting several functionalities already implemented.
+%This process generates large files that must be compiled, causing a compilation
+%bottleneck in the project because GCC is not capable of compiling a single file
+%in parallel.
 
 Currently, all parallelism in the compilation stage is provided either by the
 GNU Make\footnote{https://www.gnu.org/software/make/}, which only provides a
 per-file level granularity; or through the LTO infrastructure, which we
-approach in Section \ref{chap:related_works}. This bottleneck can look to be a
-peculiar characteristic of the GCC project, but after some discussion with the
-community, the users' related similar issues in their projects. That problem
-can be mitigated by a compiler that is capable of compile one file in parallel
-\citep{mailgcc}.  Another solution would be to split the files into smaller
-files, and use the parallelism feature already present in GNU Make, but this
-implies in a modification to the project structure, which may not be ideal.
+approach in Section \ref{chap:related_works}. The former, which we will label
+the \textit{classical compilation method}, may bottleneck the compilation in
+manycore machines if there exists some file which dominate the compilation time.
+The former may also have this bottleneck if the Whole Program Analysis (WPA) stage,
+which runs serially, dominates the compilation time. While parallelizing
+WPA is one way of tackling this problem, we have chosen to improve the parallelization
+granularity on single file compilation of \textit{classical compilation}.
 
 
 %Atualmente, todo o paralelismo na fase de compilação é provido pelo GCC de
@@ -150,7 +155,6 @@ or even reduce execution time on script languages that rely on Just in Time
 power, time, and thus money. So far, every parallelism found internally in
 optimizing compilers was a consequence of a structure created to allow more
 aggressive optimizations, such as the LTO \citep{glek2010optimizing}.
-
 
 %Considerando que atualmente há uma tendência para que os processadores sejam
 %cada vez mais paralelos, compiladores que usufruam deste recurso poderiam
@@ -211,7 +215,9 @@ Therefore, this work dedicates in the following research questions:
 We present these questions in the hope that they may be useful to software
 developers so that they be aware of how compilers may impact the development
 process in their projects, as well as compiler writers about how to improve
-their software using parallelism.
+their software using parallelism. Thus, the main contribution of this work is
+to provide ways to modify an industrial scale compiler to
+compile single files in parallel.
 
 This work is divided into the following chapters: in Chapter
 \ref{chap:fundamentacao}, we present some theoretical concepts regarding
