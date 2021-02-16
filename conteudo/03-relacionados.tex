@@ -14,209 +14,299 @@
 % comando que já coloca essa barra e formata com "\cmd".
 \newcommand{\ltxcmd}[1]{\cmd{\sla{}#1}}
 
-\chapter{Trabalhos Relacionados}
+\chapter{Related Works}
 \label{chap:related_works}
 
-Boa parte das pesquisas dedicada ao paralelismo
-em compiladores é destinada ao desenvolvimento de compiladores que
-paralelizam o código fonte fornecido automaticamente.
-Há basicamente
-duas áreas de estudo relacionadas a paralelização de compiladores, são
-elas: análise de texto em paralelo e análise de fluxo de dados em paralelo.
-Trabalhos dessas áreas também são apresentados em ordem cronológica nessa seção.
+A large portion of the research in compilers regarding parallelism is allocated
+to automatically parallelizing the input code. There are two areas of study
+with are related to compiler parallelization, which is parallel parsing and
+compiling \textit{de facto}. We present the works in this area separately.
 
-Dos algoritmos apresentados na Seção \ref{chap:fundamentacao}, o algoritmo
-Recursivo Descendente é o mais simples deles. \cite{Lincoln:1970:PPT:987475.987478}
-propôs a paralelização da análise léxica de um compilador
-Fortran por meio da quebra do código fonte em partes menores. Para isso, o algoritmo proposto mapeia
-informações de final de
-linha e de posicionamento de cada caractere e realiza um processamento através de operações em APL.
-Posteriormente, \cite{Krohn:1975:PAC:390015.808414} estendeu o trabalho
-anterior, propondo uma maneira de realizar a análise sintática, a
-tradução para a AST, e a geração
-de código utilizando os registradores vetoriais do supercomputador
-STAR-100. Ambos os artigos não apresentam nenhuma
-análise assintótica para os algoritmos propostos, e tampouco apresentam
-experimentos.
+%Dos algoritmos apresentados na Seção \ref{chap:fundamentacao}, o algoritmo
+%Recursivo Descendente é o mais simples deles. \cite{Lincoln:1970:PPT:987475.987478}
+%propôs a paralelização da análise léxica de um compilador
+%Fortran por meio da quebra do código fonte em partes menores. Para isso, o algoritmo proposto mapeia
+%informações de final de
+%linha e de posicionamento de cada caractere e realiza um processamento através de operações em APL.
+%Posteriormente, \cite{Krohn:1975:PAC:390015.808414} estendeu o trabalho
+%anterior, propondo uma maneira de realizar a análise sintática, a
+%tradução para a AST, e a geração
+%de código utilizando os registradores vetoriais do supercomputador
+%STAR-100. Ambos os artigos não apresentam nenhuma
+%análise assintótica para os algoritmos propostos, e tampouco apresentam
+%experimentos.
 
-Posteriormente, \cite{Mickunas:1978:PCM:800127.804105} propôs uma
-paralelização do algoritmo LR($0$). Sua ideia consiste em quebrar
-arbitrariamente a entrada em vários segmentos e executar um analisador em paralelo
-em cada um destes segmentos. Estes analisadores (exceto o primeiro,
-que executa no início da entrada) são modificados na tentativa de
-evitar conflitos, uma vez que modificar a ordem de início da análise
-pode impossibilitar a distinção entre o prefixo e o sufixo de uma fase.
-Quando um conflito é detectado, o analisador envia a sequência de
-\textit{tokens} lida até então ao analisador à sua esquerda,
-retorna ao estado inicial, e reinicia a sua análise.
-No termino da análise, cada analisador envia o resultado para o analisador
-a sua esquerda, acumulando o resultando no primeiro.
-Os autores não mostraram experimentos ou
-análise assintótica do algoritmo proposto. \cite{Pennello:1978:FMA:512760.512786}
-implementou essa estratégia em um compilador Pascal, mas seus experimentos foram
-realizados em um computador paralelo simulado.
+\begin{section}{Parallel Parsing}
 
-\cite{vandevoorde1988parallel} paralelizou o \textit{Titan C compiler}, um compilador
-C escrito em Modula-2. Sua implementação consiste na execução de um analisador léxico
-em paralelo a um analisador sintático, sendo os \textit{tokens} alimentados
-através de um \textit{pipeline}. O autor também propôs a paralelização de um
-analisador sintático recursivo descendente que, após a sequência de declarações do programa, executa novas \textit{threads}
-para cada expressão da gramática e tem
-como premissa que qualquer declaração de funções do programa está no
-cabeçalho do
-arquivo. Essa estratégia de granularidade fina necessitou a implementação de
-uma maneira de controlar o paralelismo, onde foi utilizado o conceito de
-WorkCrews \citep{vandevoorde1988workcrews} que limita o número máximo de
-\textit{threads} em execução simultânea. O autor relata um ganho de 10\% no
-uso do \textit{pipeline} entre o analisador léxico e sintático, e um
-\textit{speedup} de até $3.1\times$ utilizando 5 processadores MicroVAX II em
-memória compartilhada. Entretanto, tal compilador não possui estágios de
-otimização, e assim, métodos de paralelização de um otimizador não foram discutidos neste trabalho.
+From the parsing algorithms presented in Section \ref{chap:fundamentacao}, the
+recursive descent parser is the simplest of them.
+\cite{Lincoln:1970:PPT:987475.987478} proposed a parallel lexical analysis on a
+Fortran compiler by dividing the input source code into smaller parts, and maps
+the position of each character and linefeed in the code, and process them
+through APL operations. Further, \cite{Krohn:1975:PAC:390015.808414} extended
+this work for syntactic analysis and code generation, using the vectorial units
+of the (so far) STAR-100 supercomputer. Both papers do not present experiments
+nor asymptotic analysis of this algorithm.
 
-De maneira similar, \cite{wortman1992} implementou um compilador de Modula-2+
-paralelo. A estratégia consiste em utilizar um analisador léxico capaz de
-encontrar funções no código fonte e prosseguir com a compilação em paralelo
-nesse nível, gerando uma tarefa para cada função. Para solucionar problemas
-relacionados à chamada de funções e
-acesso a símbolos ainda não definidos, o autor propõe o uso de
-uma lógica ternária na tabela de símbolos, especificando um estado
-``\textit{Doesn't know yet}'' (Ainda não visto), e propõe três estratégias para
-implementar essa funcionalidade. Em seguida, o autor propõe o uso de
-um número fixo de \textit{threads} trabalhadoras, e também o uso de uma fila de
-prioridade produtor consumidor, onde as \textit{threads} deverão retirar o trabalho.
-O uso de uma fila de prioridade permite que as funções mais longas sejam
-processadas primeiro. Os experimentos conduzidos pelo autor mostraram
-\textit{speedups} variando de $1.5\times$ até $6\times$ utilizando 8
-processadores MicroVAX II em memória compartilhada.
+\cite{fischer1975parsing} gives a detailed theoretical study, proving several
+concurrent parsing techniques for the LR($k$) family. They propose a parallel
+LR($k$) by breaking the input into several arbitrary parts, and running a
+serial parser on each of them. Then the algorithm tries to recover the stack of
+each noninitial parser by constructing a set of possible states, for which
+there are 5 possible cases. However, in case of an error, the parser result
+should be discarded, and therefore a lot of work will be done in vain when
+comparing with the sequential version.
 
-Os artigos apresentados até então não abordam questões relacionadas
-a otimização de código. Isso porque os compiladores naquela época possuíam poucos
-passos de otimização, o que implicava em pouco tempo necessário para fazê-la.
-Mesmo assim, alguns pesquisadores dedicaram-se a estudar esses passos.
-\cite{Lee1994} estudaram paralelismo na análise de controle
-de fluxo. Como justificativa para esse estudo, os autores afirmam que a maior parte
-do tempo gasto por compiladores otimizadores é com este tipo de análise,
-principalmente nas otimizações Inter Procedurais. 
-A investigação se concentrou em algoritmos que usam o grafo de controle
-de fluxo como entrada. Os autores propõem uma heurística de aglutinação
-para particionar tal grafo em regiões conexas e adjacentes de tamanho não maior
-que um certo inteiro $s$. O uso da heurística é por razão do problema de
-de particionamento ser NP-difícil.
-Os experimentos da implementação utilizaram
-8 processadores do computador iPSC/2 em memória distribuída, e 
-obtiveram \textit{speedups} variando de
-$2.8 \times$ até $6.5\times$. Os autores argumentaram que o \textit{speedup} foi
-limitado devido às características dos programas no teste: os arquivos consistiam
-de várias funções pequenas, o que normalmente é considerado uma boa prática de
-programação.
+Furthermore, \cite{Mickunas:1978:PCM:800127.804105} also proposed a parallelization
+of the LR($0$) algorithm. His idea consists of breaking the input arbitrarily
+points and executing a serial parser for each segment, which he names Piecewise
+LR parsing. These parsers (except the first) are modified to avoid conflict by
+adding an "initial" state by adding every $A \rightarrow u \bullet v$, where $A \rightarrow uv \in
+R$ and $v \neq \lambda$, to the parser item set. This process may add undesired
+states which creates reduce-reduce or shift-reduce conflicts, which the author
+provides a heuristic for solving them.  If the parser finds a conflict which
+this heuristic cannot solve, then it sends the stack content to the
+left-neighborhood, and that parser resumes the processing. The authors
+do not show speedup experiments nor assyntotic analysis of this method.
+\cite{Pennello:1978:FMA:512760.512786} implemented this strategy in a Pascal
+compiler.
 
-Uma outra forma de explorar o paralelismo utilizando um Grafo Dirigido Acíclico
-foi proposta por \cite{kramer1994combining}. Os autores mostram formas de propagar
-em paralelo as informações nesse grafo explorando seus caminhos independentes,
-e mostra uma maneira de transformar um Grafo de Controle de Fluxo com laços em
-um Grafo de Controle de Fluxos acíclico equivalente. Os experimentos realizados
-pelos autores apenas mostram oportunidades de paralelismo encontrada pelo
-algoritmo.
+\cite{fowler2009parallel} described how to parallelize Earley
+and Packrat methods. Although they are mostly used for natural language
+processing, these algorithms can be used to parse computer languages as well.
+For the Earley algorithm, the authors partition the Earley sets into
+sub-blocks and run each block in parallel. For solving the dependency across
+the blocks, the authors propose a way to speculate additional items into the
+parser, which are not produced by the serial algorithm. For Packrat, the authors
+propose a message passing mechanism.  The input is divided into parts, and each
+part is assigned to a worker thread. Each thread speculates until the
+thread on its left has finished parsing, and send the synthesized starting
+symbol to the thread on its right. The authors managed a speedup of $5.5\times$
+in Earley, and $2.5\times$ in Packrat.
 
-Após estes resultados, houve um aparente hiato nas pesquisas relacionadas a
-compilação em paralelo. As possíveis razões são a complexidade de um compilador
-como programa, e o modelo dos processadores daquela época, que ainda eram
-majoritariamente sequenciais. Uma década depois, houve uma explosão de processadores
-paralelos e do poder computacional como um todo, como apresentado na Seção
-\ref{sec:parallel_comp}. Este ganho computacional levou às empresas a propor soluções
-ainda mais complexas para
-gerar código mais eficiente. Embora apresentadas como maneiras de otimizar o código
-dado como entrada, há relação nessas soluções com paralelismo em compiladores.
+Still on Packrat methods, \cite{dubroy2017incremental} show
+how to implement an incremental Pacrkat to avoids reparsing the entire input
+on modifications. The authors achieve this by recording all its
+intermediate results in a parsing table and modify the parsing program to reload
+this table when invoked. The authors showed that their method does not require
+any modification to the original grammar, and their method requires only
+up to $11.7\%$ of extra memory when compared to the original parser. Authors
+claim a reduction from $23.7ms$ to $6.2ms$ on reparsing a 279Kb input string.
 
-\cite{whoprgoogle} propuseram uma alteração no
-compilador GCC com a finalidade
-de possibilitar otimizações no programa como um todo. A alteração consiste
-em construir um grafo de chamadas de função em relação a todo o programa,
-ao contrário do modelo clássico, em que cada módulo é compilado independentemente.
-Esse processo é composto por três etapas:
-\begin{enumerate}
-    \item \textit{Local Generation } (LGEN). Cada função do programa é compilada
-        na Linguagem Intermediária, em conjunto com o grafo de chamadas de função.
-        Esse estágio pode ser executado em paralelo.
+\cite{Barenghi:2015:PPM:2839536.2840146} explore some properties of Operator
+Precedence Grammars to construct a Yacc-like parser constructor named PAPAGENO,
+which generates parallel parsers. Operator Precedence Grammars are Context-Free
+Grammars with an operator precedence table, which given two symbols $a, b \in
+\Si$, instruct which symbols should take or yield precedence. The authors
+described precedence grammars for Lua and JSON, which they used in their tests
+to get a speedup of up to $5.5\times$ when compared to a parser generated by
+GNU Bison.
 
-    \item \textit{Whole Program Analysis} (WPA). O grafo de chamadas de função global
-        é construído e as otimizações a serem efetuadas são selecionadas. Esse estágio
-        deve ser executado sequencialmente.
+\end{section}
 
-    \item \textit{Local Transformations} (LTRANS). Todas as decisões aplicadas na
-        etapa 2 são implementadas localmente e o código objeto final é gerado.
-        Esse estágio pode executar em paralelo.
-\end{enumerate}
+%Posteriormente, \cite{Mickunas:1978:PCM:800127.804105} propôs uma
+%paralelização do algoritmo LR($0$). Sua ideia consiste em quebrar
+%arbitrariamente a entrada em vários segmentos e executar um analisador em paralelo
+%em cada um destes segmentos. Estes analisadores (exceto o primeiro,
+%que executa no início da entrada) são modificados na tentativa de
+%evitar conflitos, uma vez que modificar a ordem de início da análise
+%pode impossibilitar a distinção entre o prefixo e o sufixo de uma fase.
+%Quando um conflito é detectado, o analisador envia a sequência de
+%\textit{tokens} lida até então ao analisador à sua esquerda,
+%retorna ao estado inicial, e reinicia a sua análise.
+%No termino da análise, cada analisador envia o resultado para o analisador
+%a sua esquerda, acumulando o resultando no primeiro.
+%Os autores não mostraram experimentos ou
+%análise assintótica do algoritmo proposto. \cite{Pennello:1978:FMA:512760.512786}
+%implementou essa estratégia em um compilador Pascal, mas seus experimentos foram
+%realizados em um computador paralelo simulado.
 
-A Figura \ref{fig:whopr_build} retrata este processo. Primeiro, cada arquivo é
-compilado para a Linguagem Intermediária do Compilador (no GCC, a GIMPLE), em
-conjunto com o seu Grafo de Chamadas de Função, gerando arquivos objeto
-\texttt{lto\_obj*.o}. Esse passo ocorre em paralelo para cada arquivo.
-Em sequência, o gcc\_wpa é chamado, unindo todos os grafos
-de chamada de função e decidindo como aplicar cada otimização Inter Procedural para
-cada função do programa. Em seguida, o gcc\_ltrans é chamado para cada partição do
-Grafo de Chamadas de Função, gerando os arquivos objetos para que o LD por
-fim gere o binário final.
+\begin{section}{Parallel Compilation}
 
-Essa proposta foi implementada
-no GCC \citep{glek2010optimizing} com o nome de
-\textit{Link Time Optimization} (LTO). A granularidade
-escolhida na etapa LGEN foi paralelismo por arquivo. Já na LTRANS a granularidade
-escolhida foram partições do arquivo objeto, o que possibilitou, como
-consequência, a otimização de funções de um arquivo em paralelo. Os autores
-testaram essa implementação com o
-código fonte do Mozilla Firefox e do GCC, e relataram que o GCC construiu
-binários menores e mais rápidos. Os autores relataram que essa implementação tornou
-o processo de autocompilação do GCC duas vezes mais lenta,
-mas que também houve um ganho de 20 minutos na compilação do Firefox. Em todos os
-casos relatados, os passos de otimização Intra Procedural consumiu mais tempo.
-\cite{livska2014optimizing} completa a análise dessa funcionalidade.
-Um dos problemas encontrados foi o uso elevado de memória para carregar o grafo de
-chamadas de função global necessário na fase WPA, que atingiu 12Gb na compilação do
-Chromium e 15Gb na compilação do Kernel Linux. A maior crítica desse processo
-foi o tempo necessário para recompilar todo o programa quando uma simples alteração
-era efetuada em um único arquivo, o que inviabilizava um desenvolvimento incremental.
+ \cite{vandevoorde1988parallel} parallelized the \textit{Titan C Compiler}, A C
+ compiler written in Modula-2. His implementation consists of a syntactic
+ analyzer running in parallel to the lexical analyzer, which feeds the tokens
+ through a pipeline. The author uses a recursive descent parser that, after
+ reading the function declarations, executes new threads for every statement in
+ the program. For this, the author assumes that every function is declared in
+ the source header. This fine granularity strategy required a way to control
+ the parallelism, which the authors used the concept of workcrews that limits
+ the number of threads executing simultaneously. The author reports a speedup
+ of $10\%$ when using this pipeline between the analyzers, and a speedup of up
+ to $3.1\times$ when using 5 MicroVAX II processors in shared memory. This
+ compiler does not include optimizations, and therefore it is not discussed in
+ the paper.
+
+
+%\cite{vandevoorde1988parallel} paralelizou o \textit{Titan C compiler}, um compilador
+%C escrito em Modula-2. Sua implementação consiste na execução de um analisador léxico
+%em paralelo a um analisador sintático, sendo os \textit{tokens} alimentados
+%através de um \textit{pipeline}. O autor também propôs a paralelização de um
+%analisador sintático recursivo descendente que, após a sequência de declarações do programa, executa novas \textit{threads}
+%para cada expressão da gramática e tem
+%como premissa que qualquer declaração de funções do programa está no
+%cabeçalho do
+%arquivo. Essa estratégia de granularidade fina necessitou a implementação de
+%uma maneira de controlar o paralelismo, onde foi utilizado o conceito de
+%WorkCrews \citep{vandevoorde1988workcrews} que limita o número máximo de
+%\textit{threads} em execução simultânea. O autor relata um ganho de 10\% no
+%uso do \textit{pipeline} entre o analisador léxico e sintático, e um
+%\textit{speedup} de até $3.1\times$ utilizando 5 processadores MicroVAX II em
+%memória compartilhada. Entretanto, tal compilador não possui estágios de
+%otimização, e assim, métodos de paralelização de um otimizador não foram discutidos neste trabalho.
+
+Similarly, \cite{wortman1992} implemented a parallel Modula-2+ compiler. Their strategy
+consisted of using a lexical analyzer capable of detecting functions in the
+code and proceeding with parallel compilation at this point. To solve problems
+with function calls and access to symbols yet not defined, the authors propose
+a ternary logic in the symbol table, with a state ``\textit{doesn't know yet}'' and
+propose three strategies to implement this functionality. The authors also used
+a fixed number of worker threads and a priority producer-consumer queue on the
+syntactic analyzer to the code generator, where the worker threads will pull
+jobs from. This priority queue is to process larger functions first.
+Experiments conducted by the authors showed speedups ranging from $1.5\times$ to
+$6\times$ times using 8 MicroVAX II in shared memory.
+
+
+%De maneira similar, \cite{wortman1992} implementou um compilador de Modula-2+
+%paralelo. A estratégia consiste em utilizar um analisador léxico capaz de
+%encontrar funções no código fonte e prosseguir com a compilação em paralelo
+%nesse nível, gerando uma tarefa para cada função. Para solucionar problemas
+%relacionados à chamada de funções e
+%acesso a símbolos ainda não definidos, o autor propõe o uso de
+%uma lógica ternária na tabela de símbolos, especificando um estado
+%``\textit{Doesn't know yet}'' (Ainda não visto), e propõe três estratégias para
+%implementar essa funcionalidade. Em seguida, o autor propõe o uso de
+%um número fixo de \textit{threads} trabalhadoras, e também o uso de uma fila de
+%prioridade produtor consumidor, onde as \textit{threads} deverão retirar o trabalho.
+%O uso de uma fila de prioridade permite que as funções mais longas sejam
+%processadas primeiro. Os experimentos conduzidos pelo autor mostraram
+%\textit{speedups} variando de $1.5\times$ até $6\times$ utilizando 8
+%processadores MicroVAX II em memória compartilhada.
+
+%Os artigos apresentados até então não abordam questões relacionadas
+%a otimização de código. Isso porque os compiladores naquela época possuíam poucos
+%passos de otimização, o que implicava em pouco tempo necessário para fazê-la.
+%Mesmo assim, alguns pesquisadores dedicaram-se a estudar esses passos.
+%\cite{Lee1994} estudaram paralelismo na análise de controle
+%de fluxo. Como justificativa para esse estudo, os autores afirmam que a maior parte
+%do tempo gasto por compiladores otimizadores é com este tipo de análise,
+%principalmente nas otimizações Inter Procedurais. 
+%A investigação se concentrou em algoritmos que usam o grafo de controle
+%de fluxo como entrada. Os autores propõem uma heurística de aglutinação
+%para particionar tal grafo em regiões conexas e adjacentes de tamanho não maior
+%que um certo inteiro $s$. O uso da heurística é por razão do problema de
+%de particionamento ser NP-difícil.
+%Os experimentos da implementação utilizaram
+%8 processadores do computador iPSC/2 em memória distribuída, e 
+%obtiveram \textit{speedups} variando de
+%$2.8 \times$ até $6.5\times$. Os autores argumentaram que o \textit{speedup} foi
+%limitado devido às características dos programas no teste: os arquivos consistiam
+%de várias funções pequenas, o que normalmente é considerado uma boa prática de
+%programação.
+
+The papers presented so far do not touch questions regarding optimizations.
+This is because compilers so far had none to few optimization passes, which
+implied in little time required to process them. Yet, some researchers studied
+how to parallelize these passes. \cite{Lee1994} studied parallelism in both
+intraprocedural and interprocedural dataflow analysis. The authors justify this
+study by stating that the most compilation time is spent in this part. The
+authors proposed a hybrid algorithm, where the CFGraph is decomposed in
+strongly connected partitions. Each partition runs its dataflow analysis
+independently, then this local result is propagated to the other partitions,
+and finally, this result is propagated again inside the nodes of other
+partitions. Authors report a speedup ranging from $1.7\times$ to $7.8\times$
+regarding the sequential algorithm.
+
+Another way of exploring parallelism is by converting the CFGraph into a DAG.
+\cite{kramer1994combining} showed that converting any CFGraph to a DAG
+structure still yields the correct dataflow solution of the original problem
+while removing any backedge from the original CFGraph. Then the authors show
+how to construct a dependency graph from this DAG, which they process in
+parallel by levels. Authors show a speedup from $2.7\times$ to $5.4\times$.
+
+%Uma outra forma de explorar o paralelismo utilizando um Grafo Dirigido Acíclico
+%foi proposta por \cite{kramer1994combining}. Os autores mostram formas de propagar
+%em paralelo as informações nesse grafo explorando seus caminhos independentes,
+%e mostra uma maneira de transformar um Grafo de Controle de Fluxo com laços em
+%um Grafo de Controle de Fluxos acíclico equivalente. Os experimentos realizados
+%pelos autores apenas mostram oportunidades de paralelismo encontrada pelo
+%algoritmo.
+
+\begin{subsection}{Link Time Optimization}
+
+The issue around this scheme is that it can only optimize with
+the information found in its TU because it can not see the body
+content of other files' functions. A TU is the
+entire content of a source file (a .c file in C) plus all its headers.
+
+As an answer to this, LTO allows cross-module optimizations by
+postponing optimizations and final translation to a linker wrapper. There, the entire
+program can be loaded by the compiler (but more often, just some sort of summary)
+as a single, big TU, and optimizations can be decided globally,
+as now it has access to the internals of other modules. LTO is divided into
+three steps \citep{whoprgoogle,glek2010optimizing}:
+\begin{itemize}
+\item LGEN (\textit{Local Generation}): each module is translated to an IR and
+written to disk in phony object files. These objects are \emph{phony} because
+they do not contain assembly code. This step runs serially on the input file
+(\textit{i.e.} in parallel to the files in the project).
+
+\item WPA (\textit{Whole Program Analysis}): load all translated modules,
+merges all TUs into one, and analyzes the program globally. After that, it
+generates an \emph{optimization summary} for the program and partitioned this
+global TU for the next stage. This analysis runs sequentially to the entire
+project.
+
+\item LTRANS (\textit{Local Transformations}): apply the transformations generated by
+WPA to each partition, which will generate its own object file. This stage runs in
+parallel.
+\end{itemize}
+
+This process is sketched in Fig. \ref{fig:whopr_build}, where the linker
+wrapper is represented by \textit{collect2}, which firstly launch \textit{lto1}
+in WPA mode, and the second time it finally launches \textit{ld}. This process
+can be seen by launching gcc with \texttt{-flto -v}.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
-    text width=6em, text centered, rounded corners, node distance=3cm, auto, minimum height=2em]
+    text width=6em, text centered, rounded corners, node distance=1cm and 0.5cm, minimum height=2em]
 \tikzstyle{line} = [draw, -latex]
-\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
-    minimum height=2em]
-\begin{center}
-\scalebox{0.7}{
+\makebox[\textwidth][c]{
+
+\scalebox{0.8}{
 \begin{tikzpicture}[node distance = 3cm, auto]
     % Place nodes
-    \node [block]                         (make)   {Makefile};
-    \coordinate[below of=make]            (c);
-    \node [block, left of=c]              (fonte1) {fonte1.c};
-    \node [block, right of=fonte1]        (fonte2) {fonte2.cpp};
-    \node [block, right of=fonte2]        (fonte3) {fonte3.f90};
+    \node [block]              (fonte1) {source1.c};
+    \node [block, right= of fonte1]        (fonte2) {source2.cpp};
+    \node [block, right= of fonte2]        (fonte3) {source3.f90};
+    \node [block, above= of fonte2]         (make)   {Makefile};
 
-    \node [block, below of=fonte1]        (gcc)      {gcc};
-    \node [block, below of=fonte2]        (g++)      {g++};
-    \node [block, below of=fonte3]        (gfortran) {gfortran};
+    \node [block, below= of fonte1]        (gcc)      {gcc};
+    \node [block, below= of fonte2]        (g++)      {g++};
+    \node [block, below= of fonte3]        (gfortran) {gfortran};
 
-    \node [block, below of=gcc]           (objeto1) {lto\_obj1.o};
-    \node [block, below of=g++]           (objeto2) {lto\_obj2.o};
-    \node [block, below of=gfortran]      (objeto3) {lto\_obj3.o};
+    \node [block, below= of gcc]           (objeto1) {obj1.o};
+    \node [block, below= of g++]           (objeto2) {obj2.o};
+    \node [block, below= of gfortran]      (objeto3) {obj3.o};
 
-    \node [block, below of=objeto2]       (gcc_lto) {gcc\_lto1};
+    \node [block, below= of objeto2]       (gcc_lto) {collect2 (lto1)};
 
-    \node [block, below of=gcc_lto]       (gcc_wpa) {gcc\_wpa};
-    \coordinate[below of=gcc_wpa]            (c2);
+    \node [block, right= of fonte3]            (gcc_ltrans1) {gcc\_ltrans};
+    \node [block, right= of gcc_ltrans1]   (gcc_ltrans2) {gcc\_ltrans};
+    \node [block, right= of gcc_ltrans2]   (gcc_ltrans3) {gcc\_ltrans};
 
-    \node [block, left of=c2]            (gcc_ltrans1) {gcc\_ltrans};
-    \node [block, right of=gcc_ltrans1]   (gcc_ltrans2) {gcc\_ltrans};
-    \node [block, right of=gcc_ltrans2]   (gcc_ltrans3) {gcc\_ltrans};
+    \node [block, above= of gcc_ltrans2]       (gcc_wpa) {gcc\_wpa};
+    \coordinate[below= of gcc_wpa]            (c2);
 
-    \node [block, below of=gcc_ltrans1]   (obj1) {obj1.o};
-    \node [block, below of=gcc_ltrans2]   (obj2) {obj2.o};
-    \node [block, below of=gcc_ltrans3]   (obj3) {obj3.o};
 
-    \node [block, below of=obj2]   (ld) {LD};
+    \node [block, below= of gcc_ltrans1]   (obj1) {obj1.o};
+    \node [block, below= of gcc_ltrans2]   (obj2) {obj2.o};
+    \node [block, below= of gcc_ltrans3]   (obj3) {obj3.o};
 
-	\node [block, below of=ld]   (bin) {Executável};
+    \node [block, below=of obj2]   (ld) {collect2 (LD)};
+
+	\node [block, below=of ld]   (bin) {Binary};
 
     % Draw edges
     \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
@@ -235,7 +325,8 @@ era efetuada em um único arquivo, o que inviabilizava um desenvolvimento increm
     \draw[->]    (objeto2.south)   -- (gcc_lto.north);
     \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]gcc_lto.north);
 
-    \draw[->]    (gcc_lto.south)   -- (gcc_wpa.north);
+    %\draw[->]    (gcc_lto.south)   -- (gcc_wpa.north);
+ 	\draw[->]  (gcc_lto.east) .. controls +(6.5,0) and +(-6.5,0).. (gcc_wpa.west);
 
     \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans1.north);
     \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans2.north);
@@ -250,59 +341,246 @@ era efetuada em um único arquivo, o que inviabilizava um desenvolvimento increm
     \draw[->]    (obj3.south)   -- ([xshift=+0.7em]ld.north);
 
 	\draw[->]    (ld.south)   -- (bin.north);
+	
+	%draw brackets
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-0.5cm,yshift=0pt]
+([xshift=-1.3cm]objeto1.south) -- ([xshift=-1.3cm]fonte1.north) node [black,midway,xshift=-0.3cm]
+{\footnotesize \begin{turn}{90}LGEN\end{turn}};
+
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-0.5cm,yshift=0pt]
+([xshift=1.3cm]gcc_ltrans3.north) -- ([xshift=1.3cm]obj3.south) node [black,midway,xshift=0.3cm]
+{\footnotesize \begin{turn}{-90}LTRANS\end{turn}};
+
+
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-0.5cm,yshift=0pt]
+([xshift=1.3cm]gcc_wpa.north) -- ([xshift=1.3cm]gcc_wpa.south) node [black,midway,xshift=0.3cm]
+{\footnotesize \begin{turn}{-90}WPA\end{turn}};
 
 
 \end{tikzpicture}
 }
-\end{center}
-\caption{Compilação de um programa utilizando WHOPR.}
+}%
+\caption{Compilation of a program using LTO scheme}
 \label{fig:whopr_build}
 \end{figure}
 
+\cite{glek2010optimizing} report that LTO produced faster and smaller binaries when compiling GCC
+and Firefox, however with a two times slower compilation in GCC. Interestingly,
+Firefox compiled 20minutes faster. In all reported cases, the intraprocedural
+optimizations dominated the compilation time.
 
-Considerando o alto uso de memória e tempo de compilação nos casos relatados
-acima, \cite{Johnson:2017:TSI:3049832.3049845} propôs o ThinLTO. A ideia é
-considerar apenas parte do grafo global a cada vez, evitando carregá-lo
-completamente na memória; e postergar ao máximo aplicar as otimizações possíveis,
-realizando apenas análises de maneira sequencial e aplicando-as no 
-\textit{backend} em paralelo.
-Os autores relataram um \textit{speedup} de até $15\times$ quando comparado a
-implementação do LTO original do Clang e até $4\times$ quando comparado a
-implementação do LTO do GCC. Os autores também relataram uma diminuição considerável
-no consumo de memória quando comparado ao LTO do GCC: Redução de 2.9Gb para 1Gb
-na compilação do Clang, 10.8Gb para 1.0Gb no Chromium, e permitiu melhores otimizações no
-\textit{Ad Delivery} da Google, enquanto a implementação do LTO no GCC
-abortava a compilação após consumir mais de 25Gb de memória. O desempenho dos
-binários gerados também foi similar, inclusive onde o LTO original gerava
-binários mais lentos que o processo clássico de compilação. O tempo de compilação
-também melhorou significativamente quando comparado ao LTO original,
-mas permaneceu pior em todos os casos quando comparado ao processo clássico de
-compilação.
+\cite{livska2014optimizing} complements the analysis of this functionality. One
+of the problems found was the high memory consumption of LTO, which went up to
+12Gb when compiling Chromium, and 15Gb when compiling Linux. The biggest
+criticism was the necessary recompilation time when a single file is modified
+in LTO mode when compared with the classical compilation scheme.
 
-Houve também nas pesquisas um renascimento de análise sintática em paralelo.
-\cite{Barenghi:2015:PPM:2839536.2840146} encontrou uma maneira de explorar
-a propriedade de Análise Local em Gramáticas com Precedência de Operadores.
-Isso permitiu a construção de um gerador de analisadores sintáticos
-PAPAGENO (\textit{Parallel Parser Generator}). Para isto, a gramática a
-ser utilizada nesse analisador precisa ser convertida para uma Gramática
-com Precedência de Operadores, conforme discutido e exemplificado pelos
-autores. Testes empíricos foram efetuados implementando um analisador
-JSON e outro analisador para a linguagem Lua. Em um Opteron 8378 (16 núcleos),
-os autores atingiram um \textit{speedup} de até $5.3\times$ no análisador JSON
-em arquivos grandes, e pouco mais de $4\times$ no analisador Lua. O algoritmo
-paralelo foi comparado com os gerados pelo analisador sintático \textit{Bison},
-que apenas gera código sequencial.
+There are also papers using a profile-based approach rather than a whole-program
+analysis for cross-module optimizations.  Xinliang \textit{et al.}
+\cite{lipo} proposed LIPO, which embeds IPA in the generated
+binary with minimal overhead, and loads information about functions in other
+modules based on the profiling report. LIPO also removes the requirement of
+phony object dumps and link time wrappers when compared to LTO. Results showed
+a speedup of up to $10\times$ in compilation time when compared to Feedback
+Driven Optimization (FDO) alone.
 
-Atualmente, os compiladores são \textit{softwares} bem mais complexos que
-aqueles apresentados por \cite{vandevoorde1988workcrews} e \cite{wortman1992},
-havendo muito mais passos de otimização, enquanto houve pouquíssima ou nenhuma
-adição de complexidade nos tópicos de análise léxica, sintática, e geração de
-código o que esses trabalhos procuraram explorar. Já os trabalhos de
-\cite{Lee1994} e \cite{kramer1994combining} são relevantes por mostrar
-estratégias de paralelização de otimizações Inter Procedurais, entretanto elas
-não são a maioria das otimizações implementadas nos compiladores. Por outro
-lado, o LTO e o ThinLTO não foram projetados para serem usadas em
-desenvolvimento incremental, além de gerar binários menos eficientes em alguns
-casos. Efetuando a paralelização do compilador internamente (usando
-\textit{threads}, por exemplo) a estrutura original do compilador é preservada,
-evitando esse problema.
+Following that, Johnson \textit{et al.} proposes ThinLTO \cite{thinlto}. It
+differs from LTO by generating the function summaries on the LGEN stage for
+improved parallelism, while avoiding the large memory footprint requirement on the
+original LTO. ThinLTO also supports incremental builds by hashing the compiled
+function to avoid recompilation of unmodified functions, while LTO requires
+recompilation of the entire partition. Today, most GCC's IPA
+optimizations only use summaries to avoid this memory footprint issue.
+
+\end{subsection}
+\end{section}
+
+%Após estes resultados, houve um aparente hiato nas pesquisas relacionadas a
+%compilação em paralelo. As possíveis razões são a complexidade de um compilador
+%como programa, e o modelo dos processadores daquela época, que ainda eram
+%majoritariamente sequenciais. Uma década depois, houve uma explosão de processadores
+%paralelos e do poder computacional como um todo, como apresentado na Seção
+%\ref{sec:parallel_comp}. Este ganho computacional levou às empresas a propor soluções
+%ainda mais complexas para
+%gerar código mais eficiente. Embora apresentadas como maneiras de otimizar o código
+%dado como entrada, há relação nessas soluções com paralelismo em compiladores.
+
+%\cite{whoprgoogle} propuseram uma alteração no
+%compilador GCC com a finalidade
+%de possibilitar otimizações no programa como um todo. A alteração consiste
+%em construir um grafo de chamadas de função em relação a todo o programa,
+%ao contrário do modelo clássico, em que cada módulo é compilado independentemente.
+%Esse processo é composto por três etapas:
+%\begin{enumerate}
+%    \item \textit{Local Generation } (LGEN). Cada função do programa é compilada
+%        na Linguagem Intermediária, em conjunto com o grafo de chamadas de função.
+%        Esse estágio pode ser executado em paralelo.
+%
+%    \item \textit{Whole Program Analysis} (WPA). O grafo de chamadas de função global
+%        é construído e as otimizações a serem efetuadas são selecionadas. Esse estágio
+%        deve ser executado sequencialmente.
+%
+%    \item \textit{Local Transformations} (LTRANS). Todas as decisões aplicadas na
+%        etapa 2 são implementadas localmente e o código objeto final é gerado.
+%        Esse estágio pode executar em paralelo.
+%\end{enumerate}
+
+
+%A Figura \ref{fig:whopr_build} retrata este processo. Primeiro, cada arquivo é
+%compilado para a Linguagem Intermediária do Compilador (no GCC, a GIMPLE), em
+%conjunto com o seu Grafo de Chamadas de Função, gerando arquivos objeto
+%\texttt{lto\_obj*.o}. Esse passo ocorre em paralelo para cada arquivo.
+%Em sequência, o gcc\_wpa é chamado, unindo todos os grafos
+%de chamada de função e decidindo como aplicar cada otimização Inter Procedural para
+%cada função do programa. Em seguida, o gcc\_ltrans é chamado para cada partição do
+%Grafo de Chamadas de Função, gerando os arquivos objetos para que o LD por
+%fim gere o binário final.
+%
+%Essa proposta foi implementada
+%no GCC \citep{glek2010optimizing} com o nome de
+%\textit{Link Time Optimization} (LTO). A granularidade
+%escolhida na etapa LGEN foi paralelismo por arquivo. Já na LTRANS a granularidade
+%escolhida foram partições do arquivo objeto, o que possibilitou, como
+%consequência, a otimização de funções de um arquivo em paralelo. Os autores
+%testaram essa implementação com o
+%código fonte do Mozilla Firefox e do GCC, e relataram que o GCC construiu
+%binários menores e mais rápidos. Os autores relataram que essa implementação tornou
+%o processo de autocompilação do GCC duas vezes mais lenta,
+%mas que também houve um ganho de 20 minutos na compilação do Firefox. Em todos os
+%casos relatados, os passos de otimização Intra Procedural consumiu mais tempo.
+%\cite{livska2014optimizing} completa a análise dessa funcionalidade.
+%Um dos problemas encontrados foi o uso elevado de memória para carregar o grafo de
+%chamadas de função global necessário na fase WPA, que atingiu 12Gb na compilação do
+%Chromium e 15Gb na compilação do Kernel Linux. A maior crítica desse processo
+%foi o tempo necessário para recompilar todo o programa quando uma simples alteração
+%era efetuada em um único arquivo, o que inviabilizava um desenvolvimento incremental.
+%
+%\begin{figure}
+%\tikzstyle{block} = [rectangle, draw, fill=white,
+%    text width=6em, text centered, rounded corners, node distance=3cm, auto, minimum height=2em]
+%\tikzstyle{line} = [draw, -latex]
+%\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+%    minimum height=2em]
+%\begin{center}
+%\scalebox{0.7}{
+%\begin{tikzpicture}[node distance = 3cm, auto]
+%    % Place nodes
+%    \node [block]                         (make)   {Makefile};
+%    \coordinate[below of=make]            (c);
+%    \node [block, left of=c]              (fonte1) {fonte1.c};
+%    \node [block, right of=fonte1]        (fonte2) {fonte2.cpp};
+%    \node [block, right of=fonte2]        (fonte3) {fonte3.f90};
+%
+%    \node [block, below of=fonte1]        (gcc)      {gcc};
+%    \node [block, below of=fonte2]        (g++)      {g++};
+%    \node [block, below of=fonte3]        (gfortran) {gfortran};
+%
+%    \node [block, below of=gcc]           (objeto1) {lto\_obj1.o};
+%    \node [block, below of=g++]           (objeto2) {lto\_obj2.o};
+%    \node [block, below of=gfortran]      (objeto3) {lto\_obj3.o};
+%
+%    \node [block, below of=objeto2]       (gcc_lto) {gcc\_lto1};
+%
+%    \node [block, below of=gcc_lto]       (gcc_wpa) {gcc\_wpa};
+%    \coordinate[below of=gcc_wpa]            (c2);
+%
+%    \node [block, left of=c2]            (gcc_ltrans1) {gcc\_ltrans};
+%    \node [block, right of=gcc_ltrans1]   (gcc_ltrans2) {gcc\_ltrans};
+%    \node [block, right of=gcc_ltrans2]   (gcc_ltrans3) {gcc\_ltrans};
+%
+%    \node [block, below of=gcc_ltrans1]   (obj1) {obj1.o};
+%    \node [block, below of=gcc_ltrans2]   (obj2) {obj2.o};
+%    \node [block, below of=gcc_ltrans3]   (obj3) {obj3.o};
+%
+%    \node [block, below of=obj2]   (ld) {LD};
+%
+%	\node [block, below of=ld]   (bin) {Executável};
+%
+%    % Draw edges
+%    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
+%    \draw[->]    (make.south)   -- (fonte2.north);
+%    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
+%
+%    \draw[->]    (fonte1.south)   -- (gcc.north);
+%    \draw[->]    (fonte2.south)   -- (g++.north);
+%    \draw[->]    (fonte3.south)   -- (gfortran.north);
+%
+%    \draw[->]    (gcc.south)   -- (objeto1.north);
+%    \draw[->]    (g++.south)   -- (objeto2.north);
+%    \draw[->]    (gfortran.south)   -- (objeto3.north);
+%
+%    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]gcc_lto.north);
+%    \draw[->]    (objeto2.south)   -- (gcc_lto.north);
+%    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]gcc_lto.north);
+%
+%    \draw[->]    (gcc_lto.south)   -- (gcc_wpa.north);
+%
+%    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans1.north);
+%    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans2.north);
+%    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans3.north);
+%
+%    \draw[->]    (gcc_ltrans1.south)   -- (obj1.north);
+%    \draw[->]    (gcc_ltrans2.south)   -- (obj2.north);
+%    \draw[->]    (gcc_ltrans3.south)   -- (obj3.north);
+%
+%    \draw[->]    (obj1.south)   -- ([xshift=-0.7em]ld.north);
+%    \draw[->]    (obj2.south)   -- (ld.north);
+%    \draw[->]    (obj3.south)   -- ([xshift=+0.7em]ld.north);
+%
+%	\draw[->]    (ld.south)   -- (bin.north);
+%
+%
+%\end{tikzpicture}
+%}
+%\end{center}
+%\caption{Compilação de um programa utilizando WHOPR.}
+%\label{fig:whopr_build}
+%\end{figure}
+
+
+%Considerando o alto uso de memória e tempo de compilação nos casos relatados
+%acima, \cite{Johnson:2017:TSI:3049832.3049845} propôs o ThinLTO. A ideia é
+%considerar apenas parte do grafo global a cada vez, evitando carregá-lo
+%completamente na memória; e postergar ao máximo aplicar as otimizações possíveis,
+%realizando apenas análises de maneira sequencial e aplicando-as no 
+%\textit{backend} em paralelo.
+%Os autores relataram um \textit{speedup} de até $15\times$ quando comparado a
+%implementação do LTO original do Clang e até $4\times$ quando comparado a
+%implementação do LTO do GCC. Os autores também relataram uma diminuição considerável
+%no consumo de memória quando comparado ao LTO do GCC: Redução de 2.9Gb para 1Gb
+%na compilação do Clang, 10.8Gb para 1.0Gb no Chromium, e permitiu melhores otimizações no
+%\textit{Ad Delivery} da Google, enquanto a implementação do LTO no GCC
+%abortava a compilação após consumir mais de 25Gb de memória. O desempenho dos
+%binários gerados também foi similar, inclusive onde o LTO original gerava
+%binários mais lentos que o processo clássico de compilação. O tempo de compilação
+%também melhorou significativamente quando comparado ao LTO original,
+%mas permaneceu pior em todos os casos quando comparado ao processo clássico de
+%compilação.
+
+%Houve também nas pesquisas um renascimento de análise sintática em paralelo.
+%\cite{Barenghi:2015:PPM:2839536.2840146} encontrou uma maneira de explorar
+%a propriedade de Análise Local em Gramáticas com Precedência de Operadores.
+%Isso permitiu a construção de um gerador de analisadores sintáticos
+%PAPAGENO (\textit{Parallel Parser Generator}). Para isto, a gramática a
+%ser utilizada nesse analisador precisa ser convertida para uma Gramática
+%com Precedência de Operadores, conforme discutido e exemplificado pelos
+%autores. Testes empíricos foram efetuados implementando um analisador
+%JSON e outro analisador para a linguagem Lua. Em um Opteron 8378 (16 núcleos),
+%os autores atingiram um \textit{speedup} de até $5.3\times$ no análisador JSON
+%em arquivos grandes, e pouco mais de $4\times$ no analisador Lua. O algoritmo
+%paralelo foi comparado com os gerados pelo analisador sintático \textit{Bison},
+%que apenas gera código sequencial.
+%
+%Atualmente, os compiladores são \textit{softwares} bem mais complexos que
+%aqueles apresentados por \cite{vandevoorde1988workcrews} e \cite{wortman1992},
+%havendo muito mais passos de otimização, enquanto houve pouquíssima ou nenhuma
+%adição de complexidade nos tópicos de análise léxica, sintática, e geração de
+%código o que esses trabalhos procuraram explorar. Já os trabalhos de
+%\cite{Lee1994} e \cite{kramer1994combining} são relevantes por mostrar
+%estratégias de paralelização de otimizações Inter Procedurais, entretanto elas
+%não são a maioria das otimizações implementadas nos compiladores. Por outro
+%lado, o LTO e o ThinLTO não foram projetados para serem usadas em
+%desenvolvimento incremental, além de gerar binários menos eficientes em alguns
+%casos. Efetuando a paralelização do compilador internamente (usando
+%\textit{threads}, por exemplo) a estrutura original do compilador é preservada,
+%evitando esse problema.
