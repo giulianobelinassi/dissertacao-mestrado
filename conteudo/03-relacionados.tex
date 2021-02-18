@@ -233,7 +233,7 @@ parallel by levels. Authors show a speedup from $2.7\times$ to $5.4\times$.
 %pelos autores apenas mostram oportunidades de paralelismo encontrada pelo
 %algoritmo.
 
-\begin{subsection}{Link Time Optimization}
+\begin{subsection}{Link Time Optimization (LTO)}\label{lto_section}
 
 The issue around this scheme is that it can only optimize with
 the information found in its TU because it can not see the body
@@ -326,7 +326,7 @@ can be seen by launching gcc with \texttt{-flto -v}.
     \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]gcc_lto.north);
 
     %\draw[->]    (gcc_lto.south)   -- (gcc_wpa.north);
- 	\draw[->]  (gcc_lto.east) .. controls +(6.5,0) and +(-6.5,0).. (gcc_wpa.west);
+ 	\draw[->]  (gcc_lto.east) .. controls +(7.5,0) and +(-7.5,0).. (gcc_wpa.west);
 
     \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans1.north);
     \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans2.north);
@@ -352,7 +352,7 @@ can be seen by launching gcc with \texttt{-flto -v}.
 {\footnotesize \begin{turn}{-90}LTRANS\end{turn}};
 
 
-\draw [decorate,decoration={brace,amplitude=10pt},xshift=-0.5cm,yshift=0pt]
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-1.0cm,yshift=0pt]
 ([xshift=1.3cm]gcc_wpa.north) -- ([xshift=1.3cm]gcc_wpa.south) node [black,midway,xshift=0.3cm]
 {\footnotesize \begin{turn}{-90}WPA\end{turn}};
 
