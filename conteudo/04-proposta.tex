@@ -395,9 +395,9 @@ with the Reproducible Builds project in Subsection \ref{sec:repro_builds}.
 \begin{subsection}{The \texttt{gcc} Driver}\label{sec:gcc_driver}
 
 A large program can be written in several languages, with each of them having
-its own compiler. From a compiler theory perspective, a compiler
-translates a program from a language $A$ to another language $B$
-\cite{dragonbook}. In GCC, it translates several languages to assembly
+its own compiler. As stated in Section \ref{sec:motivation}, a compiler
+translates a program from a language $A$ to another language $B$.
+In GCC, it translates several languages to assembly
 of some architecture (\textit{e.g.} x86). This means that
 encapsulating code in object files, or linking these files in an executable, are
 not tasks of the compiler. However, the user can launch \texttt{gcc -o binary
@@ -408,7 +408,7 @@ as illustrated in Fig. \ref{fig:gnu_toolchain}.
 
 Therefore, if we want our changes do not break the building scripts
 (\textit{e.g.}, Makefile) used by most projects -- which is mostly launching
-\texttt{gcc file.c -c} which creates an object file \texttt{file.o} -- we must
+\texttt{gcc file.c -c} that creates an object file \texttt{file.o} -- we must
 ensure that we create a single object file for each file, not multiple, as does
 the LTO partitioner. Fortunately, we can rely on GNU \textit{ld} partial linking
 for merging objects file into one. Therefore, the solution to this problem is:
@@ -521,7 +521,7 @@ and solving the issues causing a partitioning failure, and therefore, we
 decided to design a new partitioning algorithm for this project.
 
 This partitioning algorithm works as follows: for each node, we check if it
-is a member of a COMDAT \cite{comdat} group, and
+is a member of a COMDAT \citep{comdat} group, and
 merged it into the same partition. We then propagate outside of this COMDAT group;
 checking for every node that may trigger the COMDAT to be copied into other
 partitions and group them into the same partition. In practice,
@@ -545,7 +545,7 @@ negative hit in any parallelism opportunity.
 For grouping the nodes together,
 we used a Union Find with Path Compression, which yields an attractive
 computational complexity of $O(E + N \lg^*N)$ to our partitioner, where $N$ is the
-number of nodes and $E$ is the number of edges in the callgraph \cite{feufiloff}.
+number of nodes and $E$ is the number of edges in the callgraph \citep{feufiloff}.
 
 Once the partitions are computed, we need to compute its \textit{boundary}.
 If function $f$ calls $g$, but they were assigned into distinct partitions,
@@ -617,7 +617,7 @@ which we do not. Therefore, we need another way of fixing it.
 
 Two naive approaches would be to select a random integer and append to the
 function's name, or append the memory address of the function object to the
-function's name.  Both of them breaks bootstrap \cite{bootstrap}, the first
+function's name.  Both of them breaks bootstrap \citep{bootstrap}, the first
 because output functions will have distinct names on every new compilation. The
 second because stage 1 compiles with \texttt{-O0} and stage 2 with
 \texttt{-O2}, which changes the memory address of the functions between these stages.
@@ -633,7 +633,7 @@ approach, however, we did not find any on our tests.
 GNU Make can launch jobs in parallel by using \texttt{make -j}.  To
 avoid unnecessary partitioning and job creation when the CPU is at 100\% usage,
 we have also implemented an integration mechanism with GNU Jobserver
-\cite{posixjobserver}.  The implementation is simple: we query the server for
+\citep{posixjobserver}.  The implementation is simple: we query the server for
 an extra token. If we receive the token, then it means that some processor is
 available, and we can partition the TU and launch jobs inside the compiler.
 Else, the processor workload is full, and it may be better to avoid
@@ -646,13 +646,61 @@ existing projects.
 
 \end{subsection}
 
+\begin{subsection}{Relationship with Reproducible Builds}\label{sec:repro_builds}
+
+One interesting point of Open Source is that it can be verified by everyone.
+However, very often these projects are distributed in a binary form to the
+users, removing from them the burden of this process. But nothing avoids that a
+malicious developer modifies the codebase \textit{before} the distribution
+(\textit{e.g.} inserting a backdoor), and claiming that he/her got a distinct
+binary because his/her system is different from the user.
+
+The Reproducible Builds project aims to solve that issue by providing a way to
+reproduce the released binary from its source. Some software needs to
+be patched to work with Reproducible Builds, for instance,
+to not contain some kind of build timestamp, and so on. A build
+is called \textit{reproducible} if given the same source code and build
+instructions, anyone can recreate a bit-perfect version of the distributed
+binary \citep{reproducible_builds}.
+
+To keep compatibility with this project, we must ensure that our compiler
+always outputs the same code with a given input. The input is not only
+the source file itself but also the flags passed to it.
+
+We claim that our modification still supports the Reproducible Builds because
+of the following reasons:
+
+\begin{itemize}
+	\item No random information is necessary to solve name clashing.
+	\item Given a number of jobs, our partitioner will always generate
+	the same number of partitions for a certain program, always with the same content.
+	\item Partial Linking is always done in the same order. To ensure that,
+	we communicate to the driver a pair (\textit{partition number, path to file}),
+	and we sort this list using the partition number as the key.
+	\item No other race conditions are introduced, as we rely on the quality of
+	the LTO implementation of the compiler.
+\end{itemize}
+
+However, there is one point of concern, which is the Jobserver Integration.  If
+the processor is already in 100\% usage, we avoid partitioning at all and
+proceed with sequential compilation. This certainly changes accordingly to the
+processor usage of the machine during the build, therefore the build is not
+guaranteed to be reproducible if this option is enabled. This is not an issue
+if the number of jobs is determined beforehand.
+
+\end{subsection}
+
 \begin{subsection}{Methods}\label{sec:methods}
 
-We ensure the correctness of our changes by (1) bootstrapping GCC; (2) ensure
-that the GCC testsuite was passing; and (3) compiling random programs generated
-with \textit{csmith} \cite{csmith} and ensure that the correct result was
-found. These tests were done with 2, 4, 8 and 64 parallel jobs, with minimum
-partitioning quota of $10^3$ and $10^5$ instructions.
+We ensure the correctness of our changes by running these tests with 2, 4, 8
+and 64 parallel jobs, with minimum partitioning quota of $10^3$ and $10^5$
+instructions:
+\begin{enumerate}
+\item Bootstrapping GCC.
+\item Ensure that the GCC testsuite was passing.
+\item compiling random programs generated with \textit{csmith} \citep{csmith}
+and ensure that the correct result was found.
+\end{enumerate}
 
 For the time measurements, all points represent the average of collected
 samples, with errorbar representing a $95\%$ confidence interval.
@@ -663,9 +711,25 @@ computer intensive task. We made sure that in every test, \texttt{-g0} was passe
 for fairness, once there is a bug in our branch regarding debug symbols of
 nodes in other partitions.
 
+For the power usage measurement, we used the builtin AMD \texttt{fam15h\_power}
+sensor available in the Opteron CPU \citep{fam15h}.
+
 Tests were mainly executed in two computers, which are represented
 in Table \ref{table:machines}. The graphic caption specifies where the test
 was run.
+
+\begin{table}[]
+\centering
+\begin{tabular}{c|c|c|c|c|}
+\cline{2-5}
+                                      & Number of Cores & Number of Threads & RAM                                                    & Storage Device \\ \hline
+\multicolumn{1}{|c|}{Core-i7 8650U}   & 4               & 8                 & \begin{tabular}[c]{@{}c@{}}8Gb\end{tabular} & SSD       \\ \hline
+\multicolumn{1}{|c|}{4x Opteron 6376} & 32              & 64                & \begin{tabular}[c]{@{}c@{}}252Gb\end{tabular}   & HDD       \\ \hline
+\end{tabular}
+\caption{Machine specification of tests}
+\label{table:machines}
+\end{table}
+
 
 The version of GCC used in the tests is available in the \texttt{autopar\_europar\_2021}
 branch of \texttt{git://gcc.gnu.org/git/gcc.git}, with hash \texttt{e2da2f7205}.
@@ -701,6 +765,19 @@ tests were executed with 64 Makefile jobs and 8 threads inside the compiler.
 Other than this, we seen no significant speedup or slowdown in these other
 projects.
 
+We can explain our results regarding GCC by looking by comparing Figures
+\ref{fig:analysis_classical} and \ref{fig:analysis_classical_parallel}. On
+Figure \ref{fig:analysis_classical}, we have the classical compilation scheme,
+which has some bottlenecks due to high time-consuming files. When our changes
+are applied and the compiler is running in parallel (Figure
+\ref{fig:analysis_classical}), we see a reduction of compilation time on those
+files. Therefore, by compiling files in parallel, we can reduce the time
+required to compile those files when we have available free CPU cores.
+
+Furthermore, we also observe a reduction in power consumption when using this
+mode, which is displayed in Figure \ref{fig:power}. This may be extra useful for Continuous Integration systems, which
+may compile the same software from scratch several times a day.
+
 \begin{table}[]
 \makebox[\textwidth][c]{
 \begin{tabular}{l|c|c|c|c|c|c|c}
@@ -731,6 +808,39 @@ projects.
 	  \label{fig:gcc_projects}
 \end{figure}
 
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+    \includegraphics[width=0.9\paperheight]{seq-crop.pdf}
+    \captionof{figure}{Compilation time of GCC without our modifications}
+    \label{fig:analysis_classical}
+%\end{figure}
+\end{landscape}
+
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+    \includegraphics[width=0.9\paperheight]{par-crop.pdf}
+    \captionof{figure}{Compilation time of GCC after our modifications}
+    \label{fig:analysis_classical_parallel}
+%\end{figure}
+\end{landscape}
+
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+    \includegraphics[width=0.9\paperheight]{power-crop.pdf}
+    \captionof{figure}{Power usage comparison before and after our modifications}
+    \label{fig:power}
+%\end{figure}
+\end{landscape}
+
 \end{subsection}
 
 \begin{subsection}{Feasibility Discussion}
@@ -749,6 +859,10 @@ The good news is that LTO is present in almost every industrial-scale compiler
 nowadays. Therefore, implementing single-file parallelism on those by using our
 methods would be significantly less cumbersome than making sure that the
 threaded implementation is correct.
+
+Therefore, if the compiler already has LTO support and the developers wants
+to improve the performance of the compiler in manycore environments, this is a
+quick to implement, large outcome method of doing that.
 
 
 \end{subsection}
@@ -1012,29 +1126,5 @@ threaded implementation is correct.
 %\end{itemize}
 %Uma ilustração da distribuição dessas tarefas no tempo está representada na
 %Figura \ref{fig:gantt}.
-
-\begin{landscape}
-%\begin{figure}[ht]
- \vspace*{-2cm}%
- \noindent%
- \hspace*{-2cm}%
-    \includegraphics[width=0.9\paperheight]{gcc_timer_classic_crop.pdf}
-    \captionof{figure}{Tempo corrido na compilação do GCC em um processador de
-    64 núcleos. \textbf{Sem} LTO, sem \textit{Bootstrap}.}
-    \label{fig:analysis_classical}
-%\end{figure}
-\end{landscape}
-
-\begin{landscape}
-%\begin{figure}[ht]
- \vspace*{-2cm}%
- \noindent%
- \hspace*{-2cm}%
- \includegraphics[width=0.9\paperheight]{lto_crop.pdf}
-    \captionof{figure}{Tempo corrido na compilação do GCC em um processador de 64 núcleos. \textbf{Com} LTO, sem \textit{Bootstrap}.}
- \label{fig:analysis_lto}
-%\end{figure}
-\end{landscape}
-
 
 %%%%%
