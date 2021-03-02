@@ -16,6 +16,7 @@ of parallelizing a compiler.
 %possuía sérios problemas de estabilidade, foi desenvolvida uma outra maneira
 %de replicar os resultados.
 
+\begin{section}{Profiling}\label{sec:profile}
 
 We first start as an analysis of the time spent in some stages of the compiler.
 As stated in \cite{PR84402}, there is a parallel compilation bottleneck in GCC
@@ -62,6 +63,8 @@ analysis inside a compiler (in this case, GCC). Our first attempt was to try to
 parallelize that with threads, in which we discuss our findings and issues with
 this approach. Then we try a very different approach: modify the LTO engine for
 single file parallel compilation.
+
+\end{section}
 
 \begin{section}{Maximum Speedup}
 
@@ -357,7 +360,7 @@ approach rather than threads, which we discuss in the next section.
 
 \end{section}
 
-\begin{section}{Modifying LTO for parallel file compilation}
+\begin{section}{Modifying LTO for parallel file compilation}\label{sec:parallel_lto}
 
 As presented in Section \ref{lto_section}, LTO was created to allow
 cross-module optimizations in programs, and has a serial part (WPA), imposing a
@@ -865,6 +868,45 @@ to improve the performance of the compiler in manycore environments, this is a
 quick to implement, large outcome method of doing that.
 
 
+\end{subsection}
+
+\begin{subsection}{Issues and Possible Improvements}
+Our current LTO-based implementation can also be improved, which we highlight
+some points of concern:
+\begin{enumerate}
+
+\item Fix the bugs which we already know. There is (1) a bug related
+to how our partitioner applier handle nodes created by the \textit{ipa-split}
+pass, and therefore we have disabled it for now; and (2) our partitioner
+applier do not remove debug symbols associated with removed nodes, resulting in
+unknown symbols being dumped into the final assembly. These bugs certainly prevents the
+current branch from being used in industrial environments (which is a good
+reason why this was not merged in upstream yet), but they are fine as a proof
+of concept to support our claims.
+
+\item Implementing a better partitioner to the project. One main issue
+with our partitioner is that we kept its load balancing algorithm minimal to
+ensure that it works. Using the LTO default partitioner as a base is a good start.
+
+\item By modifying the driver to also support external compiler through GCC
+SPEC language. Our current implementation only checks if launching program
+is a known compiler/assembler/linker, and will get confused in languages that
+needs additional steps (such as CUDA).
+
+\item Try to develop a predictive model to decide if the input file is
+a good candidate for parallel compilation. Fig. \ref{fig:gcc_all_files} shows
+a clear linear correlation between the expected number of instructions and time
+(and maybe it is the best parameter), but it may be possible to (statically)
+collect more information about the file for a better decision.
+
+\item Try to avoid partial linking and symbol promotion altogether by
+concatenating the generated assembly files, instead of linking every generated
+assembly file into temporary object files. This is extra useful for
+architectures that require extra steps to generate code that must be globally
+available across the program, which may generate a slower code when compared to
+the non-public promoted version.
+
+\end{enumerate}
 \end{subsection}
 
 \end{section}
