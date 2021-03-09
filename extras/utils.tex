@@ -5,16 +5,19 @@
 % Você provavelmente vai querer ler a documentação de alguns destes pacotes
 % para personalizar algum aspecto do trabalho ou usar algum recurso específico.
 
+% melhorias e recursos adicionais para o modo matemático; leia a documentação
+\usepackage{mathtools}
+
 % A classe Book inclui o comando \appendix, que (obviamente) permite inserir
 % apêndices no documento. No entanto, não há suporte similar para anexos. Esta
 % package (que não é padrão do LaTeX, foi criada para este modelo) define o
 % comando \annex. Ela deve ser carregada depois de hyperref.
-\dowithsubdir{extras/}{\usepackage{annex}}
+\usepackage{annex} % carregado do diretório extras (veja basics.tex)
 
 % Para inserir separações no texto que não correspondem a seções com um nome
 % definido, é comum usar um ornamento ou florão (em inglês e francês: fleuron).
-% Esta package define o comando \frufru que insere um florão desse tipo.
-\dowithsubdir{extras/}{\usepackage{frufru}}
+% Esta package define o comando \froufrou que insere um florão desse tipo.
+\usepackage{froufrou} % carregado do diretório extras (veja basics.tex)
 
 % Formatação personalizada das listas "itemize", "enumerate" e
 % "description", além de permitir criar novos tipos de listas.
@@ -71,6 +74,7 @@
 \providetranslation[to=Portuguese]{to (numerical range)}{a}
 \providetranslation[to=Portuguese]{and}{e}
 \addto\extrasbrazil{\sisetup{output-decimal-marker = {,}}}
+\addto\extrasbrazilian{\sisetup{output-decimal-marker = {,}}}
 
 % Citações melhores; se você pretende fazer citações de textos
 % relativamente extensos, vale a pena ler a documentação. biblatex
@@ -100,12 +104,12 @@
 \makeatother
 
 % Vamos reduzir o espaçamento entre linhas nas notas/comentários
-%\makeatletter
-%\xpatchcmd{\@todo}
-%  {\renewcommand{\@todonotes@text}{#2}}
-%  {\renewcommand{\@todonotes@text}{\begin{spacing}{0.5}#2\end{spacing}}}
-%  {}
-%  {}
+\makeatletter
+\xpatchcmd{\@todo}
+  {\renewcommand{\@todonotes@text}{#2}}
+  {\renewcommand{\@todonotes@text}{\begin{spacing}{0.5}#2\end{spacing}}}
+  {}
+  {}
 \makeatother
 
 % Símbolos adicionais, como \celsius, \ohm, \perthousand etc.
@@ -178,7 +182,6 @@
 % Também é útil se você quiser importar gráficos gerados com GnuPlot.
 \usepackage{tikz}
 \usetikzlibrary{arrows,automata}
-%\usetikzlibrary{shapes,snakes}
 
 % Gráficos gerados diretamente em LaTeX; é possível usar tikz para
 % isso também.
@@ -199,6 +202,17 @@
 % na página como ícones "clicáveis"; esta package implementa esse
 % recurso em LaTeX.
 %\usepackage{attachfile}
+
+% Notas de rodapé "órfãs", ou seja, textos que aparecem junto
+% das notas de rodapé mas que não têm referência em nenhum lugar.
+% "0" desabilita o marcador porque não existe o 0-ésimo símbolo.
+\newcommand\detachedfootnote[1]{%
+    \bgroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \renewcommand\thempfootnote{\fnsymbol{mpfootnote}}%
+    \footnotetext[0]{#1}%
+    \egroup
+}
 
 % Os comandos \TeX e \LaTeX são nativos do LaTeX; esta package acrescenta os
 % comandos \XeLaTeX e \LuaLaTeX. Você provavelmente não precisa desse recurso

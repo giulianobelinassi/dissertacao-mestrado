@@ -15,48 +15,34 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PREÂMBULO LaTeX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Você pode adaptar este modelo mudando a classe para a de algum periódico
-% específico. Para isso, no entanto, você provavelmente vai ter que desabilitar
-% diversas coisas definidas aqui em prol do padrão do periódico, como o formato
-% da bibliografia, fontes, tamanho do papel e margens etc. Em geral, se o
-% periódico fornece um modelo, é melhor usá-lo.
+% Se você está escrevendo um artigo para algum periódico que fornece um
+% modelo LaTeX, é melhor usá-lo (e, se necessário, você pode copiar coisas
+% úteis deste modelo). Se não houver um modelo preexistente, você pode tentar
+% adaptar este para o formato esperado, mas essa não é uma tarefa trivial.
 %
-% A opção frente-e-verso aqui significa, por exemplo, que as margens das páginas
-% ímpares e pares são diferentes ou que números de página aparecem à direita
-% ou à esquerda alternadamente. Nada impede que você crie um documento "só
-% frente" e, ao imprimir, faça a impressão frente-e-verso.
+% A opção twoside (frente-e-verso) significa que a aparência das páginas pares
+% e ímpares pode ser diferente. Por exemplo, as margens podem ser diferentes ou
+% os números de página podem aparecer à direita ou à esquerda alternadamente.
+% Mas nada impede que você crie um documento "só frente" e, ao imprimir, faça
+% a impressão frente-e-verso.
 %
-% Aqui também definimos a língua padrão do documento e línguas adicionais. A
-% classe em si não usa essa informação mas, passando as opções de língua aqui,
-% elas são repassadas para todas as packages, e diversas packages mudam
-% seu comportamento em função da língua (em especial, babel/polyglossia).
-% A última língua da lista é a língua padrão do documento.
-%\documentclass[12pt,twoside,brazil,english]{article}
-\documentclass[12pt,twoside,english,brazil]{article}
+% Aqui também definimos a língua padrão do documento
+% (a última da lista) e línguas adicionais.
+%\documentclass[12pt,twoside,brazilian,english]{article}
+\documentclass[12pt,twoside,english,brazilian]{article}
 
-% Com papel tamanho A4, queremos estas margens:
-%
-% topo: 32mm
-% pé: 28mm
-% esquerda/interna: 24mm
-% direita/externa: 34mm
-%
-% Para isso, definimos os tamanhos do texto, do cabeçalho e do rodapé,
-% e deixamos a package geometry calcular os demais valores. Assim,
-% obtemos o mesmo resultado impresso, mas com margens diferentes, se
-% o tamanho do papel for diferente.
-
+% Ao invés de definir o tamanho das margens, vamos definir os tamanhos do
+% texto, do cabeçalho e do rodapé, e deixamos a package geometry calcular
+% o tamanho das margens em função do tamanho do papel. Assim, obtemos o
+% mesmo resultado impresso, mas com margens diferentes, se o tamanho do
+% papel for diferente.
 \usepackage[a4paper]{geometry}
 
 \geometry{
-  %top=32mm,
-  %bottom=28mm,
-  %left=24mm,
-  %right=34mm,
-  textwidth=152mm, % 210-24-34
-  textheight=237mm, % 297-32-28
-  vmarginratio=8:7, % 32:28
-  hmarginratio=12:17, % 24:34
+  textwidth=152mm,
+  hmarginratio=12:17, % 24:34 -> com papel A4, 24mm + 152mm + 34mm = 210mm
+  textheight=237mm,
+  vmarginratio=8:7, % 32:28 -> com papel A4, 32mm + 237mm + 28mm = 297mm
   % Com geometry, esta medida não é tão relevante; basta garantir que ela
   % seja menor que "top" e que o texto do cabeçalho caiba nela.
   headheight=25.4mm,
@@ -72,11 +58,14 @@
 % Vários pacotes e opções de configuração genéricos; para personalizar o
 % resultado, modifique estes arquivos.
 \input{extras/basics}
+\input{extras/languages}
 \input{extras/fonts}
 \input{extras/floats}
-\input{extras/thesis-formatting}
+\input{extras/imeusp-formatting}
 \input{extras/index}
+\input{extras/bibconfig}
 \input{extras/hyperlinks}
+%\nocolorlinks % para impressão em P&B
 \input{extras/source-code}
 \input{extras/utils}
 
@@ -89,65 +78,29 @@
 % \br -> muda para o português
 % \texten{blah} -> o texto "blah" é em inglês
 % \textbr{blah} -> o texto "blah" é em português
-\babeltags{br = brazil, en = english}
+\babeltags{br = brazilian, en = english}
 
 % Espaçamento simples
 \singlespacing
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BIBLIOGRAFIA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%% Usando bibtex (preterido): %%%%%%%%%%%%
-
-% citação bibliográfica alpha (alpha-ime.bst)
-%\dowithsubdir{extras/}{\usepackage[square,sort,nonamebreak,comma]{natbib-ime}}
-
-% citação bibliográfica textual(plainnat-ime.bst)
-%\dowithsubdir{extras/}{\usepackage[round,sort,nonamebreak]{natbib-ime}}
-
-%%%%%%%%%%%
-
-
-%%%%%%%%%%% Usando biblatex (preferido): %%%%%%%%%%%
-
+% Bibliografia
 \usepackage[
-  % "natbib=true" faz biblatex reconhecer comandos no estilo
-  % do pacote natbib (\citet, \citep)
-  natbib=true,
-  %
-  % Aqui definimos estilo de citação e de lista
-  % de referências usado por biblatex
-  %
-  % Estilo similar a plainnat, uma variante de autor-data
-  style=extras/plainnat-ime,
-  % Estilo similar a alpha
-  %style=alphabetic,
-  % O estilo numérico é comum em artigos
-  %style=numeric,
-  % autor-data "padrão" do biblatex
-  %style=authoryear-comp,
-  % APA, uma variante de autor-data muito usada
-  %style=apa,
-  % Um estilo que busca ser compatível com a ABNT:
+  style=extras/plainnat-ime, % variante de autor-data, similar a plainnat
+  %style=alphabetic, % similar a alpha
+  %style=numeric, % comum em artigos
+  %style=authoryear-comp, % autor-data "padrão" do biblatex
+  %style=apa, % variante de autor-data, muito usado
   %style=abnt,
-  %style=bwl-FU,
 ]{biblatex}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % O arquivo com os dados bibliográficos para biblatex; você pode usar
 % este comando mais de uma vez para acrescentar múltiplos arquivos
 \addbibresource{bibliografia.bib}
-
-%%%%%%%%%%%
-
-% Para personalizar outros aspectos da bibliografia
-% e citações, modifique este arquivo.
-\input{extras/bibconfig}
-
-% A configuração do arquivo acima foi definida para teses/dissertações;
-% para artigos, vamos mudar esta opção (apenas para biblatex!).
-\ExecuteBibliographyOptions{
-  backref=false,
-}
 
 % Este comando permite acrescentar itens à lista de referências sem incluir
 % uma referência de fato no texto (pode ser usado em qualquer lugar do texto)
@@ -156,27 +109,50 @@
 % de referências
 %\nocite{*}
 
+% Estes comandos definem o título e autoria do trabalho e devem sempre ser
+% definidos, pois além de serem utilizados para criar a capa (com o comando
+% \maketitle), também são armazenados nos metadados do PDF. O estilo padrão
+% de diversos periódicos exige também outros dados, como email, filiação etc.
+\title{Título do artigo}
+\author{
+  Primeiro Autor\thanks{Filiação do primeiro autor},
+  Segundo Autor\thanks{Filiação do segundo autor}
+}
+
+% O pacote hyperref armazena alguns metadados no PDF gerado (em particular,
+% o conteúdo de "\title" e "\author"). Também é possível armazenar outros
+% dados, como uma lista de palavras-chave ou o resumo.
+\hypersetup{
+  pdfkeywords={LaTeX, artigo},
+  pdfsubject={Uma variante do arquivo tese.tex usando a classe article.},
+}
+
+% É possível definir como determinadas palavras podem (ou não) ser
+% hifenizadas; no entanto, a hifenização automática geralmente funciona bem
+\hyphenation{documentclass latexmk Fu-la-no}
+
+% Por padrão, article inclui a data atual; com este comando, você pode
+% definir uma data específica, inserir algum outro texto ou, deixando o
+% conteúdo em branco, removê-la.
+\date{}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INÍCIO DO CONTEÚDO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INÍCIO DO ARTIGO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
-%\input{conteudo-exemplo/corpo-artigo}
+% Gera a "capa" do artigo (geralmente, título, autor etc. sem que haja uma
+% quebra de página para o restante do conteúdo)
+\maketitle
+
 \input{conteudo/corpo-artigo}
 % Um parágrafo em LaTeX termina com uma linha vazia; como não é possível ter
 % certeza que um arquivo incluído (neste caso, "corpo-artigo") terminou
 % com uma linha vazia, é recomendável usar o comando "par" após "input" para
 % garantir que o último parágrafo do arquivo incluído realmente terminou.
 \par
-
-%%%%%%%%% Bibliografia com bibtex (preterido): %%%%%%%%%
-%\bibliographystyle{extras/alpha-ime}% citação bibliográfica alpha
-%\bibliographystyle{extras/plainnat-ime} % citação bibliográfica textual
-%\bibliography{bibliografia}  % associado ao arquivo: 'bibliografia.bib'
-
-%%%%%%%% Bibliografia com biblatex (preferido): %%%%%%%%
 
 \printbibliography[
   title=\refname\label{bibliografia}, % "Referências", recomendado pela ABNT

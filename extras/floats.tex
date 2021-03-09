@@ -2,12 +2,47 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% FIGURAS / FLOATS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Permite importar figuras. LaTeX "tradicional" só é capaz de trabalhar com
-% figuras EPS. Hoje em dia não há nenhuma boa razão para usar essa versão;
-% pdfTeX, XeTeX, e LuaTeX podem usar figuras nos formatos PDF, JPG e PNG; EPS
-% também pode funcionar em algumas instalações mas não é garantido, então é
-% melhor evitar.
-\usepackage{graphicx}
+% LaTeX escolhe automaticamente o "melhor" lugar para colocar cada float.
+% Por padrão, ele tenta colocá-los no topo da página e depois no pé da
+% página; se não tiver sucesso, vai para a página seguinte e recomeça.
+% Se esse algoritmo não tiver sucesso "logo", LaTeX cria uma página só
+% com floats. É possível modificar esse comportamento com as opções de
+% posicionamento: "tp", por exemplo, instrui LaTeX a considerar apenas
+% o topo da página ou uma página só de floats (ignorando o pé da página),
+% e "htbp" o instrui para tentar "aqui" como a primeira opção. A ordem
+% dessas opções não é relevante: dentre as opções disponíveis, LaTeX
+% sempre tenta "aqui, topo, pé, página". Os pacotes "float" e "floatrow"
+% acrescentam a opção "H", que significa "aqui, incondicionalmente".
+%
+% A escolha do "melhor" lugar leva em conta os parâmetros abaixo, mas é
+% possível ignorá-los com a opção de posicionamento "!". Dado que os
+% valores default não são muito bons para floats "grandes" ou documentos
+% com muitos floats, é muito comum usar "!" ou "H". No entanto, modificando
+% estes parâmetros o algoritmo automático tende a funcionar melhor. Ainda
+% assim, vale ler a discussão a respeito na seção "Limitações do LaTeX"
+% deste modelo.
+
+% Fração da página que pode ser ocupada por floats no topo. Default: 0.7
+\renewcommand{\topfraction}{.8}
+% Idem para documentos em colunas e floats que tomam as 2 colunas. Default: 0.7
+%\renewcommand{\dbltopfraction}{.7}
+% Fração da página que pode ser ocupada por floats no pé. Default: 0.3
+%\renewcommand{\bottomfraction}{.3}
+% Fração mínima da página que deve conter texto. Default: 0.2
+%\renewcommand{\textfraction}{.2}
+% Numa página só de floats, fração mínima que deve ser ocupada. Default: 0.5
+% floatpagefraction *deve* ser menor que topfraction.
+\renewcommand{\floatpagefraction}{.66}
+% Idem para documentos em colunas e floats que tomam as 2 colunas. Default: 0.5
+\renewcommand{\dblfloatpagefraction}{.66}
+% Máximo de floats no topo da página. Default: 2
+\setcounter{topnumber}{3}
+% Idem para documentos em colunas e floats que tomam as 2 colunas. Default: 2
+%\setcounter{dbltopnumber}{2}
+% Máximo de floats no pé da página. Default: 1
+\setcounter{bottomnumber}{2}
+% Máximo de floats por página. Default: 3
+\setcounter{totalnumber}{5}
 
 % A package float é amplamente utilizada; ela permite definir novos tipos
 % de float e também acrescenta a possibilidade de definir "H" como opção de
@@ -20,6 +55,32 @@
 % tipos de float; veja o arquivo source-code.tex para um exemplo.
 %\usepackage{float}
 \usepackage{floatrow}
+
+% Por padrão, LaTeX prefere colocar floats no topo da página que
+% onde eles foram definidos; vamos mudar isso. Este comando depende
+% do pacote "floatrow", carregado logo acima.
+\floatplacement{table}{htbp}
+\floatplacement{figure}{htbp}
+
+% Em alguns casos, um float pode aparecer antes do local do texto em que
+% foi definido (ou seja, no topo da página ao invés do meio da página).
+% Esta package garante que floats (tabelas e figuras) só apareçam após
+% o local no texto em que foram definidos; veja os detalhes em
+% https://tex.stackexchange.com/a/297580 . Note que, se o float tem a
+% opção "h", normalmente LaTeX *não* coloca o float no topo da página
+% atual: se o float não pode ser colocado "here", ele é delegado para
+% a página seguinte.
+\usepackage{flafter}
+
+% Às vezes um float pode ser adiado por muitas páginas; é possível forçar
+% LaTeX a imprimir todos os floats pendentes com o comando \clearpage mas,
+% para isso, o usuário deve identificar os casos problemáticos e inserir
+% \clearpage manualmente. Esta package acrescenta o comando \FloatBarrier,
+% que executa \clearpage apenas se necessário no local em que é chamado.
+% "above" e "below" desabilitam a barreira quando os floats estão na mesma
+% página. A desvantagem de placeins é que, para funcionar, ela gera quebras
+% de página que muitas vezes são inesperadas.
+\usepackage[above,below]{placeins}
 
 % Em documentos com duas colunas, floats normalmente são colocados como
 % parte de uma das colunas. No entanto, é possível usar "\begin{figure*}"
@@ -48,7 +109,6 @@
 %    do texto da "outra" coluna.
 %
 % 3. Soluciona o terceiro problema.
-%
 \usepackage{stfloats}
 
 % Às vezes é interessante utilizar uma imagem mais larga que o texto.
@@ -58,65 +118,6 @@
 % (ou seja, \includegraphics[width=1.2\textwidth,center]{imagem}.
 % A package tem muitos outros recursos também
 \usepackage[export]{adjustbox}
-
-% Por padrão, LaTeX prefere colocar floats no topo da página que
-% onde eles foram definidos; vamos mudar isso. Este comando depende
-% do pacote "floatrow", carregado logo acima.
-\floatplacement{table}{htbp}
-\floatplacement{figure}{htbp}
-
-% Garante que floats (tabelas e figuras) só apareçam após as seções a que
-% pertencem. Por padrão, se a seção começa no meio da página, LaTeX pode
-% colocar a figura no topo dessa página
-\usepackage{flafter}
-% Às vezes um float pode ser adiado por muitas páginas; é possível forçar
-% LaTeX a imprimir todos os floats pendentes com o comando \clearpage.
-% Esta package acrescenta o comando \FloatBarrier, que garante que floats
-% definidos anteriormente sejam impressos e garante que floats subsequentes
-% não apareçam antes desse ponto. A opção "section" faz o comando ser
-% aplicado automaticamente a cada nova seção. "above" e "below" desabilitam
-% a barreira quando os floats estão na mesma página.
-\usepackage[section,above,below]{placeins}
-
-% LaTeX escolhe automaticamente o "melhor" lugar para colocar cada float.
-% Por padrão, ele tenta colocá-los no topo da página e depois no pé da
-% página; se não tiver sucesso, vai para a página seguinte e recomeça.
-% Se esse algoritmo não tiver sucesso "logo", LaTeX cria uma página só
-% com floats. É possível modificar esse comportamento com as opções de
-% posicionamento: "tp", por exemplo, instrui LaTeX a não colocar floats
-% no pé da página, e "htbp" o instrui para tentar "aqui" como a primeira
-% opção. O pacote "floatrow" acrescenta a opção "H", que significa "aqui,
-% incondicionalmente".
-%
-% A escolha do "melhor" lugar leva em conta os parâmetros abaixo, mas é
-% possível ignorá-los com a opção de posicionamento "!". Dado que os
-% valores default não são muito bons para floats "grandes" ou documentos
-% com muitos floats, é muito comum usar "!" ou "H". No entanto, modificando
-% esses parâmetros o algoritmo automático tende a funcionar melhor. Ainda
-% assim, vale ler a discussão a respeito na seção "Limitações do LaTeX"
-% deste modelo.
-
-% Fração da página que pode ser ocupada por floats no topo. Default: 0.7
-\renewcommand{\topfraction}{.85}
-% Idem para documentos em colunas e floats que tomam as 2 colunas. Default: 0.7
-\renewcommand{\dbltopfraction}{.66}
-% Fração da página que pode ser ocupada por floats no pé. Default: 0.3
-\renewcommand{\bottomfraction}{.7}
-% Fração mínima da página que deve conter texto. Default: 0.2
-\renewcommand{\textfraction}{.15}
-% Numa página só de floats, fração mínima que deve ser ocupada. Default: 0.5
-% floatpagefraction *deve* ser menor que topfraction.
-\renewcommand{\floatpagefraction}{.66}
-% Idem para documentos em colunas e floats que tomam as 2 colunas. Default: 0.5
-\renewcommand{\dblfloatpagefraction}{.66}
-% Máximo de floats no topo da página. Default: 2
-\setcounter{topnumber}{9}
-% Idem para documentos em colunas e floats que tomam as 2 colunas. Default: 2
-\setcounter{dbltopnumber}{9}
-% Máximo de floats no pé da página. Default: 1
-\setcounter{bottomnumber}{9}
-% Máximo de floats por página. Default: 3
-\setcounter{totalnumber}{20}
 
 % Define o ambiente "\begin{landscape} -- \end{landscape}"; o texto entre
 % esses comandos é impresso em modo paisagem, podendo se estender por várias
@@ -148,7 +149,7 @@
 % está acima ou abaixo da figura/tabela, mas isso não funciona
 % corretamente com longtable. Aqui, forçamos a package a considerar
 % que os captions ficam abaixo das tabelas.
-\captionsetup[longtable]{position=bottom}
+\captionsetup*[longtable]{position=bottom}
 
 % Sub-figuras (e seus captions) - observe que existe uma package chamada
 % "subfigure", mas ela é obsoleta; use esta no seu lugar.
@@ -161,6 +162,14 @@
 % for necessário importar uma imagem ou tabela muito grande ou ainda
 % para definir uma capa personalizada.
 \usepackage{pdfpages}
+
+% Permite importar figuras. LaTeX "tradicional" só é capaz de trabalhar com
+% figuras EPS; hoje em dia não há nenhuma boa razão para usar essa versão.
+% Já pdfTeX, XeTeX e LuaTeX podem usar figuras nos formatos PDF, JPG e PNG.
+% Em algumas instalações, essas versões conseguem converter automaticamente
+% arquivos EPS para PDF, mas não isso é garantido, então é melhor evitar o
+% formato EPS.
+\usepackage{graphicx}
 
 % Caixas de texto coloridas
 %\usepackage{tcolorbox}

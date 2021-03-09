@@ -36,64 +36,45 @@
 %\labelformat{subsection}{Seção~#1}
 %\labelformat{subsubsection}{Seção~#1}
 
-% XMP (eXtensible Metadata Platform) is a mechanism proposed by Adobe for
-% embedding document metadata within the document itself. The package
-% integrates seamlessly with hyperref and requires virtually no modifications
-% to documents that already exploit hyperref's mechanisms for specifying PDF
-% metadata. It should be loaded before hyperref.
-\usepackage{hyperxmp}
-
-% HACK ALERT! hyperxmp usa atenddvi, que tem este bug:
-% https://github.com/ho-tex/atenddvi/issues/1 . Aparentemente, ele não
-% afeta xelatex (cf https://github.com/latex3/latex2e/issues/94 ), então
-% só precisamos nos preocupar com pdflatex e lualatex. Com pdflatex,
-% hyperxmp não deveria utilizar atenddvi, mas às vezes usa. Com lualatex,
-% me parece que atenddvi também não é necessária, pois hyperxmp não usa
-% \special ou \write com lualatex. Então, vamos deixar hyperxmp carregar
-% atenddvi mas (1) vamos impedi-la de funcionar e (2) vamos garantir que
-% hyperxmp sempre use AtEndDocument com pdflatex e lualatex. Há ainda um
-% outro truque para contornar esse problema na configuração da bibliografia,
-% mas não podemos ter certeza que apenas a bibliografia pode ser afetada
-% por este bug.
-
-% TODO: remover isto quando o bug for corrigido
-\makeatletter
-\ifpdf
-  \ifxetex
-    \relax
-  \else
-    \let\AtEndDvi@AtBeginShipout\relax
-    \let\AtEndDvi@CheckImpl\relax
-    \let\hyxmp@at@end\AtEndDocument
-  \fi
-\fi
-\makeatother
-
-% Usamos "PassOptions" aqui porque outras packages definem opções para
-% hyperref também e chamar a package com opções diretamente gera conflitos.
-\PassOptionsToPackage{
-  unicode=true,
-  plainpages=false,
-  pdfpagelabels,
-  colorlinks=true,
-  %citecolor=black,
-  %linkcolor=black,
-  %urlcolor=black,
-  %filecolor=black,
-  citecolor=DarkGreen,
-  linkcolor=NavyBlue,
-  urlcolor=DarkRed,
-  filecolor=green,
-  bookmarksopen=true,
-  % hyperref não gera hyperlinks corretos em índices remissivos criados com
-  % xindy; assim, é possível desabilitar essa função aqui e gerar os
-  % hyperlinks através da configuração de xindy definida anteriormente. Com
-  % makeindex (o default), quem precisa criar os hyperlinks é hyperref.
-  %hyperindex=false,
-}{hyperref}
-
 % Cria hiperlinks para capítulos, seções, \ref's, URLs etc.
 \usepackage{hyperref}
+
+\providetoggle{IMEcolorlinks}
+\providetoggle{IMEhidelinks}
+\newcommand\hidelinks{\toggletrue{IMEhidelinks}}
+\newcommand\colorlinks{\toggletrue{IMEcolorlinks}}
+\newcommand\nocolorlinks{\togglefalse{IMEcolorlinks}}
+\colorlinks
+\AtEndPreamble{
+  \iftoggle{IMEhidelinks}
+    {\hypersetup{hidelinks}}
+    {
+      \iftoggle{IMEcolorlinks}{
+        \hypersetup{
+          colorlinks=true, % também desabilita pdfborderstyle
+          %citecolor=black,
+          %linkcolor=black,
+          %urlcolor=black,
+          %filecolor=black,
+          citecolor=DarkGreen,
+          linkcolor=NavyBlue,
+          urlcolor=DarkRed,
+          filecolor=green,
+          anchorcolor=black,
+        }
+      }{
+        \hypersetup{
+          colorlinks=false,
+          pdfborder={0 0 .6},
+          pdfborderstyle={/S/U/W .6},
+          urlbordercolor=DodgerBlue,
+          citebordercolor=green!30!white,
+          linkbordercolor=blue!30!white,
+          filebordercolor=green!30!white,
+        }
+      }
+    }
+}
 
 %\usepackage[nameinlink,noabbrev,capitalise]{cleveref}
 %% cleveref não tem tradução para o português
@@ -140,3 +121,131 @@
 % se trata de um link para um arquivo local. Isto força todas as
 % \url's que não tem esquema definido a serem do tipo http.
 \hyperbaseurl{http://}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS XMP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% XMP (eXtensible Metadata Platform) é um mecanismo proposto pela Adobe
+% para a inclusão dos metadados de um documento no próprio documento.
+% Esta package se integra com hyperref e não depende de praticamente
+% nenhuma modificação em documentos que já utilizam os mecanismos de
+% hyperref para a definição de metadados PDF. Ela deve ser carregada
+% depois de hyperref mas antes de as opções relacionadas a metadados
+% de hyperref serem definidas.
+
+% HACK ALERT! As versões 5.5 e 5.6 de hyperxmp podem "confundir" latexmk,
+% fazendo a compilação do documento entrar em um laço infinito. Essas
+% versões, assim como a 5.7 que corrige o problema, foram incluídas no
+% TeXLive durante o ano de 2020, ou seja, nem a primeira versão nem a
+% última atualização de TeXLive 2020 são afetadas. Ainda assim, aqui
+% contornamos o problema desabilitando o recurso relacionado (o cálculo
+% automático de "byteCount", ou seja, do tamanho aproximado do documento).
+\ifunicodeengine
+\else
+  \LetLtxMacro\HACKoldpdffilesize\pdffilesize
+  \renewcommand\pdffilesize[1]{}
+\fi
+\usepackage{hyperxmp}
+\ifunicodeengine
+\else
+  \LetLtxMacro\pdffilesize\HACKoldpdffilesize
+\fi
+
+% HACK ALERT! hyperxmp usa atenddvi, que tem este bug:
+% https://github.com/ho-tex/atenddvi/issues/1 . Aparentemente, ele não
+% afeta xelatex (cf https://github.com/latex3/latex2e/issues/94 ), então
+% só precisamos nos preocupar com pdflatex e lualatex. Com pdflatex,
+% hyperxmp não deveria utilizar atenddvi, mas às vezes usa. Com lualatex,
+% atenddvi parece também não ser necessária, pois hyperxmp não usa
+% \special ou \write com lualatex. Então, vamos deixar hyperxmp carregar
+% atenddvi mas (1) vamos impedi-la de funcionar e (2) vamos garantir que
+% hyperxmp sempre use AtEndDocument com pdflatex e lualatex. Há ainda um
+% outro truque para contornar esse problema na configuração da bibliografia,
+% mas não podemos ter certeza de que apenas a bibliografia pode ser afetada
+% por este bug.
+
+% TODO: remover isto quando o bug for corrigido
+\makeatletter
+\ifpdf
+  \ifxetex
+    \relax
+  \else
+    \let\AtEndDvi@AtBeginShipout\relax
+    \let\AtEndDvi@CheckImpl\relax
+    \let\hyxmp@at@end\AtEndDocument
+  \fi
+\fi
+\makeatother
+
+% Às vezes é necessário forçar quebras de linha no título para a capa, mas
+% essas quebras não devem aparecer em outros lugares (especialmente nos
+% metadados XMP). hyperref e hyperxmp removem essas quebras automaticamente,
+% mas isso pode fazer duas palavras ficarem grudadas. Estas macros "apagam"
+% esses comandos de maneira mais cuidadosa. Elas são utilizadas aqui e em
+% imeusp-thesis.
+
+\makeatletter
+\ExplSyntaxOn
+
+% Primeiro definimos a regex que vamos usar. O que estamos fazendo aqui é
+% "(regex1)|(regex2)|(regex3)|(regex4)"
+\regex_const:Nn \@IMEbreakRegex
+  {
+    ( \c{break} ) % Encontra "\break"
+    |
+    ( \c{newline} ) % Encontra "\newline"
+    |
+      % Isto encontra:
+      % 1. A control sequence "\linebreak" -> "\c{linebreak}"
+      % 2. Opcionalmente seguida de "[NÚMERO]" -> "( \s*\x{5B}\s*\d\s*\x{5D} )?"
+    ( \c{linebreak} (\s*\x{5B}\s*\d\s*\x{5D})? )
+    |
+      % Isto encontra:
+      % 1. A control sequence "\\" (quebra de linha) -> "\c{\\}"
+      % 2. Optionalmente seguida de "[...]" -> "( \s*\x{5B}\s*...\s*\x{5D} )?"
+      % 3. Onde "..." é qualquer dimensão TeX válida
+      %    (veja o exemplo de regex em texdoc interface3)
+    ( \c{\\}
+      ( \s*\x{5B}\s*
+          [\+\-]?(\d+|\d*\.\d+)\s*((?i)pt|in|[cem]m|ex|[bs]p|[dn]d|[pcn]c)
+        \s*\x{5D}
+      )?
+    )
+  }
+
+\newcommand{\@IMEremoveLinebreaksEtc}[1]{
+    % Primeiro, substitui todas as quebras de linha por espaços
+    \regex_replace_all:NnN \@IMEbreakRegex {\ } #1
+
+    % Depois elimina eventuais notas de rodapé
+    \regex_replace_all:nnN {\s*\c{footnote}} {\c{@gobble}} #1
+    \regex_replace_all:nnN {\s*\c{thanks}} {\c{@gobble}} #1
+
+    % Depois transforma URLs em texto simples
+    \regex_replace_all:nnN {\c{url}} {\c{@firstofone}} #1
+
+    % Depois elimina espaços repetidos
+    \regex_replace_all:nnN {\s+} {\ } #1
+}
+
+\ExplSyntaxOff
+\makeatother
+
+% Agora inserimos de fato os metadados essenciais XMP no arquivo PDF. Se
+% o documento é uma tese/dissertação no formato do IME, outros metadados
+% são definidos em imeusp-thesis e sobrescrevem o que está definido aqui.
+\makeatletter
+
+\let\@cleantitle\@title
+\let\@cleanauthor\@author
+\@IMEremoveLinebreaksEtc{\@cleantitle}
+\@IMEremoveLinebreaksEtc{\@cleanauthor} % pode incluir \thanks
+
+\hypersetup{
+  pdfauthor={\@cleanauthor},
+  pdftitle={\@cleantitle},
+}
+
+\makeatother

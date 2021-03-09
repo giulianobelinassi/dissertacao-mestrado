@@ -15,51 +15,30 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PREÂMBULO LaTeX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% "Book" tem capítulos (e partes, mas normalmente não usamos) e, se o documento
-% é frente-e-verso, cada capítulo começa em uma página de numeração ímpar.
-% Report é similar, mas cada capítulo começa em uma nova página, par ou ímpar.
-% É possível mudar esse comportamento com a opção "openany". Observe que você
-% pode adaptar este modelo para escrever artigos, mudando a classe do
-% documento de "book" para "article" ou a classe de algum periódico específico.
-% No entanto, o arquivo "artigo.tex" é um ponto de partida melhor: ele é
-% similar a este, mas já inclui as mudanças necessárias para a classe article.
+% A opção twoside (frente-e-verso) significa que a aparência das páginas pares
+% e ímpares pode ser diferente. Por exemplo, as margens podem ser diferentes ou
+% os números de página podem aparecer à direita ou à esquerda alternadamente.
+% Mas nada impede que você crie um documento "só frente" e, ao imprimir, faça
+% a impressão frente-e-verso.
 %
-% A opção frente-e-verso aqui significa, por exemplo, que as margens das páginas
-% ímpares e pares são diferentes ou que números de página aparecem à direita
-% ou à esquerda alternadamente. Nada impede que você crie um documento "só
-% frente" e, ao imprimir, faça a impressão frente-e-verso.
-%
-% Aqui também definimos a língua padrão do documento e línguas adicionais. A
-% classe em si não usa essa informação mas, passando as opções de língua aqui,
-% elas são repassadas para todas as packages, e diversas packages mudam
-% seu comportamento em função da língua (em especial, babel/polyglossia).
-% A última língua da lista é a língua padrão do documento.
+% Aqui também definimos a língua padrão do documento
+% (a última da lista) e línguas adicionais.
 \documentclass[12pt,twoside,brazilian,english]{book}
-%\documentclass[12pt,twoside,english]{book}
+%\documentclass[12pt,twoside,english,brazilian]{book}
 
-% Com papel tamanho A4, queremos estas margens:
-%
-% topo: 32mm
-% pé: 28mm
-% esquerda/interna: 24mm
-% direita/externa: 34mm
-%
-% Para isso, definimos os tamanhos do texto, do cabeçalho e do rodapé,
-% e deixamos a package geometry calcular os demais valores. Assim,
-% obtemos o mesmo resultado impresso, mas com margens diferentes, se
-% o tamanho do papel for diferente.
-
+% Ao invés de definir o tamanho das margens, vamos definir os tamanhos do
+% texto, do cabeçalho e do rodapé, e deixamos a package geometry calcular
+% o tamanho das margens em função do tamanho do papel. Assim, obtemos o
+% mesmo resultado impresso, mas com margens diferentes, se o tamanho do
+% papel for diferente.
 \usepackage[a4paper]{geometry}
+\usepackage{xspace}
 
 \geometry{
-  %top=32mm,
-  %bottom=28mm,
-  %left=24mm,
-  %right=34mm,
-  textwidth=152mm, % 210-24-34
-  textheight=237mm, % 297-32-28
-  vmarginratio=8:7, % 32:28
-  hmarginratio=12:17, % 24:34
+  textwidth=152mm,
+  hmarginratio=12:17, % 24:34 -> com papel A4, 24mm + 152mm + 34mm = 210mm
+  textheight=237mm,
+  vmarginratio=8:7, % 32:28 -> com papel A4, 32mm + 237mm + 28mm = 297mm
   % Com geometry, esta medida não é tão relevante; basta garantir que ela
   % seja menor que "top" e que o texto do cabeçalho caiba nela.
   headheight=25.4mm,
@@ -75,11 +54,15 @@
 % Vários pacotes e opções de configuração genéricos; para personalizar o
 % resultado, modifique estes arquivos.
 \input{extras/basics}
+\input{extras/languages}
 \input{extras/fonts}
 \input{extras/floats}
-\input{extras/thesis-formatting}
+\input{extras/imeusp-thesis} % capa, páginas preliminares e alguns detalhes
+\input{extras/imeusp-formatting}
 \input{extras/index}
+\input{extras/bibconfig}
 \input{extras/hyperlinks}
+%\nocolorlinks % para impressão em P&B
 \input{extras/source-code}
 \input{extras/utils}
 
@@ -121,60 +104,27 @@
 % \br -> muda para o português
 % \texten{blah} -> o texto "blah" é em inglês
 % \textbr{blah} -> o texto "blah" é em português
-\babeltags{br = brazil, en = english}
+\babeltags{br = brazilian, en = english}
+\en
 
-% Espaçamento simples
-\singlespacing
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BIBLIOGRAFIA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%% Usando bibtex (preterido): %%%%%%%%%%%%
-
-% citação bibliográfica alpha (alpha-ime.bst)
-%\dowithsubdir{extras/}{\usepackage[square,sort,nonamebreak,comma]{natbib-ime}}
-
-% citação bibliográfica textual(plainnat-ime.bst)
-\dowithsubdir{extras/}{\usepackage[round,sort,nonamebreak]{natbib-ime}}
-
-%%%%%%%%%%%
+% Bibliografia
+\usepackage[
+  style=extras/plainnat-ime, % variante de autor-data, similar a plainnat
+  %style=alphabetic, % similar a alpha
+  %style=numeric, % comum em artigos
+  %style=authoryear-comp, % autor-data "padrão" do biblatex
+  %style=apa, % variante de autor-data, muito usado
+  %style=abnt,
+]{biblatex}
 
 
-%%%%%%%%%%% Usando biblatex (preferido): %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\usepackage[
-%  % "natbib=true" faz biblatex reconhecer comandos no estilo
-%  % do pacote natbib (\citet, \citep)
-%  natbib=true,
-%  %
-%  % Aqui definimos estilo de citação e de lista
-%  % de referências usado por biblatex
-%  %
-%  % Estilo similar a plainnat, uma variante de autor-data
-%  style=extras/plainnat-ime,
-%  % Estilo similar a alpha
-%  %style=alphabetic,
-%  % O estilo numérico é comum em artigos
-%  %style=numeric,
-%  % autor-data "padrão" do biblatex
-%  %style=authoryear-comp,
-%  % APA, uma variante de autor-data muito usada
-%  %style=apa,
-%  % Um estilo que busca ser compatível com a ABNT:
-%  %style=abnt,
-%  %style=bwl-FU,
-%]{biblatex}
-%
 % O arquivo com os dados bibliográficos para biblatex; você pode usar
 % este comando mais de uma vez para acrescentar múltiplos arquivos
-%\addbibresource{bibliografia.bib}
-
-%%%%%%%%%%%
-
-
-% Para personalizar outros aspectos da bibliografia
-% e citações, modifique este arquivo.
-\input{extras/bibconfig}
+\addbibresource{bibliografia.bib}
 
 % Este comando permite acrescentar itens à lista de referências sem incluir
 % uma referência de fato no texto (pode ser usado em qualquer lugar do texto)
@@ -183,31 +133,11 @@
 % de referências
 %\nocite{*}
 
-
-%%%%%%%%%%%%%%%%%%%%%%% METADADOS (TÍTULO, AUTOR ETC.) %%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Estes comandos definem o título e autoria do trabalho e devem sempre ser
-% definidos, pois além de serem utilizados para criar a capa (tanto no estilo
-% do IME quanto com o comando padrão \maketitle), também são armazenados nos
-% metadados do PDF.
-\title{Título do trabalho}
-\author{Giuliano Augusto Faulin Belinassi}
-
-% O pacote hyperref armazena alguns metadados no PDF gerado (em particular,
-% o conteúdo de "\title" e "\author"). Também é possível armazenar outros
-% dados, como uma lista de palavras-chave.
-\hypersetup{
-  pdfkeywords={LaTeX, tese, dissertação, IME/USP},
-}
-
-% Este pacote define o formato sugerido da capa, páginas de rosto,
-% dedicatória e resumo. Se você pretende criar essas páginas manualmente,
-% não precisa carregar este pacote nem carregar o arquivo folhas-de-rosto.
-\dowithsubdir{extras/}{\usepackage{imeusp-capa}}
-
 % É possível definir como determinadas palavras podem (ou não) ser
-% hifenizadas; no entanto, a hifelização automática geralmente funciona bem
+% hifenizadas; no entanto, a hifenização automática geralmente funciona bem
 \hyphenation{documentclass latexmk Fu-la-no}
+
+\input{conteudo/metadados} % título, autor, resumo/abstract, banca etc.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -216,30 +146,24 @@
 
 \begin{document}
 
-% Aqui vai o conteúdo inicial que aparece antes do capítulo 1, ou seja,
+%%%%%%%%%%%%%%%%%%%%%%%%%%% CAPA E PÁGINAS INICIAIS %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Aqui começa o conteúdo inicial que aparece antes do capítulo 1, ou seja,
 % página de rosto, resumo, sumário etc. O comando frontmatter faz números
 % de página aparecem em algarismos romanos ao invés de arábicos e
 % desabilita a contagem de capítulos.
 \frontmatter
 
-% Este formato está (re)definido na package imeusp-headers
 \pagestyle{plain}
 
+\onehalfspacing % Espaçamento 1,5 na capa e páginas iniciais
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%% CAPA E FOLHAS DE ROSTO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\maketitle % capa e folha de rosto
 
-% Para gerar o título sem seguir o formato deste modelo, você pode usar o
-% comando padrão do LaTeX "\maketitle".
-%\maketitle
-
-% Capa e folhas de rosto no formato sugerido para teses/dissertações do IME/USP.
-% Se for gerar a capa etc. manualmente, remova.
-\onehalfspacing % Espaçamento 1,5 nas páginas iniciais
-%\input{conteudo-exemplo/folhas-de-rosto}
-\input{conteudo/folhas-de-rosto}
+\input{conteudo/paginas-preliminares} % Demais páginas iniciais
 
 % Um parágrafo em LaTeX termina com uma linha vazia; como não é possível ter
-% certeza que um arquivo incluído (neste caso, "folhas-de-rosto") terminou
+% certeza que um arquivo incluído (neste caso, "paginas-preliminares") terminou
 % com uma linha vazia, é recomendável usar o comando "par" após "input" para
 % garantir que o último parágrafo do arquivo incluído realmente terminou.
 \par
@@ -252,27 +176,26 @@
 % modifica a numeração para números arábicos e ativa a contagem de capítulos.
 \mainmatter
 
-% Este formato está definido na package imeusp-headers e só funciona com
-% book/report, pois usa o nome dos capítulos nos cabeçalhos.
 \pagestyle{mainmatter}
 
 % Espaçamento simples
 \singlespacing
 
-%\input{conteudo-exemplo/capitulos}
 \input{conteudo/capitulos}
 \par
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% APÊNDICES E ANEXOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Um apêndice é algum conteúdo adicional de sua autoria que colabora com a
-% ideia geral do texto mas que, por alguma razão, não precisa fazer parte
-% da sequência do discurso; por exemplo, a demonstração de um teorema, as
-% perguntas usadas em uma pesquisa qualitativa etc.
+% Um apêndice é algum conteúdo adicional de sua autoria que faz parte e
+% colabora com a ideia geral do texto mas que, por alguma razão, não precisa
+% fazer parte da sequência do discurso; por exemplo, a demonstração de um
+% teorema intermediário, as perguntas usadas em uma pesquisa qualitativa etc.
 %
-% Um anexo é um documento que não é de sua autoria mas que é relevante para
-% a tese; por exemplo, a especificação do padrão que o trabalho discute.
+% Um anexo é um documento que não faz parte da tese (em geral, nem é de sua
+% autoria) mas é relevante para o conteúdo; por exemplo, a especificação do
+% padrão técnico ou a legislação que o trabalho discute, um artigo de jornal
+% apresentando a percepção do público sobre o tema da tese etc.
 %
 % Os comandos appendix e annex reiniciam a numeração de capítulos e passam
 % a numerá-los com letras. "annex" não faz parte de nenhuma classe padrão,
@@ -286,44 +209,37 @@
 % de cada um deles.
 
 %%%% Apêndices %%%%
+
 \makeatletter
 \if@openright\cleardoublepage\else\clearpage\fi
 \makeatother
 
-% Este formato está definido na package imeusp-headers.
 \pagestyle{appendix}
 
 \appendix
 
-%\input{conteudo-exemplo/apendices}
 \input{conteudo/apendices}
 \par
 
 %%%% Anexos %%%%
+
 \makeatletter
 \if@openright\cleardoublepage\else\clearpage\fi
 \makeatother
 
-% Este formato está definido na package imeusp-headers (note que é o mesmo
-% que o anterior; repetimos aqui caso você queira desabilitar toda a seção
-% de apêndices).
-\pagestyle{appendix}
+\pagestyle{appendix} % repete o anterior, caso você não use apêndices
 
 \annex
 
-%\input{conteudo-exemplo/anexos}
 \input{conteudo/anexos}
 \par
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SEÇÕES FINAIS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Aqui vão a bibliografia, índice remissivo e outras seções similares.
+%%%%%%%%%%%%%%% SEÇÕES FINAIS (BIBLIOGRAFIA E ÍNDICE REMISSIVO) %%%%%%%%%%%%%%%%
 
 % O comando backmatter desabilita a numeração de capítulos.
 \backmatter
 
-% Este formato está definido na package imeusp-headers
 \pagestyle{backmatter}
 
 % Espaço adicional no sumário antes das referências / índice remissivo
@@ -331,21 +247,12 @@
 
 % A bibliografia é obrigatória
 
-%%%%%%%%% Bibliografia com bibtex (preterido): %%%%%%%%%
-%\bibliographystyle{extras/alpha-ime}% citação bibliográfica alpha
-\bibliographystyle{extras/plainnat-ime} % citação bibliográfica textual
-\bibliography{bibliografia}  % associado ao arquivo: 'bibliografia.bib'
+\printbibliography[
+  title=\refname\label{bibliografia}, % "Referências", recomendado pela ABNT
+  %title=\bibname\label{bibliografia}, % "Bibliografia"
+  heading=bibintoc, % Inclui a bibliografia no sumário
+]
 
-%%%%%%%% Bibliografia com biblatex (preferido): %%%%%%%%
-
-%\printbibliography[
-%  title=\refname\label{bibliografia}, % "Referências", recomendado pela ABNT
-%  %title=\bibname\label{bibliografia}, % "Bibliografia"
-%  % Inclui a bibliografia no sumário
-%  heading=bibintoc,
-%]
-
-% imprime o índice remissivo no documento (opcional)
-\printindex
+\printindex % imprime o índice remissivo no documento (opcional)
 
 \end{document}

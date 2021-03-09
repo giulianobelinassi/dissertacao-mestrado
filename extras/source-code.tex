@@ -21,8 +21,9 @@
 % Carrega a "linguagem" pseudocode para listings
 \appto{\lstaspectfiles}{,lstpseudocode.sty}
 \appto{\lstlanguagefiles}{,lstpseudocode.sty}
-\dowithsubdir{extras/}{\lstloadaspects{simulatex,invisibledelims,pseudocode}}
-\dowithsubdir{extras/}{\lstloadlanguages{[base]pseudocode,[english]pseudocode,[brazil]pseudocode}}
+% Estes dois são carregados do diretório extras (veja basics.tex)
+\lstloadaspects{simulatex,invisibledelims,pseudocode}
+\lstloadlanguages{[base]pseudocode,[english]pseudocode,[brazilian]pseudocode}
 
 % O pacote listings não lida bem com acentos! No caso dos caracteres acentuados
 % usados em português é possível contornar o problema com a tabela abaixo.
@@ -128,6 +129,10 @@
   \gdef\lstlistlistingname{Lista de Programas}%
   \gdef\lstlistingname{Programa}%
 }
+\addto\extrasbrazilian{%
+  \gdef\lstlistlistingname{Lista de Programas}%
+  \gdef\lstlistingname{Programa}%
+}
 \addto\extrasenglish{%
   \gdef\lstlistlistingname{List of Programs}%
   \gdef\lstlistingname{Program}%
@@ -143,7 +148,7 @@
 %     qualquer coisa, desde que não haja repetições. Aqui, usamos "lop";
 %     lembre-se que LaTeX já usa várias outras, como "lof", "lot" etc.,
 %     então seja cuidadoso na escolha!
-%  4. Acrescentar os comandos correspondentes em folhas-de-rosto.tex
+%  4. Acrescentar os comandos correspondentes em paginas-preliminares.tex
 
 \makeatletter
 \@ifpackageloaded{floatrow}
@@ -178,7 +183,7 @@
   }
 \makeatother
 
-\captionsetup[program]{style=ruled,position=top}
+\captionsetup*[program]{style=ruled,position=top}
 
 % "Program X / Programa X" e "Lista de Programas / List of Programs"
 \floatname{program}{\lstlistingname}

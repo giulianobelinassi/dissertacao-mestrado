@@ -2686,9 +2686,9 @@ You can run the extensive GCC testsuite by launching make as:
 $$\texttt{\$ make check-gcc -j<num\_cores>}$$
 Sometimes, you just want to launch a single testsuite, for instance,
 the \texttt{dg.exp}. In this case, you can launch make with:
-$$\texttt{\$ make check-gcc -j<num\_cores> RUNTESTFLAGS="dg.exp"}$$
+$$\texttt{\$ make check-gcc -j<num\_cores> RUNTESTFLAGS='dg.exp'}$$
 or even run a single test of a suite, for instance:
-$$\texttt{\$ make check-gcc RUNTESTFLAGS="dg.exp sinatan-1.c"}$$
+$$\texttt{\$ make check-gcc RUNTESTFLAGS='dg.exp sinatan-1.c'}$$
 
 However, a very good evidence that your changes are working is check
 if \textit{bootstrap} is working after your changes. In this case,
@@ -2779,11 +2779,11 @@ by:
 	script on your patch to find if it respects the GNU codestyle. If
 	everything is correct, then you can send the patch using
 \begin{align}
-\texttt{\$ git send-email} & \texttt{ -{}-annotate  -{}-to="gcc-patches@gcc.gnu.org"} \nonumber \\
+\texttt{\$ git send-email} & \texttt{ -{}-annotate  -{}-to='gcc-patches@gcc.gnu.org'} \nonumber \\
 & \texttt{ file.patch \nonumber}
 \end{align}
-however, you might need to configure \texttt{git send-email} before you can use it
-\citep{flusp_tavares}.
+	however, you might need to configure \texttt{git send-email} before you can use it
+	\citep{flusp_tavares}.
 
 \end{subsection}
 

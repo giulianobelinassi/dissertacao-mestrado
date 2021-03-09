@@ -1,0 +1,116 @@
+%!TeX root=../tese.tex
+%("dica" para o editor de texto: este arquivo é parte de um documento maior)
+% para saber mais: https://tex.stackexchange.com/q/78101/183146
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS DA TESE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Estes comandos definem o título e autoria do trabalho e devem sempre ser
+% definidos, pois além de serem utilizados para criar a capa, também são
+% armazenados nos metadados do PDF.
+\title{
+    % Obrigatório nas duas línguas
+    titlept={Paralelizando um Compilador: Um Estudo com o GCC},
+    titleen={Parallelizing a Compiler: A Study with GCC},
+    % Opcional, mas se houver deve existir nas duas línguas
+    %subtitlept={um subtítulo},
+    %subtitleen={a subtitle},
+    % Opcional, para o cabeçalho das páginas
+    shorttitle={Parallelizing a Compiler},
+}
+
+\author[masc]{Giuliano Augusto Faulin Belinassi}
+
+% Para TCCs, este comando define o supervisor
+\orientador[masc]{Prof. Dr. Alfredo Goldman}
+
+% Se não houver, remova; se houver mais de um, basta
+% repetir o comando quantas vezes forem necessárias
+%\coorientador{Prof. Dr. Ciclano de Tal}
+%\coorientador[fem]{Profª. Drª. Beltrana de Tal}
+
+% A página de rosto da versão para depósito (ou seja, a versão final
+% antes da defesa) deve ser diferente da página de rosto da versão
+% definitiva (ou seja, a versão final após a incorporação das sugestões
+% da banca).
+\defesa{
+  nivel=mestrado, % mestrado, doutorado ou tcc
+  % É a versão para defesa ou a versão definitiva?
+  definitiva,
+  % É qualificação?
+  %quali,
+  programa={Computer Science},
+  membrobanca={Profª. Drª. Fulana de Tal (orientadora) -- IME-USP [sem ponto final]},
+  % Em inglês, não há o "ª"
+  %membrobanca{Prof. Dr. Fulana de Tal (advisor) -- IME-USP [sem ponto final]},
+  membrobanca={Prof. Dr. Ciclano de Tal -- IME-USP [sem ponto final]},
+  membrobanca={Profª. Drª. Convidada de Tal -- IMPA [sem ponto final]},
+  % Se não houver, remova
+  apoio={During the development of this thesis, the author received financial assistance from CAPES},
+  local={São Paulo},
+  data=2017-08-10, % YYYY-MM-DD
+  % Se quiser estabelecer regras diferentes, converse com seu
+  % orientador
+  direitos={I allow partial or total reproduction of this work, by any conventional or electronic way, for research and study purposes, as long as the source is cited.}
+  % Isto deve ser preparado em conjunto com o bibliotecário
+  %fichacatalografica={nome do autor, título, etc.},
+}
+
+% As palavras-chave são obrigatórias, em português e
+% em inglês. Acrescente quantas forem necessárias.
+\keyword{Compilers}
+\keyword{GCC}
+\keyword{Parallel Computing}
+\keyword{Parallel Compilation}
+\keyword{LTO}
+\keyword{Link Time Optimization}
+
+
+\palavrachave{Compiladores}
+\palavrachave{GCC}
+\palavrachave{Computação Paralela}
+\palavrachave{Compilação em Paralelo}
+\palavrachave{LTO}
+\palavrachave{Link Time Optimization}
+
+% O resumo é obrigatório, em português e inglês.
+\resumo{
+Compiladores são grandes programas destinados a converter código em uma
+linguagem $A$ para outra linguagem $B$. Grandes compiladores de software livre
+ainda fazem essa conversão de maneira sequencial, tirando pouco proveito do
+poder computacional de máquinas manycore, sendo a compilação feita em paralelo
+pelo número de arquivos disponíveis no projeto. Isso configura um gargalo de
+compilação, principalmente se o projeto utilizar \textit{blobs} grandes que
+precisam ser compilados. Nós propomos duas alternativas para melhorar a
+performance em máquinas \textit{manycores} no GCC: Paralelização via threads,
+ou usando o mecanismo do Link Time Optimization (LTO), para paralelizar a
+aplicação das otimizações intraprocedurais do compilador, discutindo suas
+vantagens e desvantagens de cada metodologia. Embora usemos o GCC como base,
+essas técnicas são gerais o suficiente para serem aplicadas em qualquer
+compilador. Conseguimos \textit{speedups} de até $3.53\times$ ao compilar
+arquivos individuais, e até $35\%$ de \textit{speedup} ao compilar projetos
+inteiros usando um destes métodos, em contraste com utilizando apenas o
+\texttt{make} em paralelo. Também apresentamos trabalhos relacionados ao
+tópico, indo de \textit{parsing} em paralelo até otimizações em paralelo, além
+de um resumo sobre a teoria de \textit{parsing} e compilação.
+}
+
+\abstract{
+Compilers are enormous software designed to translate code in a language $A$ to
+another language $B$. Huge Open Source compilers still do this translation
+sequentially, taking little advantage of computational power from manycore
+machines, with parallel compilation only regarding the number of files
+available in the project. This results in a compilation bottleneck, mainly if
+the project uses large blobs that require compilation. We propose two
+alternatives to improve the performance in manycore machines in GCC:
+parallelize using threads, or using the Link Time Optimization (LTO), to
+parallelize the application of intraprocedural optimizations in the compiler,
+discussing the advantages and disadvantages of each method. Although we use GCC
+as a basis, these techniques are general enough to be applied to any compiler.
+We managed a speedup of up to $3.53\times$ when compiling individual files, and
+up to $35\%$ of speedup when compiling entire projects contrasting with
+\texttt{make} alone. We also present the related works on the topic, from
+parallel parsing to parallel optimizations, as well as a summary about parsing
+and compiler theory.
+}

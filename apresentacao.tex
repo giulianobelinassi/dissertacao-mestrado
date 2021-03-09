@@ -8,17 +8,24 @@
 % aspectratio default é 4:3;
 % as mais úteis são 169 (16:9), 1610 (16:10) e 149 (14:9)
 % A língua padrão é a última citada
-\documentclass[xcolor={hyperref,svgnames,x11names,table},brazil,english,12pt,aspectratio=149]{beamer}
+\documentclass[
+  xcolor={hyperref,svgnames,x11names,table},
+  hyperref={pdfencoding=unicode,plainpages=false,pdfpagelabels=true,breaklinks=true},
+  brazilian,english,12pt,aspectratio=149,
+]{beamer}
 
 % Vários pacotes e opções de configuração genéricos
 \input{extras/basics}
+\input{extras/languages}
 % A fonte precisa ser definida depois que o tema metropolis foi carregado
 %\input{extras/fonts}
 \input{extras/floats}
 % index não é necessário, mas deixamos aqui para usar os mesmos
 % passos de compilação que a tese
 \input{extras/index}
+\input{extras/bibconfig}
 \input{extras/hyperlinks}
+\hidelinks % desabilita cor/sublinhado dos links (URLs, refs etc.)
 \input{extras/source-code}
 \input{extras/utils}
 
@@ -31,7 +38,8 @@
 % \br -> muda para o português
 % \texten{blah} -> o texto "blah" é em inglês
 % \textbr{blah} -> o texto "blah" é em português
-\babeltags{br = brazil, en = english}
+\en
+\babeltags{br = brazilian, en = english}
 
 % Espaçamento simples
 \singlespacing
@@ -42,13 +50,13 @@
 \usepackage{appendixnumberbeamer}
 
 % Tema metropolis com algumas modificações
-\dowithsubdir{extras/}{\usetheme{imeusp}}
+\usetheme{imeusp} % carregado do diretório extras (veja basics.tex)
 
 % O padrão usa um tom de vermelho escuro como cor principal; a opção
 % "greeny" troca essa cor por um tom de verde; a opção "sandy" usa o
 % mesmo tom de verde mas modifica a cor padrão dos blocos para um
 % tom amarelado.
-\dowithsubdir{extras/}{\usecolortheme[greeny]{imeusp}}
+\usecolortheme[greeny]{imeusp} % carregado do diretório extras (veja basics.tex)
 % Desabilita a cor de rodapé
 \setbeamercolor{footline}{fg=,bg=}
 
@@ -59,7 +67,7 @@
 % A cada nova seção, recapitula o sumário
 % Para desabilitar, é só comentar este trecho
 \AtBeginSection[]{
-  \begin{frame}<beamer>{Visão Geral}
+  \begin{frame}<beamer>{Overview}
     \intermezzo
   \end{frame}
 }
@@ -75,48 +83,27 @@
     \end{block}
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BIBLIOGRAFIA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% Bibliografia
 \usepackage[
-  % "natbib=true" faz biblatex reconhecer comandos no estilo
-  % do pacote natbib (\citet, \citep)
-  natbib=true,
-  %
-  % Aqui definimos estilo de citação e de lista
-  % de referências usado por biblatex
-  %
-  % Estilo similar a plainnat, uma variante de autor-data
-  %style=extras/plainnat-ime,
-  % Estilo similar a alpha
-  %style=alphabetic,
-  % O estilo numérico é comum em artigos
-  %style=numeric,
-  % autor-data "padrão" do biblatex
-  %style=authoryear-comp,
-  % APA, uma variante de autor-data muito usada
-  %style=apa,
-  % Um estilo que busca ser compatível com a ABNT:
+  %style=extras/plainnat-ime, % variante de autor-data, similar a plainnat
+  %style=alphabetic, % similar a alpha
+  style=numeric, % comum em artigos
+  %style=authoryear-comp, % autor-data "padrão" do biblatex
+  %style=apa, % variante de autor-data, muito usado
   %style=abnt,
-  style=bwl-FU,
 ]{biblatex}
+
+% Numa apresentação, a bibliografia pode ficar em tamanho menor
+\renewcommand*{\bibfont}{\footnotesize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % O arquivo com os dados bibliográficos para biblatex; você pode usar
 % este comando mais de uma vez para acrescentar múltiplos arquivos
 \addbibresource{bibliografia.bib}
-
-% Para personalizar outros aspectos da bibliografia
-% e citações, modifique este arquivo.
-\input{extras/bibconfig}
-
-% A configuração do arquivo acima foi definida para teses/dissertações;
-% vamos mudar algumas opções
-\ExecuteBibliographyOptions{
-  backref=false,
-  maxbibnames=2,
-}
-
-% Numa apresentação, a bibliografia pode ficar em tamanho menor
-\renewcommand*{\bibfont}{\footnotesize}
 
 % Este comando permite acrescentar itens à lista de referências sem incluir
 % uma referência de fato no texto (pode ser usado em qualquer lugar do texto)
@@ -125,14 +112,54 @@
 % de referências
 %\nocite{*}
 
+\title[The shortened title]{The full title, which may be quite,\\ quite long indeed}
+\subtitle{The (optional) subtitle}
+
+\author[Authors Name]{Authors Name}
+
+\institute[USP]{\textbf{Workshop Name} \\ Computer Science Department \\ IME USP}
+%\institute[USP]{\textbf{Orientador:} \\ Computer Science Department \\ IME USP}
+
+\date{Month and day, year}
+
+% Coloca a imagem no fundo da página de título
+\bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
+
+% Logotipos no rodapé da página de título
+\logos{
+  \hfil\hfil\includegraphics[width=.1\textwidth]{usp-logo}\hfil%
+  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{interscity-logo}}\hfil%
+  \raisebox{-.033\paperheight}{\includegraphics[width=.07\textwidth,trim=0 230 0 0,clip]{ime-logo}}\hfil\hfil
+}
+
+%\logos{
+%  \hfil\hfil\includegraphics[width=.1\textwidth]{usp-logo}\hfil%
+%  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{interscity-logo}}\hfil%
+%  \raisebox{-.00517\paperheight}{\includegraphics[height=.057\paperheight]{cnpq-logo}}\hfil%
+%  \raisebox{-.0342\paperheight}{\includegraphics[height=.1035\paperheight]{capes-logo}}\hfil%
+%  \includegraphics[height=.044\paperheight]{fapesp-logo}\hfil\hfil
+%}
+
+% Usado para criar o qrcode com o endereço da apresentação
+\presentationurl{http://interscity.org}
+
+% Inclui o qrcode no sumário da apresentação
+\includeqrcodeintoc
+
+% O slide de sumário pode ser dividido em colunas; o parâmetro
+% determina após qual o número da seção fazer a quebra de coluna
+% (use zero para uma coluna ou simplesmente omita este comando).
+\toccolumns{4}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INÍCIO DO CONTEÚDO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% INÍCIO DA APRESENTAÇÃO %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
-%\input{conteudo-exemplo/corpo-apresentacao}
+% Em uma apresentação não há \maketitle
+
 \input{conteudo/corpo-apresentacao}
 % Um parágrafo em LaTeX termina com uma linha vazia; como não é possível ter
 % certeza que um arquivo incluído (neste caso, "corpo-apresentacao") terminou

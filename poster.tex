@@ -7,14 +7,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % A língua padrão é a última citada
-\documentclass[xcolor={hyperref,svgnames,x11names,table},brazil,english]{beamer}
+\documentclass[
+  xcolor={hyperref,svgnames,x11names,table},
+  hyperref={pdfencoding=unicode,plainpages=false,pdfpagelabels=true,breaklinks=true},
+  brazilian,english,
+]{beamer}
 
 % Vários pacotes e opções de configuração genéricos
 \input{extras/basics}
+\input{extras/languages}
 \input{extras/fonts}
 \input{extras/floats}
 \input{extras/index}
-%\input{extras/hyperlinks} % não é necessário aqui
+\input{extras/bibconfig}
+\input{extras/hyperlinks}
+\hidelinks % desabilita cor/sublinhado dos links (URLs, refs etc.)
 \input{extras/source-code}
 \input{extras/utils}
 
@@ -27,7 +34,7 @@
 % \br -> muda para o português
 % \texten{blah} -> o texto "blah" é em inglês
 % \textbr{blah} -> o texto "blah" é em português
-\babeltags{br = brazil, en = english}
+\babeltags{br = brazilian, en = english}
 
 % Espaçamento simples
 \singlespacing
@@ -40,13 +47,13 @@
 %% Font sizes can be changed using the scale option.
 \usepackage[size=a1,orientation=portrait,scale=1.8]{beamerposter}
 
-\dowithsubdir{extras/}{\usetheme{imeusp-poster}}
+\usetheme{imeusp-poster} % carregado do diretório extras (veja basics.tex)
 
 % O padrão usa um tom de vermelho escuro como cor principal; a opção
 % "greeny" troca essa cor por um tom de verde; a opção "sandy" usa o
 % mesmo tom de verde mas modifica a cor padrão dos blocos para um
 % tom amarelado.
-\dowithsubdir{extras/}{\usecolortheme[sandy]{imeusp}}
+\usecolortheme[sandy]{imeusp} % carregado do diretório extras (veja basics.tex)
 
 %Remove ícones de navegação
 \beamertemplatenavigationsymbolsempty
@@ -72,48 +79,27 @@
     \end{block}
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BIBLIOGRAFIA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% Bibliografia
 \usepackage[
-  % "natbib=true" faz biblatex reconhecer comandos no estilo
-  % do pacote natbib (\citet, \citep)
-  natbib=true,
-  %
-  % Aqui definimos estilo de citação e de lista
-  % de referências usado por biblatex
-  %
-  % Estilo similar a plainnat, uma variante de autor-data
-  %style=extras/plainnat-ime,
-  % Estilo similar a alpha
-  %style=alphabetic,
-  % O estilo numérico é comum em artigos
-  %style=numeric,
-  % autor-data "padrão" do biblatex
-  %style=authoryear-comp,
-  % APA, uma variante de autor-data muito usada
-  %style=apa,
-  % Um estilo que busca ser compatível com a ABNT:
+  %style=extras/plainnat-ime, % variante de autor-data, similar a plainnat
+  %style=alphabetic, % similar a alpha
+  style=numeric, % comum em artigos
+  %style=authoryear-comp, % autor-data "padrão" do biblatex
+  %style=apa, % variante de autor-data, muito usado
   %style=abnt,
-  style=bwl-FU,
 ]{biblatex}
+
+% Num poster, a bibliografia pode ficar em tamanho menor
+\renewcommand*{\bibfont}{\footnotesize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % O arquivo com os dados bibliográficos para biblatex; você pode usar
 % este comando mais de uma vez para acrescentar múltiplos arquivos
 \addbibresource{bibliografia.bib}
-
-% Para personalizar outros aspectos da bibliografia
-% e citações, modifique este arquivo.
-\input{extras/bibconfig}
-
-% A configuração do arquivo acima foi definida para teses/dissertações;
-% vamos mudar algumas opções
-\ExecuteBibliographyOptions{
-  backref=false,
-  maxbibnames=2,
-}
-
-% Num poster, a bibliografia pode ficar em tamanho menor
-\renewcommand*{\bibfont}{\footnotesize}
 
 % Este comando permite acrescentar itens à lista de referências sem incluir
 % uma referência de fato no texto (pode ser usado em qualquer lugar do texto)
@@ -122,11 +108,32 @@
 % de referências
 %\nocite{*}
 
+\title[The InterSCity Platform]{InterSCity: A Scalable Microservice-based\\Open Source Platform for Smart Cities}
+
+\institute{Department of Computer Science --- University of São Paulo}
+
+\author[interscity@ime.usp.br]{\textbf{interscity.org}}
+
+\date{Month and day, year}
+
+% Optional foot image
+\footimage{
+  \includegraphics[width=13cm]{interscity-logo-branco}
+}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INÍCIO DO CONTEÚDO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INÍCIO DO POSTER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% O conteúdo, inclusive \begin{document}, \end{document}, bibliografia etc.
-%\input{conteudo-exemplo/corpo-poster}
+\begin{document}
+
+% Em um poster não há \maketitle
+
 \input{conteudo/corpo-poster}
+\par
+
+% Como o local da bibliografia em uma apresentação pode variar, os comandos
+% relacionados estão em corpo-poster.tex e não aqui.
+
+\end{document}
