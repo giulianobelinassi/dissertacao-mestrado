@@ -18,12 +18,13 @@ which are heavily used in a compiler. In Section \ref{sec:optimization} we
 present all parts of the compiler pipeline to understand the compilation
 phases. In Section \ref{sec:engineering} we discuss some software engineering
 techniques that are employed when implementing compilers.  In Section
-\ref{sec:gcc_compiler} we discuss the internals of the GCC compiler, with some
-introduction about how is the contribution process. In Section
-\ref{sec:parallel_computing} we present some concepts from parallel computing,
-which we use in this dissertation. And finally, Section \ref{sec:power}
-briefly present the concepts behind electrical power and energy calculation,
-which we used on our experiments.
+\ref{sec:gcc_compiler} we discuss the internals of the GCC compiler, from the
+several IRs in the compiler to the interaction between the parts.  In
+\ref{sec:contributing} we present the details of the contributing process. In
+Section \ref{sec:parallel_computing} we present some concepts from parallel
+computing, which we use in this dissertation. And finally, Section
+\ref{sec:power} briefly presents the concepts behind electrical power and energy
+calculation, which we used in our experiments.
 
 %Este capítulo apresenta uma breve introdução sobre os conceitos utilizados neste
 %trabalho. Primeiro, são abordadas as partes do \textit{pipeline} de um compilador
@@ -54,7 +55,7 @@ where $A^0 = \{\lambda\}$, the set containing the \textit{empty string} $\lambda
 Therefore, the set of all possible words over an alphabet $\Si$ is the set
 $\Sis$, and every language $L$ is a subset or equal of $\Sis$, which we will
 denote as $L \ssq \Sis$. We also define $A^+ = AA^*$. Union, intersection,
-and complement works the same way as in set theory. The \textit{power set}
+and complement work the same way as in set theory. The \textit{power set}
 of some set $A$ is denoted by $2^A$.
 
 The \textit{length} of a word $x$, denoted as $|x|$, is the number of characters
@@ -65,12 +66,12 @@ the size of a set $|A|$, which is the number of elements of that set.
 
 \begin{subsection}{Finite State Automata}
 
-One of the simplest machines designed to parse text are the
-Finite State Automata. These machines are often used to build controllers for various
+One of the simplest machines designed to parse text is the Finite State
+Automata. These machines are often used to build controllers for various
 applications, such as elevator state controllers, microwave control panels,
-signal detectors, and so on. This is because automata can be cheaply and easily
-be implemented using flip-flops, an electronic device which can hold a bit as
-data storage.
+signal detectors, and so on. This is because finite state machines can be
+cheaply implemented using flip-flops, an electronic device that can hold a bit
+as data storage.
 
 Finite Automata are also used in Compilers as a Lexical Analyser for
 recognizing tokens.  They are very useful tools since we can express these
@@ -98,7 +99,7 @@ $w \in \Sis$ if $w \in L(\mathcal{A})$. We also say that a machine
 recognizes a certain language $L \ssq \Sis$ if and only if
 $L(\mathcal{A}) = L$.
 
-For example of automation, let us assume that we want to detect whether a
+For an example of automation, let us assume that we want to detect whether a
 certain input is a non-negative integer number. Therefore, let $\Sigma$ be the
 characters in the ASCII table, let $D = \{\texttt{0}, \texttt{1}, \cdots,
 \texttt{9}\}$ be the set of numerals, and $\sigma \in \Sigma$ be the current
@@ -126,7 +127,7 @@ $q_i$, after it reads an input $\sigma$, it will jump to the state $q_j$.
 Any $\DFA$ can be easily implemented using a transition
 matrix. In one dimension, we have every state in the machine, in another,
 every possible character of $\Sigma$.  Therefore, by just remembering the
-last state of the machine, we can lookup this matrix and select what state
+last state of the machine, we can look up this matrix and select what state
 should the machine jump to when reading a character $\sigma$. This
 yields in a $O(n)$ algorithm to parse a word $w \in \Sigma^*$ with $|w| = n$.
 
@@ -148,7 +149,7 @@ yields in a $O(n)$ algorithm to parse a word $w \in \Sigma^*$ with $|w| = n$.
 \label{fig:a_automata}
 \end{figure}
 
-There is also a slight variant of this machine called Nondeterministic Finite Automata (\ttt{NFA}).
+There is also a slight variant of this machine called Non-deterministic Finite Automata (\ttt{NFA}).
 
 \begin{definition}
 A Nondeterministic Finite Automation (\ttt{NFA}) is a 5-uple
@@ -165,29 +166,26 @@ states.
 \end{itemize}
 \end{definition}
 
-$\NFA$ have a feature called \textit{nondeterminism}, which means that given
-a $\sigma \in \Si$ and three states $p, q, r \in Q$, it is possible
-two have to or more transitions from a same state given the same character $\sigma$, which
-means that $p \overset{\sigma}{\longrightarrow} q$ and
-$p \overset{\sigma}{\longrightarrow} r$ can both be present in the machine. Which route the $\NFA$ will proceed with
-its computation in this situation does not matter as long as it reaches some final
-state $f \in F$ reading the entire input. There is also transitions like
-$p \overset{\lambda}{\longrightarrow} q$, which means that the $\NFA$ will 
-jump from $p$ to $q$ without reading any input. These are called
-$\lambda$-\textit{transitions}. It is also worth mentioning that if a $\NFA$
-is in state $q$ with next input character $\sigma$ and there are no transitions
-of the form $q \overset{\sigma}{\longrightarrow} r$ or
-$q \overset{\lambda}{\longrightarrow} r$, then this means that the path which
-it has taken from $s$ to $q$ can not lead to a final state and therefore it must
-take another path. If there are no remaining paths, then the $\NFA$ should
-reject the input.
+$\NFA$ has a feature called \textit{nondeterminism}, which means that given a
+$\sigma \in \Si$ and three states $p, q, r \in Q$, it is possible two have to
+or more transitions from the same state given the same character $\sigma$,
+which means that $p \overset{\sigma}{\longrightarrow} q$ and $p
+\overset{\sigma}{\longrightarrow} r$ can both be present in the machine. Which
+route the $\NFA$ will proceed with its computation in this situation does not
+matter as long as it reaches some final state $f \in F$ reading the entire
+input. There are also transitions like $p \overset{\lambda}{\longrightarrow}
+q$, which means that the $\NFA$ will jump from $p$ to $q$ without reading any
+input. These are called $\lambda$-\textit{transitions}. It is also worth
+mentioning that if a $\NFA$ is in state $q$ with next input character $\sigma$
+and there are no transitions of the form $q \overset{\sigma}{\longrightarrow}
+r$ or $q \overset{\lambda}{\longrightarrow} r$, then this means that the path
+which it has taken from $s$ to $q$ can not lead to a final state and therefore
+it must take another path. If there are no remaining paths, then the $\NFA$
+should reject the input.
 
-
-Interestingly, if you are able to present a Nondeterministic Finite Automation to a
+Interestingly, if you can present a Nondeterministic Finite Automation to a
 certain language, you can also present a deterministic one for the same
-language, and vice versa. We will present these machines for the sake
-of completeness, as they are often used to quickly implement regex
-algorithms. There are even algorithms to convert an \ttt{NFA} to
+language and vice versa. There are even algorithms to convert an \ttt{NFA} to
 \ttt{DFA}, which we will only present in this work as the following
 theorem:
 
@@ -199,18 +197,18 @@ Every \ttt{NFA} has an equivalent \ttt{DFA}
 	that converts any \ttt{NFA} into a \ttt{DFA}.
 \end{proof}
 
-\ttt{NFA}s are interesting machines in both practical and theoretical aspects,
+\texttt{NFA}s are interesting machines in both practical and theoretical aspects,
 once they are often used to implement Regular Expressions via the Thompson
 Construction \citep{dragonbook} and prove theorems related to computer-theory.
-However, implementation should be done with care, as these machines requires
-\textit{backtracking} because of its nondeterministic behaviour, which may lead
+However, the implementation should be done with care, as these machines require
+\textit{backtracking} because of its nondeterministic behavior, which may lead
 to some unfortunate bugs \citep{PR86164}. However, both \DFA and \NFA, are not
 very expressive machines. For example, consider the following language:
 
 $$L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$$
 
-This is a stripped down version of the Parenthesis Matching Problem.
-Unfortunately, it is impossible to build an finite automata
+This is a stripped-down version of the Parenthesis Matching Problem.
+Unfortunately, it is impossible to build a finite automata
 that recognizes $L_2$.
 
 \begin{lemma}
@@ -256,13 +254,13 @@ this work.
 \end{subsection}
 
 \begin{subsection}{Finite Pushdown Automata}
-	An extension of the Finite Automatas are the Pushdown Finite Automatas
-	(\ttt{PDA}), which is, in a simplistic form, a $\NFA$
-	with an infinite stack. This is a very interesting machine to
-	parse grammars, which we will present in Section \ref{cfg}.
+	An extension of the \NFA is the Pushdown Finite Automata (\ttt{PDA}), which
+	is, in a simplistic form, a $\NFA$ with an infinite stack. This is a very
+	interesting machine to parse grammars, which we will present in Section
+	\ref{cfg}.
 
 \begin{definition}
-A Nondeterministic Finite Automation (\ttt{PDA}) can be defined as a 6-tuple
+A Nondeterministic Finite Automation (\ttt{PDA}) can be defined as a 6-uple
 $(Q, \Si, \Ga, \delta, q_0, F)$, where
 \begin{itemize}
 
@@ -277,27 +275,23 @@ states.
 \end{itemize}
 \end{definition}
 Here, we denote $\Gamma_\lambda$ and $\Sigma_\lambda$ as being, respectively,
-$\Gamma_\lambda = \Gamma \cup \{\lambda\}$ and $\Sigma_\lambda = \Sigma \cup \{\lambda\}$, where $\lambda$ is
-the empty string.
-
-Those machines starts with an empty stack, and it will then choose
-to read an input based on the following notation given a transition from $q_i \in Q$
-to $q_j \in Q$:
-$$\sigma, \gamma_1 \rightarrow \gamma_2$$
-which is the same as
-$$(q_j, \gamma_2) \in \delta(q_i, \sigma, \gamma_1)$$
-meaning that on input character $\sigma \in \Si_\lambda$ and with $\gamma_1 \in
-\Gamma_\lambda$ on the top of the stack, it advances one character on the input
-string, pop $\gamma_1$ from the stack, and push $\gamma_2 \in \Gamma_\lambda$
-on top of the stack. There are some special cases: when $\sigma = \lambda$,
-then the machine will not advance on the input string. When $\gamma_1 =
-\lambda$, it will not check nor pop anything from the stack. Finally, when
-$\gamma_2 = \lambda$, then nothing is pushed on the stack. Note that these
-three cases can happen together. This notation is enough to describe the
-$\delta$ function.  For an input $w \in \Sis$ to be accepted by such
-automation, there must exist at least one path from the starting state $q_0$ to
-a final state $q_f \in F$ consuming the entire input string $w$, like in
-a $\NFA$.
+$\Gamma_\lambda = \Gamma \cup \{\lambda\}$ and $\Sigma_\lambda = \Sigma \cup
+\{\lambda\}$, where $\lambda$ is the empty string. Those machines starts with
+an empty stack, and it will then choose to read an input based on the following
+notation given a transition from $q_i \in Q$ to $q_j \in Q$: $$\sigma, \gamma_1
+\rightarrow \gamma_2$$ which is the same as $$(q_j, \gamma_2) \in \delta(q_i,
+\sigma, \gamma_1)$$ meaning that on input character $\sigma \in \Si_\lambda$
+and with $\gamma_1 \in \Gamma_\lambda$ on the top of the stack, it advances one
+character on the input string, pop $\gamma_1$ from the stack, and push
+$\gamma_2 \in \Gamma_\lambda$ on top of the stack. There are some special
+cases: when $\sigma = \lambda$, then the machine will not advance on the input
+string. When $\gamma_1 = \lambda$, it will not check nor pop anything from the
+stack. Finally, when $\gamma_2 = \lambda$, then nothing is pushed on the stack.
+Note that these three cases can happen together. This notation is enough to
+describe the $\delta$ function.  For an input $w \in \Sis$ to be accepted by
+such automation, there must exist at least one path from the starting state
+$q_0$ to a final state $q_f \in F$ consuming the entire input string $w$, like
+in a $\NFA$.
 
 These machines are more powerful than both \ttt{DFA} and \ttt{NFA}.
 For every \ttt{NFA}, there is a \ttt{PDA} that detects the same language.
@@ -338,7 +332,7 @@ because the top of the stack would contain a $\ttt{(}$ and not the $\$$, and
 the same goes when $w = \ttt{(}^i\ttt{)}^j$, with $j < i$. If, however, $i >
 j$, then it is possible to jump from $q_3$ to $q_4$, however, the entire input string
 would not be completely consumed, and therefore the machine will reject the
-string. The only way that an string is accepted is when $j = i$..
+string. The only way that an string is accepted is when $j = i$.
 
 Now that we showed one language that a \ttt{PDA} can recognize that a
 \ttt{NFA} can not, let's prove that any language recognizable by an
@@ -351,7 +345,7 @@ which detects $L$.
 \begin{proof}
 	Let $\mathcal{A} = (Q, \Si, \delta, s, F)$ be a \ttt{NFA} recognizing $L$.
 We will show how to build a \ttt{PDA} $\mathcal{P}$ that recognizes $L$.
-The idea is that a $\ttt{PDA}$ that does not uses its stack is just a \ttt{NFA}.
+The idea is that a $\ttt{PDA}$ that does not use its stack is just a \ttt{NFA}.
 
 Let $\mathcal{P} = (Q, \Si, \emptyset, \delta_p, s, F)$, with $Q, \Si, s, F$ being
 exactly the same as in $\mathcal{A}$. Now let $\delta_p$ be such that
@@ -462,7 +456,7 @@ Automata.
 \end{lemma}
 \begin{proof}
 	 It is enough to note that any \ttt{DPDA} is a \ttt{PDA}.  Let $\mathcal{D}
-	 = (Q, \Si, \Ga, \delta, s, F)$ a DPDA. Now define
+	 = (Q, \Si, \Ga, \delta, s, F)$ a \DPDA. Now define
 	 $\delta_p : Q\times\Si_\lambda\times\Ga_\lambda \longrightarrow 2^{Q\times\Ga_\lambda}$ such that
 
 	 $$ (q_j, \gamma_2) \in
@@ -486,8 +480,8 @@ a subset of grammars that are of interest when designing
 Programming Languages, which are called Context-Free Grammars.
 
 Context-Free Grammars are a very powerful notation to express how a Programming Language
-should behave when reading a program as input, however, algorithms that parses
-such grammars in general are $O(n^3)$, where $n$ is the size of the input. Hopefuly,
+should behave when reading a program as input, however, algorithms that parse
+such grammars, in general, are $O(n^3)$, where $n$ is the size of the input. Hopefully,
 if we restrict the grammar to be a Deterministic Context-Free Grammar, we can ensure
 that parsing can take $O(n)$.
 
@@ -517,7 +511,7 @@ $$S \rightarrow \ttt{(}S\texttt{)} \; | \; \lambda$$
 can recognize $L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$, because it is clear that
 $S \Rightarrow^{n+1} \ttt{(}^n\ttt{)}^n$.
 
-There is also an important undesired detail about grammars called ambiguity, which
+There is also an important undesired detail about grammar called ambiguity, which
 allows a string to have multiple derivations. This can confuse a parser into
 generating a distinct parse tree from the one that is intended by the grammar
 designer.
@@ -542,7 +536,7 @@ Another is
 $$ S \Rightarrow S \times S \Rightarrow S + S \times S \Rightarrow a + S \times S \Rightarrow a + a \times S \Rightarrow a + a \times a$$
 
 This may result in a troublesome parsing, for instance, consider the
-following sketch of a Grammar:
+following sketch of Grammar:
 
 % Avoid bug in vim 8.2
 \input{conteudo/grammar.tex}
@@ -606,7 +600,7 @@ to fix this problem for a $\LR{1}$ parser:
 however, one can design a Top-Down Recursive-Descent parser that correctly
 parses that grammar, even with the ambiguity.
 
-Let's now define what it means to a Grammar to be ``Deterministic'' by
+Let's now define what it means for a Grammar to be ``Deterministic'' by
 defining the \textit{handle} of a string.
 
 \begin{definition}
@@ -643,14 +637,14 @@ be easily parsed from \texttt{L}eft-to-right, always taking the \texttt{R}ightmo
 derivations (\textit{i.e.} leftmost reductions).
 
 \end{subsection}
-\begin{subsection}{Botton-up Parsing}
+\begin{subsection}{Bottom-up Parsing}
 
 With the idea of handles in mind, it is possible to design a greedy algorithm
 for reducing an input string $w$ of a $\DCFG$ $G = (V, \Sigma, R, S)$. Let $w = xhy$, where $h$ is the
 handle. Then there is some rule $\left(A \rightarrow h \right) \in R$, which will lead to the
 string $xAy$. Note that the string $y$ was never read so far. This new string
 may have another handle, say $h_2$ in $xA$, in which we \textbf{reduce} again
-using some production rule, or we may need to \textbf{shift} to the next caracter
+using some production rule, or we may need to \textbf{shift} to the next character
 in trying to find the handle for the string. Therefore, we may get into a state
 $$u \bullet v$$
 where $u \in (V \cup \Si)^*$ are the symbols currently \textit{on the stack},
@@ -769,11 +763,11 @@ Recursive-Descent.
 
 The Recursive-Descent is a technique used to parse any generic Context-Free
 Grammar that is free from left recursion, however \textit{backtracking} is
-necessary on several cases. It is also very simple to understand, as there
-are less computer-theory background necessary to understand how they operate
-and to implement by hand, without the use of any parse-generator tools.
-In fact, this is the parser algorithm used by GCC when compiling C \citep{myers_parser}
-, as well as the parser used in clang \citep{clang_parser}. 
+necessary in several cases. It is also very simple to understand, as there is
+less computer-theory background necessary to understand how they operate and to
+implement by hand, without the use of any parse-generator tools. In fact, this
+is the parser algorithm used by GCC when compiling C \citep{myers_parser}, as
+well as the parser used in clang \citep{clang_parser}. 
 
 Let $G = (V, \Si, R, S)$ be a Context-Free Grammar. In a Recursive Descent
 Parser, each $v \in V$ are represented as a function in the algorithm, and
@@ -790,15 +784,16 @@ where $V = \{S, E, T\}, \Si = \{+, \times, a\}$ and $R$ be defined as
 \begin{align}
 S &\rightarrow E \nonumber \\
 E &\rightarrow T + E \; | \; T  \nonumber \\
-T &\rightarrow a \times T \; | \; a \nonumber \\
+T &\rightarrow a \times T \; | \; a \nonumber
 \end{align}
 
-Note that $G_A^2$ differs from $G_A$ just by the recursions in $E$ and $T$.
-We will show what happens if one tries to parse $G_A$ on these algorithms
-in the sequence, but in Figure \ref{fig:recursive-descent} is a pseudocode for
-an algorithm that parses $G_A^2$. Note that the programmer must also take
-care of handling the syntax errors, and therefore this task can become
-very error-prone.
+Note that $G_A^2$ differs from $G_A$ just by the recursions in $E$ and $T$. We
+will show what happens if one tries to parse $G_A$ on these algorithms in the
+sequence, but we present in Figure \ref{fig:recursive-descent} a pseudocode for
+an algorithm that parses $G_A^2$. Note that the programmer must also take care
+of handling the syntax errors, and therefore this task can become very
+error-prone.
+
 
 \begin{figure}[ht]
 	\centering
@@ -842,15 +837,13 @@ very error-prone.
 \label{fig:recursive-descent}
 \end{figure}
 
-Algorithm in Figure \ref{fig:recursive-descent} is able to recognize
-$G_2^A$. Now, what if we try to deploy such parsing algorithm for
-$G_2^A$? Figure \ref{fig:recursive_descent_2} presents what would be
-the function \texttt{E()}. Notice that this function will call
-itself again right after
-it has been called. This is an infinite recursion which will lead the
-parser to an infinite loop or a crash due to an
-runtime stack overflow. Therefore, to deploy a Recursive-Descent parser,
-the following definition must hold for the grammar.
+Algorithm in Figure \ref{fig:recursive-descent} is able to recognize $G_2^A$.
+Now, what if we try to deploy such a parsing algorithm for $G_2^A$? Figure
+\ref{fig:recursive_descent_2} presents what would be the function \texttt{E()}.
+Notice that this function will call itself again right after it has been
+called. This is an infinite recursion that will lead the parser to an infinite
+loop or a crash due to a runtime stack overflow. Therefore, to deploy a
+Recursive-Descent parser, the following definition must hold for the grammar.
 
 \begin{figure}[ht]
 	\centering
@@ -887,11 +880,10 @@ Fortunately, there are algorithms for eliminating the left-recursion of
 the grammar to avoid such problems, once $\ttt{LR}(1)$ parsers can also handle
 right recursions very well \citep{dragonbook}.
 
-There are also conditions in which an Recursive-Descent can be implemented
-without backtracking, which are the class of $\ttt{LL}(k)$ parsers,
-which we won't discuss as they are not powerful (for instance, every
-grammar that is $\ttt{LL}(k)$ is also $\ttt{LR}(k)$, but may not be otherwise),
-and they are not much used in practice.
+There are also conditions in which a Recursive-Descent can be implemented
+without backtracking, which are the class of $\ttt{LL}(k)$ parsers. We
+won't discuss these parsers as they are not powerful as powerful
+as \LR{$k$} parsers, and they are not as well used in pratice.
 
 \end{subsection}
 \end{section}
@@ -903,7 +895,7 @@ it not only do a direct translation to another language, but because it
 tries to generate faster code than the input code created by the programmer
 while still maintaining its correctness.
 
-There are several datastructures and frameworks which is often used to
+There are several data structures and frameworks which is often used to
 develop optimizations, which we briefly present here.
 
 %Given a program, there are two disjoint set of optimizations in which we
@@ -940,12 +932,11 @@ develop optimizations, which we briefly present here.
 
 One issue with large expressions is that it is very hard to find common
 subexpressions and eliminate them. For instance, consider the mathematical
-expression
+expression:
 $$y = x \times x + x \times x $$
-it is clear that this expression can be simplified to $y = 2x^2$, but how
+this expression can be simplified to $y = 2x^2$, but how
 can a compiler know this? One could break this expression in the following
-statements sequence of statements:
-
+sequence of statements:
 \begin{align}
 t_1 &= x \times x \nonumber \\
 t_2 &= x \times x \nonumber \\
@@ -2584,7 +2575,7 @@ optimization are applied only local to its TU.
 
 \end{subsection}
 
-\begin{section}{Contributing to GCC}
+\begin{section}{Contributing to GCC}\label{sec:contributing}
 
 GCC is a free software program, and its development is often done by
 contribuitors worldwide, paid or not. As every Free Software project,
