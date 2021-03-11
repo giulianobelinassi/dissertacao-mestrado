@@ -942,8 +942,7 @@ t_1 &= x \times x \nonumber \\
 t_2 &= x \times x \nonumber \\
 y &= t_1 + t_2 \nonumber
 \end{align}
-
-Now, some information is evident here. First is that $t_2 = t_1$,
+now, some information is evident here. First is that $t_2 = t_1$,
 and therefore $t_2$ is a completely unnecessary variable, and can be
 eliminated from the program, which will lead to $y = t_1 + t_1$, which is
 evident that can be simplified further to $y = 2 \times t_1$, which will lead
@@ -963,19 +962,18 @@ which satisfy the following definition:
 \end{subsection}
 
 \begin{subsection}{Control-Flow Graph}
-	Programs consists of more than a linear sequence of statements, as there
-	are jumps, loops, and gotos, in which we call
-	\textit{flow-divergence}. Those divergences can be modeled through a
-	\textit{Control-Flow Graph}, which illustrates jumps explicitly.
 
-	For example,
-	consider the program in Figure \ref{fig:1-norm_program}.  Here, the first
-	two statements $i \leftarrow 0$ and $\textit{sum} \leftarrow 0$ are always
-	executed in the sequence, so there is no need to explicitly show any kind of jump
-	between these two statements. However, the \texttt{if} and \texttt{else}
-	will result in a \textit{flow-divergence} depending on the value of
-	\texttt{x[i]}, which is illustrated in Figure \ref{fig:1-norm_program:cfg}. 
+Programs consist of more than a linear sequence of statements, as there are
+jumps, loops, and gotos, which we call \textit{flow-divergence}. Those
+divergences can be modeled through a \textit{Control-Flow Graph}, which
+illustrates jumps explicitly.
 
+For example, consider the program in Figure \ref{fig:1-norm_program}.  Here,
+the first two statements $i \leftarrow 0$ and $\textit{sum} \leftarrow 0$ are
+always executed in the sequence, so there is no need to explicitly show any
+kind of jump between these two statements. However, the \texttt{if} and
+\texttt{else} will result in a \textit{flow-divergence} depending on the value
+of \texttt{x[i]}, which is illustrated in Figure \ref{fig:1-norm_program:cfg}. 
 \begin{figure}[ht]
 \centering
   \begin{subfigure}[b]{0.40\textwidth}
@@ -1015,7 +1013,7 @@ which satisfy the following definition:
         \coordinate[below of = check]            (c2);
         \node [node, left of = c2]  (true) {true};
         \node [node, right of = c2]   (false) {false};
-        \node [node, below of = c2]   (merge) {};
+        \node [node, below of = c2]   (merge) {$i \leftarrow i + 1$};
         \node [node, left of = head]   (return) {return};
         \coordinate[right of=false]    (c3);
 
@@ -1037,7 +1035,6 @@ which satisfy the following definition:
   \label{fig:1-norm_program:cfg}
   \end{subfigure}
 \end{figure}
-
 It is useful to model when those flow-divergences jumps will occur, which
 motivates the definition of a \textit{basic-block}.
 
@@ -1066,13 +1063,12 @@ as follows.
 
 \begin{subsection}{Posets and Lattices}
 
-One of the mathematical theories to model \textit{order between binary relations} is
-called \textit{Lattice Theory}. One clear example of order in mathematics
-is the set of all integers $\mathbb{Z}$ with the binary, partial order relation $\leq$.
-However,
-when the set in which we are working on is abstract, such order relation turn out to be
-convoluted. Nevertheless, finding such order in these abstract structures may be
-helpful, and in fact it is when analysing Control-Flow Graphs.
+One of the mathematical theories to model \textit{order between binary
+relations} is called \textit{Lattice Theory}. One clear example of order in
+mathematics is the set of all integers $\mathbb{Z}$ with the binary, partial
+order relation $\leq$. However, when the set in which we are working on is
+abstract, such order relation turns out to be convoluted. Nevertheless, finding
+such order in these abstract structures may be helpful.
 
 \begin{definition}
 A Partial Order $\sqsq$ over a set $S$ is a binary relation that is:
@@ -1173,7 +1169,7 @@ lattice. A meet semi-lattice is enough.
 
 We can also define functions over a lattice in a similar way that functions can
 be defined in $\mathbb{Z}$. From all functions that could be defined over a
-lattice, we are interested in monotone functions, which helps ensuring that
+lattice, we are interested in monotone functions, which helps to ensure that
 some analysis ends after a finite number of iterations.
 
 \begin{definition}
@@ -1186,24 +1182,35 @@ some analysis ends after a finite number of iterations.
 
 \begin{subsection}{Dataflow Analysis}
 
-	Dataflow Analysis is a technique to collect and propagate information across a
-	Control-Flow Graph. It is used not only in compilers, but also in static
-	code analysis in general.
+Dataflow Analysis is a technique to collect and propagate information across a
+Control-Flow Graph. It is used not only in compilers but also in static code
+analysis in general.
 
-	When analysing a program's function, it is useful to know in a certain point,
-	what properties do hold in order to decide for an optimization. Incorrectly
-	guessing some property may result in an incorrect transformation. Therefore,
-	it is useful to employ a way to propagate information across the Control-Flow
-	Graph of a function. This is where Dataflow Analysis is useful.
+When analyzing a program's function, it is useful to know at a certain point,
+what properties do hold to decide for an optimization.  Incorrectly guessing
+some property may result in an incorrect transformation. Therefore, it is
+useful to employ a way to propagate information across the Control-Flow Graph
+of a function. This is where Dataflow Analysis is useful.
 
-	Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct
-	a complete or meet lattice $\mathcal{L}$, which represents a set of
-	possible information that is true in a certain point of a program.
-	Then, we define a set of \textit{flow functions}
-	$\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$, where $f_v: \mathcal{L} \longrightarrow \mathcal{L}$,
-	for each node $v \in V$. These functions will generate, destroy, or transform information contained in each vertex of the graph. These functions must be of the form of \textit{forward
-	analysis}, which yields Equation \ref{eq:forward}, or \textit{backward analysis},
-	which yields Equation \ref{eq:backward}.
+Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct a
+complete or meet lattice $\mathcal{L}$, which represents a set of possible
+information that is true in a certain point of a program.  Then, we define a
+set of \textit{flow functions} $\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$,
+where $f_v: \mathcal{L} \longrightarrow \mathcal{L}$, for each node $v \in V$.
+These functions will generate, destroy, or transform information contained in
+each vertex of the graph. These functions must be of the form of
+\textit{forward analysis}, which yields Equation \ref{eq:forward}, or
+\textit{backward analysis}, which yields Equation \ref{eq:backward}.
+
+Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct a
+complete or meet lattice $\mathcal{L}$, which represents a set of possible
+information that is true in a certain point of a program.  Then, we define a
+set of \textit{flow functions} $\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$,
+where $f_v: \mathcal{L} \longrightarrow \mathcal{L}$, for each node $v \in V$.
+These functions will generate, destroy, or transform information contained in
+each vertex of the graph. These functions must be of the form of
+\textit{forward analysis}, which yields Equation \ref{eq:forward}, or
+\textit{backward analysis}, which yields Equation \ref{eq:backward}.
 
 \begin{equation}\label{eq:forward}
 	\texttt{in[} v \texttt{]} = \begin{cases}
@@ -1219,26 +1226,25 @@ some analysis ends after a finite number of iterations.
 	\end{cases}
 \end{equation}
 
-	Equations \ref{eq:forward} and \ref{eq:backward} can be solved by
-	\textit{propagation}, just applying the equation to each vertex until
-	there is no more new information being generated or destroyed (in other
-	words, the equation \textit{converges}). Some tricks can be employed for a faster
-	convergence, \textit{e.g.}, start propagation from $s_0$ in
-	forward analysis, and from any $v \in F$ in the backward analysis.
-	Algorithms for solving those equations in general way can be found in
-	\citep{khedker2009data}.
+Equations \ref{eq:forward} and \ref{eq:backward} can be solved by
+\textit{propagation}, just applying the equation to each vertex until there is
+no more new information being generated or destroyed (in other 	words, the
+equation \textit{converges}). Some tricks can be employed for a faster
+convergence, \textit{e.g.}, start propagation from $s_0$ in forward analysis,
+and from any $v \in F$ in the backward analysis.  Algorithms for solving those
+equations in a general way can be found in \citep{khedker2009data}.
 
-	Figure \ref{fig:functions_dataflow} illustrates how each function of $\mathcal{F}_G$
-	are related to each node of the $G$. Furthermore, Figure \ref{fig:meet_dataflow}
-	illustrates how the meet operator $\bigsqcap$ is used to combine the information
-	generated by the predecessors and send to the sucessors of a node, for
-	the \textit{forward analysis} case.
+Figure \ref{fig:functions_dataflow} illustrates how each function of
+$\mathcal{F}_G$ are related to each node of the $G$. Furthermore, Figure
+\ref{fig:meet_dataflow} illustrates how the meet operator $\bigsqcap$ is used
+to combine the information generated by the predecessors and send it to the
+successors of a node, for the \textit{forward analysis} case.
 
 \begin{figure}[ht]
 \centering
   \begin{subfigure}[b]{0.40\textwidth}
 	 \includegraphics[scale=0.2]{functions_dataflow.png}
-	  \caption{Dataflow Flow Functions. One for each vertice of $G$. \citep{khedker2009data}}
+	  \caption{Dataflow Flow Functions. One for \\ each vertice of $G$. \citep{khedker2009data}}
 	  \label{fig:functions_dataflow}
   \end{subfigure}
   \begin{subfigure}[b]{0.40\textwidth}
@@ -1265,14 +1271,15 @@ some analysis ends after a finite number of iterations.
 	
 
 	\begin{subsubsection}{Liveness Analysis}
-		One example of problem that can be solved with dataflow analysis is the \textit{liveness analysis},
-		which is useful in the register selection phase. The purpose of this is to find, given a point
-		in a CFGraph, if a certain variable will be used in the future. \cite{khedker2009data} defines the liveness analysis formaly as:
+
+One example of a problem that can be solved with dataflow analysis is the \textit{liveness analysis}, which is useful in the register selection phase. The purpose of this is to find, given a point in a CFGraph, if a certain variable will be used in the future. \cite{khedker2009data} defines the liveness analysis formally as:
+
 \begin{definition}
-	Let $G = (V, E, s_0, F)$ be a CFGraph and $\mathbb{V}$ be the set of all variables
-	of $G$. A variable $x \in \mathbb{V}$ is \textbf{live} at a program point $v \in V$
-	if there exists a path from $v$ to $w \in F$ which contains a use of $x$ which is
-	not preceeded by its definition.
+
+Let $G = (V, E, s_0, F)$ be a CFGraph and $\mathbb{V}$ be the set of all
+variables of $G$. A variable $x \in \mathbb{V}$ is \textbf{live} at a program
+point $v \in V$ if there exists a path from $v$ to $w \in F$ which contains a
+use of $x$ which is not preceeded by its definition.
 \end{definition}
 
 Therefore, a CFGraph $G$, a dataflow framework instance for this would be:
@@ -1393,12 +1400,11 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 	Graph. \cite{appel2004modern} provides algorithms to detect
 	loops using the CFGraph, which is useful when the language
 	supports \texttt{goto}s. A faster algorithm
-	(but complexier than the dataflow equation) algorithms to build
+	(but complex than the dataflow equation) algorithms to build
 	the Dominator tree of a CFGraph is presented by
 	\cite{georgiadis2006finding}.
 
 \end{subsection}
-
 
 \begin{subsection}{Static Single Assignment Form (SSA)}
 
@@ -1411,10 +1417,7 @@ y &= 1 \nonumber
 \end{align}
 
 Clearly, the second and third statements can be discarded, and the first
-and last statement can be discarded as well if there are no further use of $x$ and
-$y$ in the program. However, how can the compiler know that? SSA form make
-this clear. The idea is that variables can not be redefined, only new variables
-can be created, which motivates the following definition.
+and last statements can be discarded as well if there is no further use of $x$ and $y$ in the program. However, how can the compiler know that? SSA form makes this clear. The idea is that variables can not be redefined, only new variables can be created, which motivates the following definition.
 
 \begin{definition}
 	A program is in SSA form if there is exactly one assignment for each
@@ -1432,9 +1435,7 @@ y_2 &= y_1 + 1 \nonumber \\
 y_3 &= 1 \nonumber
 \end{align}
 
-This will lead to the variable $y_2$ being unused because it is nowhere present
-on the left-hand-side of any assignment, meaning that it can be discarded;
-which will then imply that $y_1$ will be unused and can be discarded as well.
+This will lead to the variable $y_2$ being unused because it is nowhere present on the left-hand side of any assignment, meaning that it can be discarded; which will then imply that $y_1$ will be unused and can be discarded as well.
 
 However, SSA form can get trickier to implement if there are jumps in the
 programs, which is often the case with \texttt{if} and \texttt{while}
@@ -1486,7 +1487,7 @@ illustrates this.
 \end{figure}
 
 However, this illustration explains little about when to
-place $\phi$ functions. A way of determine it is to use
+place $\phi$ functions. A way of determining it is to use
 the \textit{dominance frontier criteria}
 
 \begin{definition}
@@ -1503,10 +1504,10 @@ the \textit{dominance frontier criteria}
 \vspace*{-1cm}
 	$$\texttt{dfront[}x\texttt{]} = \conj{w \in V}{x \text{ dom } y \text{ for some } y \in \text{pred}(w) \text{ and } y \text{ does not sdom } w}$$
 
-This definition looks blury, but it can be easily understand as the
-\textit{border of nodes where the dominance stops}.  Figure \ref{fig:dom_frontier} illustrates this
-concept with a plot of the dominated nodes of $v_5$ in the beige area, and the dominance frontier
-in the green area.
+This definition looks blurry, but it can be easily understood as the
+\textit{border of nodes where the dominance stops}.  Figure
+\ref{fig:dom_frontier} illustrates this concept with a plot of the dominated
+nodes of $v_5$ in the beige area and the dominance frontier in the green area.
 
 \begin{figure}[ht]
  \centering
@@ -1520,7 +1521,7 @@ of a variable $a$, then any node $z$ in the dominance frontier of $x$ needs a $\
 for $a$. \citep{appel2004modern}.
 
 SSA makes the optimizing compiler fast because it avoids relying on dataflow
-bitvector equations. One example is to compute the \textit{def-use} chains
+bit vector equations. One example is to compute the \textit{def-use} chains
 of some variable. By using SSA, the compiler can quickly find where a certain
 variable was defined and when it is used \citep{appel2004modern}.
 
@@ -1528,7 +1529,7 @@ variable was defined and when it is used \citep{appel2004modern}.
 
 \begin{subsection}{Callgraphs and Interprocedural Analysis}
 
-Some optimizations requires interaction with other functions, one clear example
+Some optimizations require interaction with other functions, one clear example
 of this is the \textit{function inlining} optimization. When there is a
 function call, the call itself consumes time, and therefore it may be
 interesting to copy and paste the content of the function being called and
@@ -1547,15 +1548,15 @@ and each edge represents a call between two functions.
 
 Figure \ref{fig:call_graph} gives an example of a Callgraph. When applying
 Interprocedural Optimizations, each vertex can also hold some sort of
-\textit{summary} of the function instead the entire function, because often
+\textit{summary} of the function instead of the entire function, because often
 the program being compiled is large enough that there is not enough memory
 to hold the contents of the functions. This is the case when working with
 the Link Time Optimization (LTO) technique.
 
 There are some extensions to the dataflow frameworks to work on Interprocedural
-Optimizations \citep{khedker2009data}, however their require complete information
-about the function in memory, which may not be present in this stage on compilers
-such as GCC \citep{gcc_ipa}.
+Optimizations \citep{khedker2009data}, however, they require complete
+information about the function in memory, which may not be present in this
+stage on compilers such as GCC \citep{gcc_ipa}.
 
 \begin{figure}[ht]
 \centering
@@ -1613,12 +1614,12 @@ such as GCC \citep{gcc_ipa}.
 	memories are a very scarce resource in a processor, and therefore this resource
 	must be administered very carefully.
 
-	This is the purpose of \textit{register allocation}. A code in an
-	Intermediary Representation can contain an arbitrary number of temporary
-	variables, and the goal here is to rewrite the code such that it uses no
-	more temporaries than there are registers in the machine. For example,
-	consider the Figure \ref{fig:register_ir}. In (a), we have a sketch of
-	program, and in (b) we have the rewrite using at most 4 registers.
+This is the purpose of \textit{register allocation}. A code in an Intermediary
+Representation can contain an arbitrary number of temporary variables, and the
+goal here is to rewrite the code such that it uses no more temporaries than
+there are registers in the machine. For example, consider the Figure
+\ref{fig:register_ir}. In (a), we have a sketch of the program, and in (b) we
+have the rewrite using at most 4 registers.
 
 \begin{figure}[ht]
     \centering
@@ -1642,9 +1643,9 @@ such as GCC \citep{gcc_ipa}.
 \label{fig:register_ir}
 \end{figure}
 
-	However, how can we \textit{know} when a certain variable will not
-	be used anymore, and we can replace the register with a computation
-	of some kind? By using the \textit{liveness analysis}.
+	However, how can a compiler \textit{know} when a certain variable will not
+	be used anymore, and we can replace the register with computation of some
+	kind? By using the \textit{liveness analysis}.
 
 \begin{definition}
 	Let $t_1$ and $t_2$ be two temporaries variables. If $t_1$ and
@@ -1688,10 +1689,10 @@ example is presented in Figure \ref{fig:interf_graph}.
 	  \label{fig:interf_graph}
 \end{figure}
 
-After the interference graph is constructed, it is possible to know how
-much registers it is necessary and where to allocate once the graph is colored.
-Graph coloring, unfortunately, is a NP-Complete problem
-\citep{karp1972reducibility}, which implies that an heuristic is necessary to
+After the interference graph is constructed, it is possible to know how many
+registers it is necessary and where to allocate once the graph is colored.
+Graph coloring, unfortunately, is an NP-Complete problem
+\citep{karp1972reducibility}, which implies that a heuristic is necessary to
 solve this problem.
 
 \cite{appel2004modern} shows one heuristic. Suppose that the target machine has
@@ -1701,32 +1702,31 @@ if $G' = G - \{v\}$ can be colored, then so do $G$ because one can simply select
 a color distinct from every node that $v$ is adjacent to, which results in a 
 recursive coloring algorithm. This is called \textit{simplify}.
 
-However, there is nothing preventing that there are no nodes $v$ such that
+However, nothing is preventing that there are no nodes $v$ such that
 $d(v) \geq k$. In this case, there is no alternative other than allocate the
 variable in memory. This is called \textit{spilling}.
 
-Once this process is completed, variables can be renamed accordingly to its
+Once this process is completed, variables can be renamed accordingly to their
 register, or memory location.
 
 \end{subsection}
 
 \begin{subsection}{Instruction Selection}
-	An important step on the final translation process is the
-	\textit{instruction selection}. Most processors (such as x86) have more
-	than a way to translate an statement to machine code, for instance, 
-	assigning an variable to zero. One could use \texttt{mov reg, 0}, or
-	even \texttt{xor reg, reg}, but the later one is faster as it takes less
-	cycles to execute. Detecting such cases are the main issue here.
+An important step in the final translation process is the
+\textit{instruction selection}. Most processors (such as x86) have more
+than a way to translate a statement to machine code, for instance, 
+assigning a variable to zero. One could use \texttt{mov reg, 0}, or
+even \texttt{xor reg, reg}, but the latter one is faster as it takes fewer
+cycles to execute. Detecting such cases is the main issue here.
 
-	There are several techniques to select instruction. One of the simplest
-	are the \textit{macro translation}, where each statement are replaced
-	by the final code locally for each line of the IR. This has the advantage
-	of being a fast way to implement way to translate the code, but
-	very often generate poor final code, as illustrated in
-	Figure \ref{fig:macro_exp}. There are optimizations that can be employed
-	to improve the result of such translations, such as
-	\textit{peephole optimization}, which search in a small window unnecessary
-	memory operations that annulate themselves.
+There are several techniques to select instruction. One of the simplest
+is the \textit{macro translation}, where each statement is replaced
+by the final code locally for each line of the IR. This has the advantage
+of being a fast way to implement a way to translate the code, but
+very often generate poor final code, as illustrated in
+Figure \ref{fig:macro_exp}. Some optimizations can be employed
+to improve the result of such translations, such as
+\textit{peephole optimization}, which search in a small window unnecessary memory operations that annulate themselves.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -1760,10 +1760,10 @@ register, or memory location.
 \label{fig:macro_exp}
 \end{figure}
 
-
-/bin/bash: line 1: ]: command not found
-	a set of nodes in which this pattern is known to have an efficient translation.
-	Figure \ref{fig:tree-matching} illustrates this process, in general.
+Another approach is to treat the IR as a \textit{tree}, then try to
+pattern-match a set of nodes in which this pattern has an efficient
+translation.  Figure \ref{fig:tree-matching} illustrates this process, in
+general.
 
 \begin{figure}
 \centering
@@ -1772,43 +1772,37 @@ register, or memory location.
 	  \label{fig:tree-matching}
 \end{figure}
 
-	There are some algorithms for matching such trees. One, proposed by
-	\cite{glanville1978}, describes a Context-Free Grammar to translate
-	the IR into assembler language. However, in many machines, such grammar
-	will always be ambiguous, implying that such grammars will not pass
-	the $\mathcal{DK}_1$ test, either by \textit{shift-reduce} or
-	\textit{reduce-reduce} conflicts.
+There are some algorithms for matching such trees. One, proposed by
+\cite{glanville1978}, describes a Context-Free Grammar to translate
+the IR into assembler language. However, in many machines, such grammar
+will always be ambiguous, implying that such grammars will not pass
+the $\mathcal{DK}_1$ test, either by \textit{shift-reduce} or
+\textit{reduce-reduce} conflicts.
 
 	The solution of this problem is as follows:
 
 	\begin{itemize}
-		\item On \textit{shift-reduce} conflicts,
-	always choose to shift. The intuition is that larger patters will result in
-	more optimal code, since it allows more information to be gathered by the parser.
-	However, the parser could simply select to \textit{shift} when it should have
-	\textit{reduce}d. Therefore, either backtracking is necessary here when the parser
-	takes the wrong decision, or the grammar designer provide additional rules to avoid
-	such cases.
-	
-		\item On \textit{reduce-reduce} conflicts, it selects the rule with yields
-		the longest pattern. The reason is also because longest patterns will generate
-		better code. However, even this can also result in a parsing error. The
-		solution is to devise a rule in which can be used as a fallback, and the
-		authors provide a way to automatically find such rule.
+		\item On \textit{shift-reduce} conflicts, always choose to shift. The intuition is that larger patterns will result in more optimal code since it allows more information to be gathered by the parser. However, the parser could simply select to \textit{shift} when it should have 	\textit{reduce}d. Therefore, either backtracking is necessary here when the parser takes the wrong decision, or the grammar designer provides additional rules to avoid such cases.
+
+\item On \textit{reduce-reduce} conflicts, it selects the rule with yields the
+longest pattern. The reason is also that the longest patterns will generate
+better code. However, even this can also result in a parsing error. The
+solution is to devise a rule in which can be used as a fallback, and the
+authors provide a way to automatically find such a rule.
+
 	\end{itemize}
 
-	Such parsers are very interesting because given a way to express what the parser
-	should produce and the cost of these productions, one can quickly implement
-	a new \textit{backend} to the compiler.
-	The main issue, however, is the high number of states required by the
-	parser \citep{blindell2016instruction}, which often turns it impractical.
+Such parsers are very interesting because, given a way to express what the
+parser should produce and the cost of these productions, one can quickly
+implement a new \textit{backend} to the compiler.  The main issue, however, is
+the high number of states required by the
+parser \citep{blindell2016instruction}, which often turns it impractical.
 
-	There is a way to optimally select instructions on a tree using a technique
-	called \textit{dynamic programming} \citep{ripken1977formale}. The idea is
-	that given a node $n$, it is enough to first consider to minimize the cost
-	of the child and then try to minimize the cost of $n$. Mathematically, let
-	$P_n$ the set of patterns possible to be applied to $n$. Therefore, the
-	minimal cost $\texttt{PD[}n\texttt{]}$ is:
+There is a way to optimally select instructions on a tree using a technique
+called \textit{dynamic programming} \citep{ripken1977formale}. The idea is that given a node $n$, it is enough to first consider to minimize the cost
+of the child and then try to minimize the cost of $n$. Mathematically, let
+$P_n$ the set of patterns possible to be applied to $n$. Therefore, the
+minimal cost $\texttt{PD[}n\texttt{]}$ is:
 
 \[
     \texttt{pd[}n\texttt{]} =
@@ -1818,15 +1812,14 @@ register, or memory location.
      \end{cases}
 \]
 
+Another way of selecting instructions is through Directed Acyclic Graph. Its
+advantage, when compared to trees, is that it can represent common
+subexpressions, but unfortunately optimal algorithms for this representation
+are NP-complete \citep{koes2008near}. The majority of techniques employed here
+are greedy, as in \cite{llvm_insn_selection}.
 
-	Another way of selecting instructions is through through Directed Acyclic Graph.
-	Its advantages when compared to trees is that it can represent common
-	subexpressions, but unfortunately optimal algorithms for this representation
-	are NP-complete \citep{koes2008near}. The majority of techniques employed here
-	are greedy, as in \cite{llvm_insn_selection}.
-
-	Finally, a more detailed discussion on instruction selection is presented
-	by \cite{blindell2016instruction}.
+Finally, a more detailed discussion on instruction selection is presented
+by \cite{blindell2016instruction}.
 
 \end{subsection}
 
