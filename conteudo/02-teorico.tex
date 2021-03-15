@@ -2053,77 +2053,74 @@ implemented in the C preprocessor
 
 Usually, Lexical Analysers are implemented using $\DFA$, in which each
 acceptance state corresponds to a generated token. This yields a fast,
-$O(n)$ algorithm for detecting tokens in the code, which will be feeded
+$O(n)$ algorithm for detecting tokens in the code, which will be fed
 to the Lexical Analyser. There are even Lexical Analyser Generators such
 as \textit{Flex}\footnote{https://www.gnu.org/software/flex/}, which
-are extremelly efficient.
+are extremely efficient.
 
 Together with the Lexical Analyser, a Syntactic Analyzer is responsible to
 generate an Abstract Syntax Tree (AST), inspecting the sequence of tokens
-provided by the Lexical Analyser, or point out why the input string is
-not valid. The objective of a Syntatic Analyser is to construct
-an Abstract Syntax Tree (AST) by keeping track of the reduction decisions
-(in the case of the Botton-Up parser such as $\LR{1}$) or the derivation
-decisions (which is the case of a Top-Down parser such as Recursive-Descent)
-of the input string. The decision of doing type analysis, checking for
-undefined usage of variables, etc, can be done while building this
-AST, or postergated to a next stage, called the Semantic Analysis,
-which is still part of the Front-End.
+provided by the Lexical Analyser, or point out why the input string is not
+valid. The objective of a Syntatic Analyser is to construct an Abstract Syntax
+Tree (AST) by keeping track of the reduction decisions (in the case of the
+Botton-Up parser such as $\LR{1}$) or the derivation decisions (which is the
+case of a Top-Down parser such as Recursive-Descent) of the input string. The
+decision of doing type analysis, checking for undefined usage of variables,
+etc, can be done while building this AST, or postponed to a next stage, called
+the Semantic Analysis, which is still part of the Front-End.
 
-After the AST is generated and the Semantic Analsysis are completed, it is
-often converted to an IR, where Target-Independent
-Optimizations are performed. This yields the control to the Middle-End of
-the compiler.
+After the AST is generated and the Semantic Analysis is completed, it is often
+converted to an IR, where Target-Independent Optimizations are performed. This
+yields the control to the Middle-End of the compiler.
 
 \end{subsection}
 
 \begin{subsection}{Middle End}
 
-The Middle-End is responsible to work on one or more IR
-of the compiler. If there are checks which can be postponed in the Front-End
-to this stage, it is preferible, once it avoids these checks on every Source
-Language's Front-End.
+The Middle-End is responsible to work on one or more IR of the compiler. If
+there are checks which can be postponed in the Front-End to this stage, it is
+preferable, once it avoids these checks on every Source Language's Front-End.
 
-Here, we construct data structures in which might be necessary for the hardware
-independent optimizations, such as the Control-Flow Graph, the Callgraph, the
-SSA representation, and so on. After that, the compiler indeed run these optimizations.
+Here, we construct data structures in which might be necessary for the
+hardware-independent optimizations, such as the Control-Flow Graph, the
+Callgraph, the SSA representation, and so on. After that, the compiler indeed
+runs these optimizations.
 
 The Middle End is where the most effort is spent in development. Every new
 optimization here will improve the code for every target machine that the
 compiler supports.
 
-After this optimization process the code in this IR can be further transformed
+After this optimization process, the code in this IR can be further transformed
 into other IR to something that is more closely related to the target hardware.
-Afer that, the control is passed to one of the compiler's Back End, where it will
-be transformed to the final language.
+After that, the control is passed to one of the compiler's Back End, where it
+will be transformed to the final language.
 
 \end{subsection}
 
 \begin{subsection}{\textit{Back End}}
 
-	The \textit{Back End} is responsible to the final translation to the
-	target language, as well as hardware dependent optimizations. Therefore,
-	it is also responsible for selecting instructions optimally (or close to)
-	as well as selecting registers from the best way possible for the program's
-	variable.
+The \textit{Back End} is responsible for the final translation to the target
+language, as well as hardware-dependent optimizations. Therefore, it is also
+responsible for selecting instructions optimally (or close to) as well as
+selecting registers from the best way possible for the program's variable.
 
-	The Back End should be implemented in a way that it can simply be switched
-	for another without any modification to the Middle End. With this, the
-	code can be easily compiled to another target language.
+The Back End should be implemented in a way that it can simply be switched for
+another without any modification to the Middle End. With this, the code can be
+easily compiled to another target language.
 
-	After the Back End has done its processing, the final code is issued and the
-	compilation is complete.
+After the Back End has done its processing, the final code is issued and the compilation is complete.
+
 \end{subsection}
 
 \begin{subsection}{Compilation Passes}
 
 Compilers, however, can optimize for several metrics, not only execution time.
 Industrial compilers also very often support \textit{optimization for size} for
-embedded systems, or even \textit{optimize for power consumption}, which can
-be interesting for both embedded systems and datacenters. Therefore, some
-optimizations may be executed while others must be disabled depending of
-what are you optimizing to. This is where a simple but powerful modularization
-comes into, the \textit{compiler passes}.
+embedded systems, or even \textit{optimize for power consumption}, which can be
+interesting for both embedded systems and data centers. Therefore, some
+optimizations may be executed while others must be disabled depending on what
+are you optimizing to. This is where a simple but powerful modularization comes
+into, the \textit{compiler passes}.
 
 A pass is simply a set of rules to run in the IR. For instance, one pass
 could match and replace a set of statements in the IR for a faster one,
@@ -2176,15 +2173,15 @@ illustrates this queue.
 
 The GNU Compiler Collection, also known as GCC, is a project started by
 Richard Stallman with the first public release in March of 1987. Back then,
-it only supported C language, but already allowed code generation for
+it only supported C language but already allowed code generation for
 several architectures \citep{gcc_first_ver}.
 
 Today, GCC supports several source languages, such as C, C++, Fortran, Go, Ada;
-and several architectures, such as i386, amd64, riscv, arm, ppc, and pdp-11. GCC
-is also an optimizer compiler, that means it can modify the input code to generate
-a more efficient version without changing the program semantic. This is archived
-through its several IR: GENERIC, GIMPLE,
-and RTL. The compiler run optimization passes on each of these IR.
+and several architectures, such as i386, amd64, riscv, arm, ppc, and pdp-11.
+GCC is also an optimizer compiler, which means it can modify the input code to
+generate a more efficient version without changing the program semantic. This
+is archived through its several IR: GENERIC, GIMPLE, and RTL. The compiler run
+optimization passes on each of these IR.
 
 %Hoje, o GCC fornece suporte a diversas Linguagens Fonte como C, C++, Fortran, Go, Ada,
 %e várias arquiteturas, como i386, amd64, riscv, arm, ppc, pdp-11. O GCC também
@@ -2196,12 +2193,13 @@ and RTL. The compiler run optimization passes on each of these IR.
 
 \begin{subsection}{GENERIC}
 
-	GENERIC is a IR that allows to represent any function in the program with trees.
-Such language is a superset of all functionalities and attributes that every Source
-Language has, for instance, attributes such as \texttt{volatile} in C, C++, or even
-Fortran matrix sum or product. Other functionalities are more common to every language,
-such as function calls, variable declaration, class, expressions, statements, and
-others \citep{generic}.
+GENERIC is a IR that allows to represent any function in the program with
+trees.  Such language is a superset of all functionalities and attributes
+that every Source Language has, for instance, attributes such as
+\texttt{volatile} in C, C++, or even Fortran matrix sum or product. Other
+functionalities are more common to every language, such as function calls,
+variable declaration, class, expressions, statements, and others
+\citep{generic}.
 
 %    O GENERIC é uma linguagem intermediária que possibilita representar quaisquer
 %funções do programa através de árvores. Tal linguagem é um superconjunto
@@ -2210,20 +2208,19 @@ others \citep{generic}.
 %Outras funcionalidades são: chamadas de função, declaração de variáveis, classes,
 %funções, expressões, entre outros \citep{generic}.
 
-	This language contains a faithful representation of the program closest to
-	what was written by the programmer, meaning that there are no modifications
-	in the program. This language is not in 3AC or SSA form, it is only there
-	for a easily translation to GIMPLE, the hardware-independent IR of GCC
-	in which most optimizations are done, and to make the development of a
-	Front End easily. However, that does not means that optimizations can not
-	be applied here.
+This language contains a faithful representation of the program closest to what
+was written by the programmer, meaning that there are no modifications in the
+program. This language is not in 3AC or SSA form, it is only there for an easy
+translation to GIMPLE, the hardware-independent IR of GCC in which most
+optimizations are done, and to make the development of a Front End easily.
+However, that does not mean that optimizations can not be applied here.
 
-	There is a match-and-replace mechaninsm in GCC supporting GENERIC. This
-	mechanism is very simple: it search for a chain of statements in the IR
-	for a pattern, and then replace for another. Such patterns are expressed
-	in the file \texttt{gcc/match.pd}. This simple mechanism allows several
-	logic and mathematical simplifications that can give a significant speedup
-	in the code in particular cases \citep{sinatan}.
+There is a match-and-replace mechanism in GCC supporting GENERIC. This
+mechanism is very simple: it searches for a chain of statements in the IR for a
+pattern and then replaces for another. Such patterns are expressed in the file
+\texttt{gcc/match.pd}. This simple mechanism allows several bitwise logic and
+mathematical simplifications that can give a significant speedup in the code in
+particular cases \citep{sinatan}.
 
 
 %    Essa linguagem contém uma representação mais próxima de como o programa foi
@@ -2255,12 +2252,12 @@ others \citep{generic}.
 
 \begin{subsection}{GIMPLE}
 
-GIMPLE is another IR from GCC, basically consisting in a convertion from
-GENERIC to a 3AC representation, having a further step into lowering this
+GIMPLE is another IR from GCC, basically consisting of conversion from GENERIC
+to a 3AC representation, having a further step into lowering this
 representation to construct the Control-Flow Graph and the SSA form. As
-GENERIC, GIMPLE is general enough to represent
-every attribute from all Source Languages supported by the compiler. This
-representation is based on SIMPLE, an IR from McCAT compiler \citep{gimple}.
+GENERIC, GIMPLE is general enough to represent every attribute from all Source
+Languages supported by the compiler. This representation is based on SIMPLE, an
+IR from McCAT compiler \citep{gimple}.
 
 %O GIMPLE é outra linguagem intermediária do GCC, basicamente consistindo na
 %conversão de GENERIC para \textit{Three Address Code}, havendo ainda um passo
@@ -2269,14 +2266,17 @@ representation is based on SIMPLE, an IR from McCAT compiler \citep{gimple}.
 %de todas as Linguagens Fonte de cada \textit{Front End}.  Essa linguagem
 %intermediaria é baseada na linguagem SIMPLE, do compilador McCAT \citep{gimple}.
 
-	Is in GIMPLE that all hardware independent optimizations are performed. It
-has an \textit{Application Programming Interface} (API) for interacting with
-statements, tree nodes, the Control-Flow Graph, SSA nodes, and the Callgraph.
-optimizations.
+It is in GIMPLE that all hardware-independent optimizations are performed.
+GIMPLE has an \textit{Application Programming Interface} (API) for interacting
+with statements, tree nodes, the Control-Flow Graph, SSA nodes, and the
+Callgraph. GIMPLE has two states, the ``high'' state, with lexical scopes and
+nested expressions, and ``low'' state, exposing all implicit jumps and
+Exception Handles (EH) regions, removing the lexical scopes, merging similar
+return statements, and convert try-catch control flows to exception regions.
 
-	GIMPLE code can be dumped by using the flag \texttt{-fdump-tree-gimple},
-	or even \texttt{-fdump-tree-ssa} to write the SSA representation on the
-	disk.
+GIMPLE code can be dumped by using the flag \texttt{-fdump-tree-gimple},
+or even \texttt{-fdump-tree-ssa} to write the SSA representation on the
+disk.
 
 \end{subsection}
 
@@ -2310,7 +2310,7 @@ optimizations.
 
 	The final step is the assembler emission once all optimizations were
 	performed in RTL. This will employ a macro translation instruction
-	selection algorithm to convert RTL functions, statements and expressions
+	selection algorithm to convert RTL functions, statements, and expressions
 	into assembler. That is why RTL optimizers are necessary here, to avoid
 	generating very poor assembler code \citep{gcc_insns_selection}.
 
@@ -2331,7 +2331,7 @@ optimizations.
 \end{subsection}
 
 \begin{subsection}{Optimization Passes}
-	GCC has several optimization passes that are applied on each intermediary
+	GCC has several optimization passes that are applied to each intermediary
 	language. The optimization passes queue is described in
 	\texttt{gcc/passes.def}. There are three types of passes:
 
@@ -2345,20 +2345,20 @@ optimizations.
 		that the \textit{analyse} phase must be able to run without having the
 		entire function loaded in memory.
 
-        \item \textbf{GIMPLE} - An Hardware-Independent Intraprocedural pass.
+        \item \textbf{GIMPLE} - A Hardware-Independent Intraprocedural pass.
 		This can do some analysis in the code (such as collecting some metric)
 		or even do a deep transformation in the program. One example is
 		the \texttt{pass\_vectorize}, which tries to find vectorizable operations
 		in the code. It operates on GIMPLE.
 
-        \item \textbf{RTL} - An Hardware-Dependent Intraprocedural pass, operating
+        \item \textbf{RTL} - A Hardware-Dependent Intraprocedural pass, operating
 		on RTL.
     \end{enumerate}
 
 	Each optimization must implement an interface according to its type.
 	For GIMPLE, \texttt{gimple\_opt\_pass}. For RTL, \texttt{rtl\_opt\_pass},
 	for IPA, \texttt{ipa\_opt\_pass\_d} or \texttt{simple\_ipa\_opt\_pass} if the pass
-	require only one step. An sketch of the passes class is illustrated in Figure \ref{fig:opt_uml}
+	require only one step. An sketch of the passes class is illustrated in Figure \ref{fig:opt_uml}.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -2390,7 +2390,7 @@ optimizations.
 \end{tikzpicture}
 }
 \end{center}
-\caption{GCC Passes Hierarchy.}
+\caption{GCC Passes Hierarchy}
 \label{fig:opt_uml}
 \end{figure}
 
@@ -2479,17 +2479,18 @@ This is automatically done by the gcc driver.
 \end{tikzpicture}
 }
 \end{center}
-\caption{Compilation pipeline.}
+\caption{Compilation pipeline}
 \label{fig:gnu_toolchain}
 \end{figure}
 
-This process is traditionally used to compile complex software together with some
-tool that controls this process for each file, such as GNU Make, as illustrated in
-Figure \ref{fig:classical_build}. here, each file is compiled individually, going
-through every compilation process (generation of assembler, then encapsulated into
-an object file), then every file is linked together with \textit{ld}. In GNU Make,
-it is possible to explicitly determine the dependencies of each file, the compilation
-can be done in parallel between files that does not depend from each other.
+This process is traditionally used to compile complex software together with
+some tool that controls this process for each file, such as GNU Make, as
+illustrated in Figure \ref{fig:classical_build}. here, each file is compiled
+individually, going through every compilation process (generation of assembler,
+then encapsulated into an object file), then every file is linked together with
+\textit{ld}. In GNU Make, it is possible to explicitly determine the
+dependencies of each file, the compilation can be done in parallel between
+files that do not depend on each other.
 
 %Esse processo é tradicionalmente usado para compilar \textit{softwares} complexos,
 %em conjunto com uma ferramenta que controla a geração de arquivos objetos e executáveis
@@ -2571,9 +2572,9 @@ optimization are applied only local to its TU.
 \begin{section}{Contributing to GCC}\label{sec:contributing}
 
 GCC is a free software program, and its development is often done by
-contribuitors worldwide, paid or not. As every Free Software project,
-contribution must be sent in a specific manner and fullfil a list
-of attributes to enusre quality of the contribution.
+contributors worldwide, paid or not. As with every Free Software project,
+the contribution must be sent in a specific manner and fulfill a list
+of attributes to ensure the quality of the contribution.
 
 \begin{subsection}{Cloning GCC}
 
@@ -2607,13 +2608,15 @@ additional packages are also required:
 GCC supports several compilation modes by adding new flags into the
 \texttt{configure} script. The main ones for development are:
 \begin{itemize}
-	\item \texttt{-{}-disable-bootstrap}: disable a feature called \textit{bootstrap},
-	which makes the compiler compile itself several times to remove any vestige
-	of the system compiler being used. This reduce the time taken compiling the project.
 
-	\item \texttt{-{}-enable-checking=release}: disable most sanity checkings in the
-	compiler. This is useful for testing the compiler performance, or to build
-	a compiler which may be used in production.
+	\item \texttt{-{}-disable-bootstrap}: disable a feature called
+	\textit{bootstrap}, which makes the compiler compile itself several times to
+	remove any vestige of the system compiler being used. This reduces the time
+	taken to compile the project.
+
+	\item \texttt{-{}-enable-checking=release}: disable most sanity checkings
+	in the compiler. This is useful for testing the compiler performance or to
+	build a compiler that may be used in production.
 
 	\item \texttt{-{}-disable-multilib}: disable support for 32-bit x86 binaries on
 	amd64 machines. This requires additional packages in your system that you may
@@ -2629,9 +2632,11 @@ gcc project}, otherwise you will contaminate your repository with temporary file
 In our case, you should not compile it in any folder under the
 \texttt{gcc\_git\_gnu} folder.
 
-Given that your current shell in in \texttt{gcc\_git\_gnu} folder, use \texttt{cd ..}
-to return to a previous folder, create a new directory \texttt{build}, enter it
-using \texttt{cd build} and then run:
+
+Given that your current shell in in \texttt{gcc\_git\_gnu} folder, use
+\texttt{cd ..} to return to a previous folder, create a new directory
+\texttt{build}, enter it using \texttt{cd build} and then run:
+
 \begin{align}
 \texttt{\$ ../gcc\_git\_gnu/configure} & \texttt{ -{}-disable-bootstrap -{}-disable-multilib} \nonumber \\
 & \texttt{ -{}-enable-languages=c,c++} \nonumber
@@ -2674,10 +2679,10 @@ $$\texttt{\$ make check-gcc -j<num\_cores> RUNTESTFLAGS='dg.exp'}$$
 or even run a single test of a suite, for instance:
 $$\texttt{\$ make check-gcc RUNTESTFLAGS='dg.exp sinatan-1.c'}$$
 
-However, a very good evidence that your changes are working is check
-if \textit{bootstrap} is working after your changes. In this case,
-just create a new directory \texttt{build\_bootstrap} an proceed
-by:
+However,  a good test is to check if \textit{bootstrap} is working after your
+changes. This will make the compiler compile itself several times with various
+optimizations levels to ensure that everything is working. In this case, just
+create a new directory \texttt{build\_bootstrap} and proceed by:
 
 \begin{align}
 \texttt{\$ ../gcc\_git\_gnu/configure} & \texttt{ -{}-disable-multilib} \nonumber \\
@@ -2688,13 +2693,15 @@ by:
 \end{subsection}
 
 \begin{subsection}{Debugging GCC}
-	Sometimes, finding the problem in your changes are not trivial at all. If you
-	are familiar with \textit{gdb}, you can launch GCC under it for finding the
-	problems.
 
-	There are two cases that requires a distinct approach. One if you want
-	to \textit{debug the compiler (cc1)} or if you want to \textit{debug the driver}.
-	in the first case, you should launch the compiler with
+Sometimes, finding the problem in your changes is not trivial at all. If you
+are familiar with \textit{gdb}, you can launch GCC under it for finding the
+problems.
+
+There are two cases, requiring a distinct approach. One if you want to
+\textit{debug the compiler (cc1)} or if you want to \textit{debug the driver}.
+in the first case, you should launch the compiler with
+
 	$$\texttt{\$ /tmp/}\cdots \texttt{/gcc -wrapper gdb,args file.c}$$
 	in the later
 	$$\texttt{\$ gdb /tmp/}\cdots \texttt{/gcc -args file.c}$$
@@ -2704,48 +2711,47 @@ by:
 	When debugging the driver, there is no need for calling the wrapper at all,
 	since the binary is already exposed to the user.
 
-	We will not enter in details about how to use gdb here, but
-	\cite{stallman1988debugging} provide a walktrough about how to use it.
+
+We will not enter in details about how to use gdb here, but
+\cite{stallman1988debugging} provide a walkthrough about how to use it.
+
 \end{subsection}
 
 \begin{subsection}{Writing and Sending Patches}
-	Writing patches are quite straightfoward. First, be aware that GCC
-	uses the GNU Coding Style, and therefore your text editor must be
-	configured accordingly. In the \texttt{contrib} folder, there are
-	some configuration file for Vim, which you should be using if
-	you code using such text editor.
 
-	But perhaps one of the most bureaucratic step in Free Software development
-	is sending the changes back to the community for review. However, once
-	you master this process, sending changes comes naturally and can be
-	done quite fast.
+Writing patches are quite straightforward. First, be aware that GCC uses the
+GNU Coding Style, and therefore your text editor must be configured
+accordingly. In the \texttt{contrib} folder, there are some configuration files
+for Vim, which you should be using if you code using such text editor.
 
-	First, create a new branch for you to work on. A quick way of doing
-	this is by
-	$$\texttt{\$ git checkout -b feature}$$
-	This will create a new branch \textit{feature}, and
-	now you are ready to implement your changes. Once you have tested, you should
-	\textit{commit} then. This can be done with the sequence of commands
+But perhaps one of the most bureaucratic steps in Free Software development is
+sending the changes back to the community for review. However, once you master
+this process, sending changes comes naturally and can be done quite fast.
+
+First, create a new branch for you to work on. A quick way of doing this is
+by $$\texttt{\$ git checkout -b feature}$$ This will create a new branch
+\textit{feature}, and now you are ready to implement your changes. Once you
+have tested, you should \textit{commit} then. This can be done with the
+sequence of commands
 \begin{align}
 \texttt{\$ } & \texttt{git add .} \nonumber \\
 \texttt{\$ } & \texttt{git commit -v \nonumber}
 \end{align}
+then text editor window will show up for you to explain what this
+commit does. Commits have a title that should not have more than
+60 characters (but they can depending on the situation),
+followed by a more detailed text, and the
+ChangeLog. For examples of how you should write a commit,
+run $\texttt{\$ git log}$ to show the most recent commits. For an example
+about how to create a detailed changelog, read the file
+\texttt{gcc/ChangeLog}. Do not underestimate this task, try to
+write a good commit message because people will review it.
+If your patch contains a new feature (for instance, a match and
+replace optimization), you should \textbf{write a test for it} as
+well.
 
-	A text editor window will show up for you to explain what this
-	commit does. Commits have a title that should not have more than
-	60 characters (but they can depending of the situation),
-	followed by a more detailed text, and the
-	ChangeLog. For examples about how you should write a commit,
-	run $\texttt{\$ git log}$ to show most recent commits. For an example
-	about how to create a detailed changelog, read the file
-	\texttt{gcc/ChangeLog}. Do not underestimate this task, try to
-	write a good commit message because people will review it.
-	If your patch contains a new feature (for instance, a match and
-	replace optimization), you should \textbf{write a test for it} as
-	well.
-
-	Once commited, you should switch back to the \textit{master} branch
-	and update it using
+Once committed, you should switch back to the \textit{master} branch
+and update it using
 \begin{align}
 \texttt{\$ } & \texttt{git checkout master} \nonumber \\
 \texttt{\$ } & \texttt{git pull \nonumber}
@@ -2779,9 +2785,9 @@ by:
 		\item Check if you can come with a new \texttt{match.pd} rule. This
 		is how we started contributing to the compiler \citep{sinatan_flusp}.
 
-		\item GCC was originally written in C, then swiched to C++. Most
+		\item GCC was originally written in C, then switched to C++. Most
 		Intraprocedural passes are still written in plain C and would be
-		very interesting to see them encapsulated into a class\footnote{https://gcc.gnu.org/legacy-ml/gcc-patches/2019-11/msg01296.html}.
+		very interesting to see them encapsulated into a class
 
 		\item Read the EasyHacks page\footnote{https://gcc.gnu.org/wiki/EasyHacks}.
 	\end{itemize}
@@ -2799,12 +2805,12 @@ by:
 \begin{section}{Parallel Computing}\label{sec:parallel_computing}
 \label{sec:parallel_comp}
 
-	Parallel Computing is the act of coordinate several execution
-flow operating simultaneously in one or more computers to archive
-some common objective. It became a tendency in contemporary computing
-due to affordibility and reduced production cost of multicore
-and manycore processors when compared to a single core, sequential
-processor of same computational power.
+Parallel Computing is the act of coordinating several executions flow operating
+simultaneously in one or more computers to archive some common objective. It
+became a tendency in contemporary computing due to affordability and reduced
+production cost of multicore and manycore processors when compared to a
+single-core, sequential processor of the same computational power.
+
 
 %    A Computação Paralela é o ato de coordenar vários fluxos de
 %execução operando simultaneamente em um ou mais computadores para
@@ -2815,14 +2821,13 @@ processor of same computational power.
 %com apenas um núcleo.
 
 To illustrate this evolution in multicore processors, \cite{42years}
-published a figure showing the number of transistors, cores and
+published a figure showing the number of transistors, cores, and
 performance of each core since 1970, as presented in Figure
 \ref{fig:42years}. We can see in this figure that Moore's law
-is still true, however the sequential performance of the processors
+is still true, however, the sequential performance of the processors
 is slowing down, while the number of cores grows exponentially
 since 2008. This justifies the use of parallel computing when possible
-for a maximum usage of computational resources available.
-
+for the maximum usage of computational resources available.
 
 %    Para ilustrar a evolução dos processadores \textit{multicore}, \cite{42years}
 %    publicou um gráfico mostrando o número
@@ -2873,22 +2878,21 @@ and some algorithms which are useful when parallelizing a program.
 %realizar computação paralela. Michael J. Flynn \citep{pacheco:2011} definiu
 %uma taxonomia das arquiteturas, mas vale destaque para duas delas:
 
+Even with the evolution of multicore and manycore processors, those are not the
+only architectures available for parallel computing.  Michael J. Flynn
+\citep{pacheco:2011} defined a taxonomy of architectures, however, two of them
+must be highlighted:
 
-Even with the evolution of multicore and manycore processors,
-those are not the only architectures available for parallel computing.
-Michael J. Flynn \citep{pacheco:2011} defined a taxonomy of architectures,
-however two of then must be hilighted:
 \begin{enumerate}
-    \item \textbf{SIMD} - \textit{Single Instruction, Multiple Data}. Those
-	are vectorial processors that allows a single operation to be executed
-	simultaneously in every element of a vector. Some examples are the
-	Intel SSE instruction set, and also the \textit{Graphics Processing Units} (GPU)
-	although this last one is not consired a pure SIMD architecture.
+	\item \textbf{SIMD} - \textit{Single Instruction, Multiple Data}. Those are
+	vectorial processors that allow a single operation to be executed
+	simultaneously in every element of a vector. Some examples are the Intel SSE
+	instruction set, and also the \textit{Graphics Processing Units} (GPU) although
+	this last one is not considered a pure SIMD architecture.
 
     \item \textbf{MIMD} - \textit{Multiple Instruction, Multiple Data}. Those
-	are the completely indepentent multicore systems, capable of
-	executing tasks asynchronously. Here we find both shared memory and distributed
-	memory architectures.
+are the completely independent multicore systems, capable of
+executing tasks asynchronously. Here we find both shared memory and distributed memory architectures.
 
 \end{enumerate}
 \end{subsection}
@@ -2931,13 +2935,12 @@ however two of then must be hilighted:
 %são capazes de executar vários fluxos de execução simultaneamente, essa
 %é a principal motivação do conceito de Processos e \textit{Threads}.
 
-	A \textit{Process} is an abstraction provided by the Operating System
-	which gives to a program the illusion that it have the processors
-	monopoly \citep{love:2005}. Each process has its own memory region, and
-	sharing sharing information between processes must be done through
-	Interprocess Communication (IPC). One example of such is the
-	\texttt{shmget} call, from \texttt{System V}, in which Linux still
-	supports \citep{shmget}, or through a Pipe \citep{pipe}.
+A \textit{process} is an abstraction provided by the Operating System which
+gives to the program the illusion that it has the processor's monopoly
+\citep{love:2005}. Each process has its own memory region, and sharing
+information between processes must be done through Interprocess Communication
+(IPC). One example of such is the \texttt{shmget} call, from \texttt{System V},
+in which Linux still supports \citep{shmget}, or through a Pipe \citep{pipe}.
 
 %	Um \textit{Processo} é um modelo de abstração do Sistema Operacional que
 %dá a um programa a ilusão de que ele tem o monopólio do processador
@@ -2953,15 +2956,14 @@ shares memory with every other thread from the same process, except
 for its stack and the Thread Local Storage (TLS) region, which turns
 the development of communication mechanisms easier.
 
-When parallelizing a program, the programmer must choose between
-using threads or processes. By selecting threads, the programmer
-will have the advantage of having access to global datastructures
-and therefore an easy communication between the threads. However,
-race conditions must be solved individually, which may become a
-cumberstome when the software is really large. By selecting
-to parallelize through processes, most race conditions may fade away,
-but then the issue revolves around find \textit{what} must be shared and
-how to do an efficient communication between processes, as IPC can be slow.
+When parallelizing a program, the programmer must choose between using threads
+or processes. By selecting threads, the programmer will have the advantage of
+having access to global data structures and therefore an easy communication
+between the threads. However, race conditions must be solved individually,
+which may become cumbersome when the software is really large. By selecting to
+parallelize through processes, most race conditions may fade away, but then the
+issue revolves around find \textit{what} must be shared and how to do an
+efficient communication between processes, as IPC can be slow.
 
 Unix processes are created through a system call named \textit{fork}. On
 Linux, forking will clone the current process into another, and copy
@@ -2979,25 +2981,23 @@ of threads \citep{abbas_cow}.
 
 \begin{subsubsection}{Sincronization Mechanisms}
 
-	An Operating System usually provides synchronization mechanisms
-	to control several threads of a process, or even several processes.
-	These mechanisms are often implemented with the help of hardware
-	resources, however, they can also be implemented purely in software.
-
+An Operating System usually provides synchronization mechanisms to control
+several threads of a process or even several processes. These mechanisms are
+often implemented with the help of hardware resources, however, they can also
+be implemented purely in software.
 
 %	Seja através de auxílio do \textit{hardware}, ou com algoritmos
 %puramente implementados em \textit{software}, o Sistema Operacional
 %costuma fornecer mecanismos de sincronização para coordenar as várias
 %\textit{threads} de um processo, ou até mesmo vários processos.
 
-	One of such mechanisms are \textit{Semaphores} \citep{dijkstra1965}.
-A semaphore is a counter which can assume non-negative integer values
-with two atomic operations: \texttt{P} to decrement it, or \texttt{V}
-to increment it. When the semaphore reaches 0, the next thread that
-will try to decrement it will be blocked. Its execution will only be
-resumed when another thread increment the semaphore.
+One of such mechanisms are \textit{Semaphores} \citep{dijkstra1965}.  A
+semaphore is a counter which can assume non-negative integer values with
+two atomic operations: \texttt{P} to decrement it, or \texttt{V} to
+increment it. When the semaphore reaches 0, the next thread that will try
+to decrement it will be blocked. Its execution will only be resumed when
+another thread increments the semaphore.
 
-%Um dos mecanismos mais famosos são os \textit{Semáforos}
 %\citep{dijkstra1965}. Um semáforo nada mais é que um contador que assume
 %valores não negativos com duas operações atômicas: \texttt{P} para
 %decrementá-lo, e \texttt{V} para incrementá-lo. Quando o semáforo atinge o
@@ -3005,32 +3005,31 @@ resumed when another thread increment the semaphore.
 %sua execução apenas será retomada quando o semáforo for novamente incrementado
 %por outra \textit{thread} \citep{semaphore}.
 
-	Semaphores can also be used to solve the critical section problem,
-	which is when only one thread must be executing a section of the
-	code at a time. However, such problem is often solved using
-	\textit{mutexes}.
+Semaphores can also be used to solve the critical section problem, which is
+when only one thread must be executing a section of the code at a time.
+However, such a problem is often solved using \textit{mutexes}.
 
 %    Semáforos também podem ser utilizados para resolver o problema da
 %seção crítica, que é uma seção de código que apenas uma \textit{thread}
 %deve poder executar por vez, embora seja mais comum a utilização
 %de \textit{Mutexes}.
 
-	Mutexes are a structure that ensures the mutual exclusion of a
-	code region, as illustrated in Figure \ref{fig:mutex}. In this
-	figure, three threads are started executing a function named $f$,
-	but only one can execute the critical section at the time.
+Mutexes are a structure that ensures the mutual exclusion of a code region, as
+illustrated in Figure \ref{fig:mutex}. In this figure, three threads are
+started executing a function named $f$, but only one can execute the critical
+section at the time.
 
 %\textit{Mutexes} nada mais são que uma estrutura que garante a exclusão
 %mútua de uma região, conforme ilustrado na Figura \ref{fig:mutex}. Nessa
 %figura, três \textit{threads} são iniciadas executando a função $f$, mas
 %apenas uma pode executar a seção crítica.
 
-	When a mutex is locked, every other threads that try to access
-	the critical section will be blocked by the Operating System,
-	ensuring that only one thread will be executing this section.
-	Every blocked thread will be unblocked when the thread that
-	locked the mutex unlock it. This is the main difference between
-	a mutex and a binary semaphore.
+When a mutex is locked, every other thread that tries to access
+the critical section will be blocked by the Operating System,
+ensuring that only one thread will be executing this section.
+Every blocked thread will be unlocked when the thread that
+locked the mutex unlocks it. This is the main difference between
+a mutex and a binary semaphore.
 
 %    Quando o \textit{mutex} \texttt{lock} é travado,
 %todas as outras \textit{threads} que tentarem acessar a seção crítica
@@ -3065,15 +3064,14 @@ resumed when another thread increment the semaphore.
       \label{fig:mutex}
 \end{figure}
 
-Another useful synchronization mechanism are the barriers. A barrier
-is a point in the program where, once a thread execute it, it will
-be blocked until every other thread reach the same point, as illustrated
-in Figure \ref{fig:barrier}.
-This is very useful to avoid that one thread advances in the execution
-of a code when it should be waiting the result of some computation by
-another thread. Barriers also receive an interger specifying how many
-threads should reach the barrier for every thread be allowed to continue
-with its execution.
+Another useful synchronization mechanism is the barriers. A barrier is a point
+in the program where once a thread executes it, it will be blocked until every
+other thread reach the same point, as illustrated in Figure \ref{fig:barrier}.
+This is very useful to avoid that one thread advances in the execution of a
+code when it should be waiting for the result of some computation by another
+thread. Barriers also receive an integer specifying how many threads should
+reach the barrier for every thread to be allowed to continue with its
+execution.
 
 %Outro mecanismo de sincronização muito útil são as Barreiras. Uma barreira
 %é um ponto no programa onde, assim que a \textit{thread} o executar, ela
@@ -3092,10 +3090,9 @@ with its execution.
  \label{fig:barrier}
 \end{figure}
 
-
-Except for semaphores, every mechanism mentioned above are implemented in
-the \textit{pthread} library. Semaphores, by the other hand, are available
-in Linux through the \texttt{semaphore.h} interface.
+Except for semaphores, every mechanism mentioned above is implemented in the
+\textit{pthread} library. Semaphores, on the other hand, are available in Linux
+through the \texttt{semaphore.h} interface.
 
 %Por fim, exceto os semáforos, todos esses mecanismos mencionados acima são
 %implementados na biblioteca \texttt{Pthread}. Já os semáforos estão disponíveis
@@ -3105,14 +3102,14 @@ in Linux through the \texttt{semaphore.h} interface.
 
 \begin{section}{Power and Energy}\label{sec:power}
 
-When we want to measure how much enery a computer is consuming, there are
-sensors to measure the \textit{Instantaneous Power}. However, power $P$ is defined
-as the time rate of energy transfered \citep{young2006sears}. Therefore, to
-compute energy measuring the power consumption of a system:
-$$P = \frac{dE}{dt} \quad \Rightarrow \quad E = \int_{0}^{t'} P(t)dt$$
-where $t'$ is the elapsed time of the experiment. However, we can only
-measure information of the sensor in discrete time, and not continuously.
-Therefore we can approximate this integral by using two Riemman sums.
+When we want to measure how much energy a computer is consuming, there are
+sensors to measure the \textit{Instantaneous Power}. However, power $P$ is
+defined as the time rate of energy transferred \citep{young2006sears}.
+Therefore, to compute energy measuring the power consumption of a system: $$P =
+\frac{dE}{dt} \quad \Rightarrow \quad E = \int_{0}^{t'} P(t)dt$$ where $t'$ is
+the elapsed time of the experiment. However, we can only measure information of
+the sensor in discrete time, and not continuously.  Therefore we can
+approximate this integral by using two Riemann sums.
 
 Assume that we collected $n$ measurements of the sensor at times
 $t_1, t_2, \cdots, t_n$ with a distance of $\Delta t$ from each other.
