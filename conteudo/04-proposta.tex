@@ -5,6 +5,14 @@ Having discussed both the theoretical and technical aspects of compilers, and
 presented the previous works in the area, we discuss our attempts and success
 of parallelizing a compiler.
 
+We start this chapter by presenting a profile report of GCC, which we use to
+decide where to attack (in Section \ref{sec:profile}). Then we show two ways to
+proceed to parallelize the most costly section: by using threads (in Section
+\ref{sec:threads}) or by adapting the LTO engine to compile in parallel (in
+Section \ref{sec:parallel_lto}). In summary, this work will discuss the
+parallelization of intraprocedural analysis inside a compiler (in this case,
+GCC).
+
 %Como atestado por \cite{PR84402}, há um gargalo de paralelismo dentro do
 %próprio GCC por conta de arquivos grandes. Outro gargalo também foi relatado
 %por \cite{mailgcc} em outro projeto interno. Uma das soluções para este
@@ -19,12 +27,12 @@ of parallelizing a compiler.
 \begin{section}{Profiling}\label{sec:profile}
 
 We first start as an analysis of the time spent in some stages of the compiler.
-As stated in \cite{PR84402}, there is a parallel compilation bottleneck in GCC
+As stated by \cite{PR84402}, there is a parallel compilation bottleneck in GCC
 due to the existence of big files. Therefore, the GCC itself has good samples
 of files for our project, which we must achieve a speedup for those to at least
 claim that parallelizing a compiler can improve the compilation performance.
-Figure \ref{fig:analysis_classical} hilight some of these files that consumes a
-lot of time to compile. From these files, we select the largest one, named
+Figure \ref{fig:analysis_classical} highlights some of these files that consume
+a lot of time to compile. From these files, we select the largest one, named
 \texttt{gimple-match.c}.
 
 When profiling GCC with \texttt{gimple-match.c}, we found that
@@ -32,10 +40,8 @@ When profiling GCC with \texttt{gimple-match.c}, we found that
     \item On average, it requires $76s$ to compile that file.
 
     \item 91\% of such time ($69s$) is used to optimize and generate the final code.
-        e geração de código final.
 
     \item 8\% of such time ($6s$) is used in lexical and syntatic analysis.
-        e sintática.
 
     \item The remaining 1\% is distributed in the remaining parts of the compiler.
 \end{itemize}
@@ -56,19 +62,13 @@ of these consumes the most time. We found that:
 Therefore, a good candidate for parallelization is the intraprocedural
 analysis. From the perspective of parallel computing, these optimizations can
 be parallelized regarding the number of functions in the program, once they do
-not require interactions with other functions. 
+not require interactions with other functions.
 
-In summary, this work will discuss the parallelization of intraprocedural
-analysis inside a compiler (in this case, GCC). Our first attempt was to try to
-parallelize that with threads, in which we discuss our findings and issues with
-this approach. Then we try a very different approach: modify the LTO engine for
-single file parallel compilation.
+\begin{subsection}{Maximum Speedup}\label{sec:speedup}
 
-\end{section}
-
-\begin{section}{Maximum Speedup}
-
-Assuming that this profiling result is true to every input file, we can calculate the maximum speedup of our parallelization process. Let $p$ be the number of used processors. Therefore, if we assume linear speedup, the gain is:
+Assuming that this profiling result is true to every input file, we can
+calculate the maximum speedup of our parallelization process. Let $p$ be the
+number of used processors. Therefore, if we assume linear speedup, the gain is:
 
 $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
 \right)T_1 $$ Therefore, the maximum speedup per file is: $$
@@ -79,14 +79,16 @@ $$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
 However, it is most likely that the resulted speedup is smaller than 4 due to
 the overhead necessary to implement the parallelism.
 
+\end{subsection}
+
 \end{section}
 
-\begin{section}{Parallelization with Threads}
+\begin{section}{Parallelization with Threads}\label{sec:threads}
 
 After the IPA is complete, GCC launch \texttt{expand\_all\_functions} function
 to resume the compilation. Therefore, we designed the following mechanism: once
 the IPA completes the processing of a function, it then enqueues this function
-in a productor-consumer queue, which the intraprocedural passes will have to
+in a producer-consumer queue, which the intraprocedural passes will have to
 consume from. From there, each function will be optimized in parallel, as
 illustrated in Figure \ref{fig:paralelizacao}.
 
@@ -99,14 +101,27 @@ illustrated in Figure \ref{fig:paralelizacao}.
 \end{figure}
 
 Since GCC is a huge software, we only selected a subset of the optimization
-passes for this thread-based approach, which we selected the GIMPLE passes.
-We begin by splitting the pass engine into explicitly three steps: IPA transformation,
-GIMPLE, and RTL, and we made sure that we could run all IPA transformations first on
-every function, then all GIMPLE passes in every function, then all RTL passes in
-every function; as opposed to the previous mode that applied every optimization
-to a single function before proceding to the next function. Figure
-\ref{fig:intraprocedural_sketch} illustrates how this process was before our
-change, and \ref{fig:intraprocedural_sketch_after} illustrates our modifications.
+passes for this thread-based approach, which we selected the GIMPLE passes.  As
+described in Section \ref{sec:opt_passes}, every pass in GCC belongs to one of
+the three types: IPA, GIMPLE, or RTL, as stated in Section X. Given a function,
+GCC runs all passes in this function before pulling the next function in the
+queue. This means that if we want to parallelize a subset of these passes (in
+our case, GIMPLE), we have to make sure that the pass queue can operate in a
+bunch of functions simultaneously.  The first step is to make sure that we can
+interrupt the queue at some pass, switch functions, execute the passes for this
+new function, switch back to the original function, and everything must work.
+Therefore, the first step was to move some information available on global
+variables into the function struct, so this information was not lost after this
+function switch.
+
+Then we split the pass engine explicitly into three steps: IPA
+transformation, GIMPLE, and RTL, and we made sure that we could run all IPA
+transformations first on every function, then all GIMPLE passes in every
+function, then all RTL passes in every function; as opposed to the previous
+model that applied every optimization to a single function before proceeding to
+the next function. Figure \ref{fig:intraprocedural_sketch} illustrates how this
+process was before our change, and \ref{fig:intraprocedural_sketch_after}
+illustrates our modifications.
 
 \begin{figure}[ht]
 	\centering
@@ -163,11 +178,11 @@ FOR_EACH_FUNCTION (g, cfun) {
 \label{fig:intraprocedural_sketch_after}
 \end{figure}
 
-After that, we chose to parallelize the GIMPLE passes. We chose GIMPLE first because
-it affects every target architecture supported by GCC, whereas RTL would require
-adjustement to every target architecture. For this to work minimally, we had to
-insert locks to several points in the compiler -- which is the main issue with
-this approach -- that we discuss below.
+After that, we chose to parallelize the GIMPLE passes. We chose GIMPLE first
+because it affects every target architecture supported by GCC, whereas RTL
+would require adjustment to every target architecture. For this to work
+minimally, we had to insert locks to several points in the compiler -- which is
+the main issue with this approach -- that we discuss below.
 
 \begin{subsection}{Global Variables}
 
@@ -176,13 +191,15 @@ of replicability of critical data structures that are necessary for compiling a
 function. For instance, the current function pointer (cfun) is a global
 variable used in almost every intraprocedural pass in GCC, although the pass
 engine itself supports passing the function which must be compiled. Other
-structures required replication across the threads, which we used the C11
+structures required replication across the threads, for which we used the C11
 Thread Local Storage feature (\textit{\_\_thread}).
 
 Then there were the problems with global variables in most passes, which used
-global variables to avoid passing them down into the callchain. This issue can
-be fixed by wrapping these variables inside a class and instantiate them on the
-pass execution.
+global variables to avoid passing them down into the call chain. Most of these
+issues could be easily identified using tools like valgrind, once these data
+structures were released after the pass ends, which leads to write to released
+memory. This issue can be fixed by wrapping these variables inside a class and
+instantiate them on the pass execution.
 
 \end{subsection}
 
@@ -221,7 +238,7 @@ $O(1)$, although the current implemented algorithm requires $O(n)$. The reason f
 this is that the memory pool currently uses a single-headed linked list, and it
 needs to be refactored into a double-headed linked list. 
 
-All memory pools touched by GIMPLE Intra Process Optimizations, except one,
+All memory pools touched by GIMPLE intraprocedural optimizations, except one,
 were refactored with this approach, and the merge feature was used only in
 those memory pools which were required. The only pool which was not refactored
 using this approach was the Euler Transversal Forest data structure
@@ -234,25 +251,36 @@ employed here. The reason for this must still be investigated.
 
 GCC has an internal garbage collector, which is a reference counter of objects.
 Objects that are watched by the garbage collector are declared with the GTY(())
-annotation, and we can not simply use C11 thread annotation, as it is not
-supported by the Garbage Collector. Our approach is to either insert locks in
-these variables or move them inside the function object.
+annotation, which then an external parser calculate the size of the object.
+This parser only supports a subset of C++, and therefore it requires some care
+when using this resource.
 
-We fixed the issue with the Garbage Collector by ensuring that memory
-allocation at this point is serialized, and disabled any memory collection when
-the program is running in multi-threaded mode. This is not necessary when
-multi-thread is supported by the Garbage Collector.
+Our approach is to either insert locks in
+these variables or move them inside the function object. This may slowdown 
+the compiler or drastically increase the memory requirement of the compiler,
+as per-thread information is duplicated as per-function.
+
+Furthermore, we fixed the issue with the Garbage Collector by ensuring that
+memory allocation at this point is serialized, and disabled any memory
+collection when the program is running in multi-threaded mode. This is not
+necessary when multi-thread is supported by the Garbage Collector.
 
 \end{subsection}
 
 \begin{subsection}{Memory Address to Symbol Conversion}
 
 GCC uses a cache to keep tracks of memory address allocated to symbols (in
-\texttt{tree-ssa-address.c}) and it is used to check if an address is part of a symbol
-(i.e., access to an array). This cache array is marked to be watched by the
+\texttt{tree-sa-address.c}) and it is used to check if an address is part of a symbol
+(i.e., access to an array). This is useful to determine symbol alias, for instance,
+two arrays may share its memory address with another array (\textit{e.g.} pointer
+copy).
+This cache array is marked to be watched by the
 garbage collector, therefore we lock this structure every time this array has
-to be accessed. Research is needed to evaluate how much this lock impacts
-performance, and if there is a better way of handling this situation. 
+to be accessed. 
+
+Another way of fixing this would be clone this cache to each thread and
+let it rebuild the values of already used ones. This might be faster if
+locking this data structure is slower than rebuilding the object.
 
 \end{subsection}
 
@@ -261,56 +289,63 @@ performance, and if there is a better way of handling this situation.
 In \texttt{tree.c}, there is a hash table used to avoid reconstruction of tree nodes
 that represent integer constants. This hash is also marked to be watched by the
 Garbage Collector, and therefore we used a simple lock to this structure every
-time this hash is accessed. This approach may not be the best if the cost of
-locking and hashing becomes greater than recreating the tree node. Therefore
-research is also needed here. 
+time this hash is accessed. This is the same problem as the memory address to
+symbol conversion, once rebuilding the structure may be faster than using the
+lock.
 
 \end{subsection}
 
 \begin{subsection}{The rtl\_data Structure}
 
-GCC uses a single instance of rtl\_data class, representing the current function
-being compiled in RTL. This should not be a problem as RTL expansion
+GCC uses a single instance of rtl\_data class, representing the current
+function being compiled in RTL. This should not be a problem as RTL expansion
 and optimization phase is still single-threaded. However, there are GIMPLE
-passes which calculate instruction costs in RTL mode to decide how the function
-will be optimized. This access the rtl\_data singleton and therefore exposes a
-race condition that needs to be solved. To fix this issue, we have either to
+passes that calculate instruction costs in RTL mode to decide how the function
+will be optimized. This accesses the rtl\_data singleton and therefore exposes
+a race condition that needs to be solved. To fix this issue, we have either to
 replicate this structure, which is necessary to parallelize the intraprocedural
 RTL optimizations, or fix the GIMPLE pass so that it does not depends on
 instruction costs. 
 
 \end{subsection}
 
+\begin{subsection}{Methods}
+
+We tested our implementation mainly using stress test with the gimple-match.c
+file, which is the biggest file in the GCC project. We still have undetected
+race conditions, which must be found and solved for a production-quality
+implementation. Still, we have a $99.8\%$ of approval rate on gcc.dg testsuite (22
+failures from 13183 test cases).
+
+The computer used in this Benchmark had an Intel(R) Core(TM) i5-8250U CPU, with
+8Gb of RAM.  Therefore, this computer had a CPU with 4 cores with
+Hyperthreading, resulting in 8 virtual cores. All points are the mean of $n = 30$
+samples, and the confidence interval to the populational mean was suppressed,
+as the standard deviation was fairly low for a $95\%$ confidence interval. 
+
+\end{subsection}
+
 \begin{subsection}{Results}
 
 Here we present our current performance results by parallelizing the GIMPLE
-Intra Process Optimizations. It must be highlighted that this project still had
-race conditions, which we discuss later, and further, some locks can be
+intraprocedural optimizations. It must be highlighted that this project still had
+race conditions, and further, some locks can be
 removed, as data structure can be duplicated and the garbage collector could be
 deserialized.
 
-Here we compile the file \texttt{gimple-match.c}, which is the biggest file in
-the GCC project. The computer used in this Benchmark had an Intel(R) Core(TM)
-i5-8250U CPU, with 8Gb of RAM.  Therefore, this computer had a CPU with 4 cores
-with Hyperthreading, resulting in 8 virtual cores. All points are the mean of
-30 samples, and the confidence interval to the populational mean was
-suppressed, as the standard deviation was fairly low. 
-
-Figure \ref{fig:parallel_gimple} below shows our results before and after Intra
-Procedural GIMPLE parallelization. In this figure, we can observe that the time
-elapsed in this part dropped from 7 seconds to around 4 seconds with 2 threads
-and around 3 seconds with 4 threads, resulting in a speedup of 1.72x and 2.52x,
-respectively. Here we can also see that using Hyperthreading did not impact the
-result. This result was used to estimate the improvement in RTL
-parallelization.
+Our parallelization technique resulted in a drop from 7 seconds to around 4
+seconds with 2 threads and around 3 seconds with 4 threads, resulting in a
+speedup of $1.72\times$ and $2.52\times$, respectively. Here we can also see
+that using Hyperthreading did not impact the result. This result was used to
+estimate the improvement in RTL parallelization.
 
 Next, Figure \ref{fig:parallel_real} shows this results when compared with the
 total compilation time. Here we can see that there is a small improvement of
 10\% when compiling this file.
 
 However, since the same approach can be used to parallelize RTL, we can
-estimate a speedup of 1.61x in GCC when it gets parallelized by using the
-speedup information obtained in GIMPLE, as illustrated in Figure
+estimate a speedup of $1.61\times$ in GCC when it gets parallelized by using
+the speedup information obtained in GIMPLE, as illustrated in Figure
 \ref{fig:parallel_estimate}.
 
 \begin{figure}[ht]
@@ -353,6 +388,11 @@ indeed understanding the code and figuring out on our own what is causing the
 race condition. This certainly is the problem not only in compilers but in
 large software in general.
 
+Another issue is to guarantee that our builds are always reproducible.
+Even solved race conditions may change the final executable due to order
+changes in the execution that was not present on the original serial version.
+This is certainly an issue if the feature is used in industrial environments.
+
 With this in mind, perhaps the best approach is to go using a process-based
 approach rather than threads, which we discuss in the next section.
 
@@ -369,7 +409,7 @@ compilation} scheme can not partition its TU for parallel compilation, which
 can also be a bottleneck for the compilation if it is too large.  The latter
 issue, however, can be solved by transplanting the LTO partitioner to the
 \emph{classical compilation} scheme and making it work \textit{without} having
-the context of the \textit{entire} program. We show that this transplant it is
+the context of the \textit{entire} program. We show that this transplant is
 possible by implementing it in GCC.
 
 Here we present our approach regarding parallel compilation using process. For
@@ -409,7 +449,7 @@ a \textit{driver}, and it will launch the
 necessary programs for the user. In fact, this line launches three programs,
 as illustrated in Fig. \ref{fig:gnu_toolchain}.
 
-Therefore, if we want our changes do not break the building scripts
+Therefore, if we want our changes do not to break the building scripts
 (\textit{e.g.}, Makefile) used by most projects -- which is mostly launching
 \texttt{gcc file.c -c} that creates an object file \texttt{file.o} -- we must
 ensure that we create a single object file for each file, not multiple, as does
@@ -806,7 +846,7 @@ may compile the same software from scratch several times a day.
 
 \begin{figure}
 \centering
-	 \includegraphics[scale=0.85]{figuras/experiment_projects_new-crop.pdf}
+	 \includegraphics[scale=1]{figuras/experiment_projects_new-crop.pdf}
 	  \caption{Compilation of some projects with 64 Makefile jobs and 8 threads in compiler in Opteron 6376}
 	  \label{fig:gcc_projects}
 \end{figure}

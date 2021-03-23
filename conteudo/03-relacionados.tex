@@ -41,57 +41,59 @@ compiling \textit{de facto}. We present the works in this area separately.
 From the parsing algorithms presented in Section \ref{chap:fundamentacao}, the
 recursive descent parser is the simplest of them.
 \cite{Lincoln:1970:PPT:987475.987478} proposed a parallel lexical analysis on a
-Fortran compiler by dividing the input source code into smaller parts, and maps
-the position of each character and linefeed in the code, and process them
-through APL operations. Further, \cite{Krohn:1975:PAC:390015.808414} extended
-this work for syntactic analysis and code generation, using the vectorial units
-of the (so far) STAR-100 supercomputer. Both papers do not present experiments
-nor asymptotic analysis of this algorithm.
+Fortran compiler by dividing the input source code into smaller parts, mapping
+the position of each linefeed in the code, and processing them through APL
+operations. Further, \cite{Krohn:1975:PAC:390015.808414} extended this work for
+syntactic analysis and code generation, using the vectorial units of the (so
+far) STAR-100 supercomputer. Both papers do not present experiments nor
+asymptotic analysis of the algorithm.
 
 \cite{fischer1975parsing} gives a detailed theoretical study, proving several
-concurrent parsing techniques for the LR($k$) family. They propose a parallel
-LR($k$) by breaking the input into several arbitrary parts, and running a
-serial parser on each of them. Then the algorithm tries to recover the stack of
-each noninitial parser by constructing a set of possible states, for which
-there are 5 possible cases. However, in case of an error, the parser result
-should be discarded, and therefore a lot of work will be done in vain when
-comparing with the sequential version.
+concurrent parsing techniques for the \LR{$k$} family. He proposed a parallel
+\LR{$k$} by breaking the input into several arbitrary parts and running a serial
+parser on each of them. Then the algorithm tries to recover the stack of each
+noninitial parser by constructing a set of possible states, because the
+complete stack of the left part may be necessary to process the current part,
+for which there are 5 possible causes. However, in case of an error or stack
+recovering failure, the parser result should be discarded, and therefore a lot
+of work will be done in vain when comparing with the sequential version.
 
 Furthermore, \cite{Mickunas:1978:PCM:800127.804105} also proposed a parallelization
-of the LR($0$) algorithm. His idea consists of breaking the input arbitrarily
-points and executing a serial parser for each segment, which he names Piecewise
+of the \LR{$0$} algorithm. Their idea consisted of breaking the input arbitrarily
+points and executing a serial parser for each segment, which they named Piecewise
 LR parsing. These parsers (except the first) are modified to avoid conflict by
 adding an "initial" state by adding every $A \rightarrow u \bullet v$, where $A \rightarrow uv \in
 R$ and $v \neq \lambda$, to the parser item set. This process may add undesired
 states which creates reduce-reduce or shift-reduce conflicts, which the author
-provides a heuristic for solving them.  If the parser finds a conflict which
+provided a heuristic for solving them.  If the parser finds a conflict which
 this heuristic cannot solve, then it sends the stack content to the
 left-neighborhood, and that parser resumes the processing. The authors
-do not show speedup experiments nor assyntotic analysis of this method.
+did not show speedup experiments nor asymptotic analysis of this method.
 \cite{Pennello:1978:FMA:512760.512786} implemented this strategy in a Pascal
 compiler.
 
 \cite{fowler2009parallel} described how to parallelize Earley
-and Packrat methods. Although they are mostly used for natural language
-processing, these algorithms can be used to parse computer languages as well.
-For the Earley algorithm, the authors partition the Earley sets into
-sub-blocks and run each block in parallel. For solving the dependency across
-the blocks, the authors propose a way to speculate additional items into the
-parser, which are not produced by the serial algorithm. For Packrat, the authors
-propose a message passing mechanism.  The input is divided into parts, and each
-part is assigned to a worker thread. Each thread speculates until the
-thread on its left has finished parsing, and send the synthesized starting
-symbol to the thread on its right. The authors managed a speedup of $5.5\times$
-in Earley, and $2.5\times$ in Packrat.
+\citep{earley1970efficient} and Packrat \citep{ford2002packrat} methods.
+Although they are mostly used for natural language processing, these algorithms
+can be used to parse computer languages as well.  For the Earley algorithm, the
+authors partition the Earley sets into sub-blocks and run each block in
+parallel. For solving the dependency across the blocks, the authors propose a
+way to speculate additional items into the parser, which are not produced by
+the serial algorithm. For Packrat, the authors propose a message passing
+mechanism.  The input is divided into parts, and each part is assigned to a
+worker thread. Each thread speculates until the thread on its left has finished
+parsing, and sends the synthesized starting symbol to the thread on its right.
+The authors managed a speedup of $5.5\times$ in Earley, and $2.5\times$ in
+Packrat.
 
-Still on Packrat methods, \cite{dubroy2017incremental} show
-how to implement an incremental Pacrkat to avoids reparsing the entire input
-on modifications. The authors achieve this by recording all its
-intermediate results in a parsing table and modify the parsing program to reload
-this table when invoked. The authors showed that their method does not require
-any modification to the original grammar, and their method requires only
-up to $11.7\%$ of extra memory when compared to the original parser. Authors
-claim a reduction from $23.7ms$ to $6.2ms$ on reparsing a 279Kb input string.
+Still, on Packrat methods, \cite{dubroy2017incremental} show how to implement
+an incremental Packrat to avoids reparsing the entire input on modifications.
+The authors achieve this by recording all its intermediate results in a parsing
+table and modifying the parsing program to reload this table when invoked. The
+authors showed that their method does not require any modification to the
+original grammar, and their method requires only up to $11.7\%$ of extra memory
+when compared to the original parser. Authors claim a reduction from $23.7ms$
+to $6.2ms$ on reparsing a 279Kb input string.
 
 \cite{Barenghi:2015:PPM:2839536.2840146} explore some properties of Operator
 Precedence Grammars to construct a Yacc-like parser constructor named PAPAGENO,
@@ -101,6 +103,27 @@ Grammars with an operator precedence table, which given two symbols $a, b \in
 described precedence grammars for Lua and JSON, which they used in their tests
 to get a speedup of up to $5.5\times$ when compared to a parser generated by
 GNU Bison.
+
+To summarize, we present the results of these papers in Table
+\ref{table:parser_summary}, specifying if the authors implemented their work
+and the reported speedup.
+
+\begin{table}[]
+\begin{tabular}{|l|c|c|}
+\hline
+Authors  & \multicolumn{1}{l|}{Implemented} & \multicolumn{1}{l|}{Speedup} \\ \hline
+\cite{Lincoln:1970:PPT:987475.987478}    & No                               & Not reported                 \\ \hline
+\cite{Krohn:1975:PAC:390015.808414}      & Yes                              & Not reported                 \\ \hline
+\cite{fischer1975parsing}                & No                               & Not reported                 \\ \hline
+\cite{Mickunas:1978:PCM:800127.804105}   & No                               & Not reported                 \\ \hline
+\cite{Pennello:1978:FMA:512760.512786}   & Yes                              & Not reported                 \\ \hline
+\cite{fowler2009parallel}                & Yes                              & $2.5\times$ to $5.5\times$   \\ \hline
+\cite{dubroy2017incremental}             & Yes                              & $6.8\times$                  \\ \hline
+\cite{Barenghi:2015:PPM:2839536.2840146} & Yes                              & $5.5\times$                  \\ \hline
+\end{tabular}
+\caption{Summary of parsing papers}
+\label{table:parser_summary}
+\end{table}
 
 \end{section}
 
@@ -124,14 +147,14 @@ GNU Bison.
 \begin{section}{Parallel Compilation}
 
  \cite{vandevoorde1988parallel} parallelized the \textit{Titan C Compiler}, A C
- compiler written in Modula-2. His implementation consists of a syntactic
+ compiler written in Modula-2. His implementation consisted of a syntactic
  analyzer running in parallel to the lexical analyzer, which feeds the tokens
- through a pipeline. The author uses a recursive descent parser that, after
+ through a pipeline. The author used a recursive descent parser that, after
  reading the function declarations, executes new threads for every statement in
  the program. For this, the author assumes that every function is declared in
  the source header. This fine granularity strategy required a way to control
  the parallelism, which the authors used the concept of workcrews that limits
- the number of threads executing simultaneously. The author reports a speedup
+ the number of threads executing simultaneously. The author reported a speedup
  of $10\%$ when using this pipeline between the analyzers, and a speedup of up
  to $3.1\times$ when using 5 MicroVAX II processors in shared memory. This
  compiler does not include optimizations, and therefore it is not discussed in
@@ -155,18 +178,18 @@ GNU Bison.
 %memória compartilhada. Entretanto, tal compilador não possui estágios de
 %otimização, e assim, métodos de paralelização de um otimizador não foram discutidos neste trabalho.
 
-Similarly, \cite{wortman1992} implemented a parallel Modula-2+ compiler. Their strategy
-consisted of using a lexical analyzer capable of detecting functions in the
-code and proceeding with parallel compilation at this point. To solve problems
-with function calls and access to symbols yet not defined, the authors propose
-a ternary logic in the symbol table, with a state ``\textit{doesn't know yet}'' and
-propose three strategies to implement this functionality. The authors also used
-a fixed number of worker threads and a priority producer-consumer queue on the
-syntactic analyzer to the code generator, where the worker threads will pull
-jobs from. This priority queue is to process larger functions first.
-Experiments conducted by the authors showed speedups ranging from $1.5\times$ to
-$6\times$ times using 8 MicroVAX II in shared memory.
-
+Similarly, \cite{wortman1992} implemented a parallel Modula-2+ compiler. Their
+strategy consisted of using a lexical analyzer capable of detecting functions
+in the code and proceeding with parallel compilation at this point. To solve
+problems with function calls and access to symbols yet not defined, the authors
+propose a ternary logic in the symbol table, with a state ``\textit{doesn't
+know yet}'' and propose three strategies to implement this functionality. The
+authors also used a fixed number of worker threads and a priority
+producer-consumer queue on the syntactic analyzer to the code generator, where
+the worker threads will pull jobs from. This priority queue prioritizes larger
+functions over smaller ones, avoiding leaving for last the most computing
+expensive version. Experiments conducted by the authors showed speedups ranging
+from $1.5\times$ to $6\times$ times using 8 MicroVAX II in shared memory.
 
 %De maneira similar, \cite{wortman1992} implementou um compilador de Modula-2+
 %paralelo. A estratégia consiste em utilizar um analisador léxico capaz de
@@ -209,19 +232,19 @@ The papers presented so far do not touch questions regarding optimizations.
 This is because compilers so far had none to few optimization passes, which
 implied in little time required to process them. Yet, some researchers studied
 how to parallelize these passes. \cite{Lee1994} studied parallelism in both
-intraprocedural and interprocedural dataflow analysis. The authors justify this
+intraprocedural and interprocedural dataflow analysis. The authors justified this
 study by stating that the most compilation time is spent in this part. The
 authors proposed a hybrid algorithm, where the CFGraph is decomposed in
 strongly connected partitions. Each partition runs its dataflow analysis
 independently, then this local result is propagated to the other partitions,
 and finally, this result is propagated again inside the nodes of other
-partitions. Authors report a speedup ranging from $1.7\times$ to $7.8\times$
+partitions. Authors reported a speedup ranging from $1.7\times$ to $7.8\times$
 regarding the sequential algorithm.
 
 Another way of exploring parallelism is by converting the CFGraph into a DAG.
 \cite{kramer1994combining} showed that converting any CFGraph to a DAG
 structure still yields the correct dataflow solution of the original problem
-while removing any backedge from the original CFGraph. Then the authors show
+while removing any backedge from the original CFGraph. Then the authors showed
 how to construct a dependency graph from this DAG, which they process in
 parallel by levels. Authors show a speedup from $2.7\times$ to $5.4\times$.
 
@@ -233,10 +256,29 @@ parallel by levels. Authors show a speedup from $2.7\times$ to $5.4\times$.
 %pelos autores apenas mostram oportunidades de paralelismo encontrada pelo
 %algoritmo.
 
+However, the works presented so far are concerned with the classical
+compilation scheme. There are also papers expanding this scheme allowing better
+optimizing compilers which also explores parallelism, which we will present in
+the next subsection. We present a summary table of the above papers in
+Table \ref{table:parallel_comp_opt}.
+
+\begin{table}[]
+\begin{tabular}{|l|c|c|}
+\hline
+Authors      & \multicolumn{1}{l|}{Implemented} & \multicolumn{1}{l|}{Speedup} \\ \hline
+ \cite{vandevoorde1988parallel} & Yes                              & $3.1\times$                         \\ \hline
+ \cite{wortman1992}     & Yes                              & $1.5\times$ to $6\times$                   \\ \hline
+ \cite{Lee1994}         & Yes                               & $1.7\times$ to $7.8\times$                 \\ \hline
+ \cite{kramer1994combining}     & Yes                               & $2.7\times$ to $5.4\times$                 \\ \hline
+\end{tabular}
+\caption{Summary of the papers about parallel compilation and optimization}
+\label{table:parallel_comp_opt}
+\end{table}
+
 \begin{subsection}{Link Time Optimization (LTO)}\label{lto_section}
 
 The issue around this scheme is that it can only optimize with
-the information found in its TU because it can not see the body
+the information found in its Translation Unit (TU) because it can not see the body
 content of other files' functions. A TU is the
 entire content of a source file (a .c file in C) plus all its headers.
 
@@ -366,7 +408,7 @@ can be seen by launching gcc with \texttt{-flto -v}.
 
 \cite{glek2010optimizing} report that LTO produced faster and smaller binaries when compiling GCC
 and Firefox, however with a two times slower compilation in GCC. Interestingly,
-Firefox compiled 20minutes faster. In all reported cases, the intraprocedural
+Firefox compiled 20 minutes faster. In all reported cases, the intraprocedural
 optimizations dominated the compilation time.
 
 \cite{livska2014optimizing} complements the analysis of this functionality. One
@@ -375,14 +417,13 @@ of the problems found was the high memory consumption of LTO, which went up to
 criticism was the necessary recompilation time when a single file is modified
 in LTO mode when compared with the classical compilation scheme.
 
-There are also papers using a profile-based approach rather than a whole-program
-analysis for cross-module optimizations.  Xinliang \textit{et al.}
-\cite{lipo} proposed LIPO, which embeds IPA in the generated
-binary with minimal overhead, and loads information about functions in other
-modules based on the profiling report. LIPO also removes the requirement of
-phony object dumps and link time wrappers when compared to LTO. Results showed
-a speedup of up to $10\times$ in compilation time when compared to Feedback
-Driven Optimization (FDO) alone.
+There are also papers using a profile-based approach rather than a
+whole-program analysis for cross-module optimizations.  proposed LIPO, which
+embeds IPA in the generated binary with minimal overhead, and loads information
+about functions in other modules based on the profiling report. LIPO also
+removes the requirement of phony object dumps and link time wrappers when
+compared to LTO. Results showed a speedup of up to $10\times$ in compilation
+time when compared to Feedback Driven Optimization (FDO) alone.
 
 Following that, Johnson \textit{et al.} proposes ThinLTO \cite{thinlto}. It
 differs from LTO by generating the function summaries on the LGEN stage for
@@ -391,6 +432,13 @@ original LTO. ThinLTO also supports incremental builds by hashing the compiled
 function to avoid recompilation of unmodified functions, while LTO requires
 recompilation of the entire partition. Today, most GCC's IPA
 optimizations only use summaries to avoid this memory footprint issue.
+
+These presented approaches were developed not to improve compilation time or
+improve parallelism usage, but to analyze the program as a whole, resulting in
+better optimizations. In our work, we will present a way to use the LTO engine
+to compile single files in parallel, therefore we want to improve compilation
+performance, not improve the quality of the optimizations, which would be as
+good as the classical compilation scheme. 
 
 \end{subsection}
 \end{section}
