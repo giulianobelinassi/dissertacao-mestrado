@@ -6,7 +6,7 @@ presented the previous works in the area, we discuss our attempts and success
 of parallelizing a compiler.
 
 We start this chapter by presenting a profile report of GCC, which we use to
-decide where to attack (in Section \ref{sec:profile}). Then we show two ways to
+decide where to tackle (in Section \ref{sec:profile}). Then we show two ways to
 proceed to parallelize the most costly section: by using threads (in Section
 \ref{sec:threads}) or by adapting the LTO engine to compile in parallel (in
 Section \ref{sec:parallel_lto}). In summary, this work will discuss the
@@ -35,7 +35,8 @@ Figure \ref{fig:analysis_classical} highlights some of these files that consume
 a lot of time to compile. From these files, we select the largest one, named
 \texttt{gimple-match.c}.
 
-When profiling GCC with \texttt{gimple-match.c}, we found that
+When profiling GCC with the file \texttt{gimple-match.c} on a Intel(R) Core
+i5-8250U, we found that
 \begin{itemize}
     \item On average, it requires $76s$ to compile that file.
 
@@ -103,16 +104,16 @@ illustrated in Figure \ref{fig:paralelizacao}.
 Since GCC is a huge software, we only selected a subset of the optimization
 passes for this thread-based approach, which we selected the GIMPLE passes.  As
 described in Section \ref{sec:opt_passes}, every pass in GCC belongs to one of
-the three types: IPA, GIMPLE, or RTL, as stated in Section X. Given a function,
-GCC runs all passes in this function before pulling the next function in the
-queue. This means that if we want to parallelize a subset of these passes (in
-our case, GIMPLE), we have to make sure that the pass queue can operate in a
-bunch of functions simultaneously.  The first step is to make sure that we can
-interrupt the queue at some pass, switch functions, execute the passes for this
-new function, switch back to the original function, and everything must work.
-Therefore, the first step was to move some information available on global
-variables into the function struct, so this information was not lost after this
-function switch.
+the three types: IPA, GIMPLE, or RTL, as stated in Section
+\ref{sec:gcc_compiler}. Given a function, GCC runs all passes in this function
+before pulling the next function in the queue. This means that if we want to
+parallelize a subset of these passes (in our case, GIMPLE), we have to make
+sure that the pass queue can operate in a bunch of functions simultaneously.
+The first step is to make sure that we can interrupt the queue at some pass,
+switch functions, execute the passes for this new function, switch back to the
+original function, and everything must work.  Therefore, the first step was to
+move some information available on global variables into the function struct,
+so this information was not lost after this function switch.
 
 Then we split the pass engine explicitly into three steps: IPA
 transformation, GIMPLE, and RTL, and we made sure that we could run all IPA
@@ -196,9 +197,10 @@ Thread Local Storage feature (\textit{\_\_thread}).
 
 Then there were the problems with global variables in most passes, which used
 global variables to avoid passing them down into the call chain. Most of these
-issues could be easily identified using tools like valgrind, once these data
-structures were released after the pass ends, which leads to write to released
-memory. This issue can be fixed by wrapping these variables inside a class and
+issues could be easily identified using tools like
+\texttt{valgrind}\footnote{https://valgrind.org/}, once these data structures
+were released after the pass ends, which leads to write to released memory.
+This issue can be fixed by wrapping these variables inside a class and
 instantiate them on the pass execution.
 
 \end{subsection}
@@ -306,68 +308,6 @@ a race condition that needs to be solved. To fix this issue, we have either to
 replicate this structure, which is necessary to parallelize the intraprocedural
 RTL optimizations, or fix the GIMPLE pass so that it does not depends on
 instruction costs. 
-
-\end{subsection}
-
-\begin{subsection}{Methods}
-
-We tested our implementation mainly using stress test with the gimple-match.c
-file, which is the biggest file in the GCC project. We still have undetected
-race conditions, which must be found and solved for a production-quality
-implementation. Still, we have a $99.8\%$ of approval rate on gcc.dg testsuite (22
-failures from 13183 test cases).
-
-The computer used in this Benchmark had an Intel(R) Core(TM) i5-8250U CPU, with
-8Gb of RAM.  Therefore, this computer had a CPU with 4 cores with
-Hyperthreading, resulting in 8 virtual cores. All points are the mean of $n = 30$
-samples, and the confidence interval to the populational mean was suppressed,
-as the standard deviation was fairly low for a $95\%$ confidence interval. 
-
-\end{subsection}
-
-\begin{subsection}{Results}
-
-Here we present our current performance results by parallelizing the GIMPLE
-intraprocedural optimizations. It must be highlighted that this project still had
-race conditions, and further, some locks can be
-removed, as data structure can be duplicated and the garbage collector could be
-deserialized.
-
-Our parallelization technique resulted in a drop from 7 seconds to around 4
-seconds with 2 threads and around 3 seconds with 4 threads, resulting in a
-speedup of $1.72\times$ and $2.52\times$, respectively. Here we can also see
-that using Hyperthreading did not impact the result. This result was used to
-estimate the improvement in RTL parallelization.
-
-Next, Figure \ref{fig:parallel_real} shows this results when compared with the
-total compilation time. Here we can see that there is a small improvement of
-10\% when compiling this file.
-
-However, since the same approach can be used to parallelize RTL, we can
-estimate a speedup of $1.61\times$ in GCC when it gets parallelized by using
-the speedup information obtained in GIMPLE, as illustrated in Figure
-\ref{fig:parallel_estimate}.
-
-\begin{figure}[ht]
- \centering
- \includegraphics[scale=0.7]{gimple_parallel.pdf}
- \caption{Results of parallelizing GIMPLE passes}
- \label{fig:parallel_gimple}
-\end{figure}
-
-\begin{figure}[ht]
- \centering
- \includegraphics[scale=0.7]{real.pdf}
- \caption{Speedup in total compilation time when parallelizing GIMPLE}
- \label{fig:parallel_real}
-\end{figure}
-
-\begin{figure}[ht]
- \centering
- \includegraphics[scale=0.7]{gcc_estimate.pdf}
- \caption{Estimate parallel time when also parallelizing RTL}
- \label{fig:parallel_estimate}
-\end{figure}
 
 \end{subsection}
 
@@ -733,170 +673,18 @@ if the number of jobs is determined beforehand.
 
 \end{subsection}
 
-\begin{subsection}{Methods}\label{sec:methods}
-
-We ensure the correctness of our changes by running these tests with 2, 4, 8
-and 64 parallel jobs, with minimum partitioning quota of $10^3$ and $10^5$
-instructions:
-\begin{enumerate}
-\item Bootstrapping GCC.
-\item Ensure that the GCC testsuite was passing.
-\item compiling random programs generated with \textit{csmith} \citep{csmith}
-and ensure that the correct result was found.
-\end{enumerate}
-
-For the time measurements, all points represent the average of collected
-samples, with errorbar representing a $95\%$ confidence interval.
-Our test files consisted of preprocessed source files from GCC, which compiles
-without external includes. We collected $n = 15$ samples for every one of these
-files. For the projects, we collected $n = 5$ samples because compilation is a
-computer intensive task. We made sure that in every test, \texttt{-g0} was passed
-for fairness, once there is a bug in our branch regarding debug symbols of
-nodes in other partitions.
-
-For the power usage measurement, we used the builtin AMD \texttt{fam15h\_power}
-sensor available in the Opteron CPU \citep{fam15h}.
-
-Tests were mainly executed in two computers, which are represented
-in Table \ref{table:machines}. The graphic caption specifies where the test
-was run.
-
-\begin{table}[]
-\centering
-\begin{tabular}{c|c|c|c|c|}
-\cline{2-5}
-                                      & Number of Cores & Number of Threads & RAM                                                    & Storage Device \\ \hline
-\multicolumn{1}{|c|}{Core-i7 8650U}   & 4               & 8                 & \begin{tabular}[c]{@{}c@{}}8Gb\end{tabular} & SSD       \\ \hline
-\multicolumn{1}{|c|}{4x Opteron 6376} & 32              & 64                & \begin{tabular}[c]{@{}c@{}}252Gb\end{tabular}   & HDD       \\ \hline
-\end{tabular}
-\caption{Machine specification of tests}
-\label{table:machines}
-\end{table}
-
-
-The version of GCC used in the tests is available in the \texttt{autopar\_europar\_2021}
-branch of \texttt{git://gcc.gnu.org/git/gcc.git}, with hash \texttt{e2da2f7205}.
-
-\end{subsection}
-
-\begin{subsection}{Results}\label{sec:results}
-
-We first highlight our best results in Table \ref{table:files}. On this table,
-the autogenerated column means that this file is compiled to C++, and then compiled
-into assembly by GCC. We managed speedups of up to a $2.4\times$ on Core-i7 when
-compiling individual files with 8 threads, and up to $3.53\times$ on Opteron 6376 when
-with 64 threads. Fig. \ref{fig:gcc_all_files} shows the results
-of all files in GCC. Here we can see that for files with $\textit{Number of Instructions} >
-1 \times 10^5$, we have mostly significant improvements.
-
-We will now discuss how our proposed changes impact the overall compilation
-time of some projects. For this, we run experiments compiling
-the Linux Kernel 5.19.6, Git 2.30.0, the GCC version mentioned in
-Section \ref{sec:methods} with and without bootstrap enabled, and JSON C++, with
-commit hash \texttt{01f6b2e7418537}. We have only enabled jobserver integration
-in GCC and Git, because it is necessary to modify an absolute large number
-of Makefiles to do so (for instance, Linux has 2597 Makefiles).
-
-In Fig. \ref{fig:gcc_projects} we show our results. We can observe a near
-$35\%$ improvement when compiling GCC with bootstrap disabled, $25\%$ when
-bootstrap is enabled, and $15\%$ improvement when compiling Git compared to
-\texttt{make -j64} alone. Our jobserver implementation also squeezed a small
-improvement in GCC compilation, but showed a massive slowdown in Git. This is
-because Jobserver integration has interprocess communication cost
-with Make, which is a problem if the size of the partitions is small.  These
-tests were executed with 64 Makefile jobs and 8 threads inside the compiler.
-Other than this, we seen no significant speedup or slowdown in these other
-projects.
-
-We can explain our results regarding GCC by looking by comparing Figures
-\ref{fig:analysis_classical} and \ref{fig:analysis_classical_parallel}. On
-Figure \ref{fig:analysis_classical}, we have the classical compilation scheme,
-which has some bottlenecks due to high time-consuming files. When our changes
-are applied and the compiler is running in parallel (Figure
-\ref{fig:analysis_classical}), we see a reduction of compilation time on those
-files. Therefore, by compiling files in parallel, we can reduce the time
-required to compile those files when we have available free CPU cores.
-
-Furthermore, we also observe a reduction in power consumption when using this
-mode, which is displayed in Figure \ref{fig:power}. This may be extra useful for Continuous Integration systems, which
-may compile the same software from scratch several times a day.
-
-\begin{table}[]
-\makebox[\textwidth][c]{
-\begin{tabular}{l|c|c|c|c|c|c|c}
-\cline{2-7}
-                                       & \multicolumn{3}{c|}{Core-i7}     & \multicolumn{3}{c|}{Opteron 6376}                                                                & \multicolumn{1}{l}{}               \\ \hline
-\multicolumn{1}{|l|}{File}             & Sequential & 8 Threads & Speedup & \multicolumn{1}{l|}{Sequential} & \multicolumn{1}{l|}{64 Threads} & \multicolumn{1}{l|}{Speedup} & \multicolumn{1}{c|}{Autogenerated} \\ \hline
-\multicolumn{1}{|l|}{gimple-match.c}   & $76s$        & $31s$       & $2.4\times$     & $221s$                            & $66s$                             & $3.32\times$                         & \multicolumn{1}{c|}{yes}           \\ \hline
-\multicolumn{1}{|l|}{insn-emit.c}      & $23s$        & $10s$       & $2.25\times$    & $97s$                             & $37s$                             & $3.53\times$                         & \multicolumn{1}{c|}{yes}           \\ \hline
-\multicolumn{1}{|l|}{tree-vect-stmt.c} & $11s$        & $5s$        & $2.14\times$    & $32s$                             & $13s$                             & $2.46\times$                         & \multicolumn{1}{c|}{no}            \\ \hline
-\end{tabular}
-}
-\caption{Speedup of highlighted files}
-\label{table:files}
-\end{table}
-
-\begin{figure}
-\centering
-	 \includegraphics[scale=0.6]{figuras/times-insns-crop.pdf}
-	  \caption{Compilation of each file with 1, 2, 4, and 8 threads on
-	  Core-i7}
-	  \label{fig:gcc_all_files}
-\end{figure}
-
-\begin{figure}
-\centering
-	 \includegraphics[scale=1]{figuras/experiment_projects_new-crop.pdf}
-	  \caption{Compilation of some projects with 64 Makefile jobs and 8 threads in compiler in Opteron 6376}
-	  \label{fig:gcc_projects}
-\end{figure}
-
-\begin{landscape}
-%\begin{figure}[ht]
- \vspace*{-2cm}%
- \noindent%
- \hspace*{-2cm}%
-    \includegraphics[width=0.9\paperheight]{seq-crop.pdf}
-    \captionof{figure}{Compilation time of GCC without our modifications}
-    \label{fig:analysis_classical}
-%\end{figure}
-\end{landscape}
-
-\begin{landscape}
-%\begin{figure}[ht]
- \vspace*{-2cm}%
- \noindent%
- \hspace*{-2cm}%
-    \includegraphics[width=0.9\paperheight]{par-crop.pdf}
-    \captionof{figure}{Compilation time of GCC after our modifications}
-    \label{fig:analysis_classical_parallel}
-%\end{figure}
-\end{landscape}
-
-\begin{landscape}
-%\begin{figure}[ht]
- \vspace*{-2cm}%
- \noindent%
- \hspace*{-2cm}%
-    \includegraphics[width=0.9\paperheight]{power-crop.pdf}
-    \captionof{figure}{Power usage comparison before and after our modifications}
-    \label{fig:power}
-%\end{figure}
-\end{landscape}
-
-\end{subsection}
-
 \begin{subsection}{Feasibility Discussion}
 
 We have presented a way to adapt the LTO engine to compile single files in
 parallel. When compared to the threaded version, this work resulted in greater
-speedups (2.4x vs. 1.61x) and less time required in development. This is
+speedups (2.4x vs. 1.61x, as presented in Sections \ref{sec:threaded-results}
+and \ref{sec:lto-results}) and less time required in development. This is
 because lots of the LTO logic could be reused and the problem changed
 drastically from ensuring that there are no race conditions to finding the
 correct resources to share. Incremental development is also easier here, once
 we knew that the sources of issues would be the partitioner or the partitioner
 applier. Not only that, given an input file, the issues are reproducible,
-removing the painful randomness of race conditions from the problem. 
+removing the painful randomness of race conditions from the problem.
 
 The good news is that LTO is present in almost every industrial-scale compiler
 nowadays. Therefore, implementing single-file parallelism on those by using our
@@ -1168,5 +956,248 @@ quick to implement, large outcome method of doing that.
 %\end{itemize}
 %Uma ilustração da distribuição dessas tarefas no tempo está representada na
 %Figura \ref{fig:gantt}.
+
+\chapter{Experiments}
+
+Having our methods explained and implemented, we may now show our experiments
+methodology and results. We proceeded with the following methodology: we
+analyzed which method gave us the best result using compilation time of
+\texttt{gimple-match.c} as criteria, as well as correctness which we could
+ensure in our implementation. Then we selected the best method for the
+remaining three experiments:
+\begin{itemize}
+  \item Compiling every file individually using multiple numbers of threads.
+  \item Compiling entire projects using multiple numbers of threads inside the
+	compiler, together with \texttt{make -j} and comparing with \texttt{make -j} alone,
+	which we define as our baseline. We then select one project (GCC itself) and
+	show why we managed such speedup.
+  \item Collecting the power draw for the CPU using multiple threads inside the
+compiler and the baseline.
+\end{itemize}
+
+\section{Threaded Parallelism}
+
+We start with our first approach, the threaded-based intraprocedural optimization
+parallelism, as presented in Section \ref{sec:threads}.
+
+\begin{subsection}{Methods}
+
+We tested our implementation mainly using stress test with the gimple-match.c
+file, which is the biggest file in the GCC project. We still have undetected
+race conditions, which must be found and solved for a production-quality
+implementation. Still, we have a $99.8\%$ of approval rate on gcc.dg testsuite (22
+failures from 13183 test cases).
+
+The computer used in this Benchmark had an Intel(R) Core(TM) i5-8250U CPU, with
+8Gb of RAM.  Therefore, this computer had a CPU with 4 cores with
+Hyperthreading, resulting in 8 virtual cores. All points are the mean of $n = 30$
+samples, and the confidence interval to the populational mean was suppressed,
+as the standard deviation was fairly low for a $95\%$ confidence interval. 
+
+\end{subsection}
+
+\begin{subsection}{Results}\label{sec:threaded-results}
+
+Here we present our current performance results by parallelizing the GIMPLE
+intraprocedural optimizations. It must be highlighted that this project still had
+race conditions, and further, some locks can be
+removed, as data structure can be duplicated and the garbage collector could be
+deserialized.
+
+Our parallelization technique resulted in a drop from 7 seconds to around 4
+seconds with 2 threads and around 3 seconds with 4 threads, resulting in a
+speedup of $1.72\times$ and $2.52\times$, respectively. Here we can also see
+that using Hyperthreading did not impact the result. This result was used to
+estimate the improvement in RTL parallelization.
+
+Next, Figure \ref{fig:parallel_real} shows this results when compared with the
+total compilation time. Here we can see that there is a small improvement of
+10\% when compiling this file.
+
+However, since the same approach can be used to parallelize RTL, we can
+estimate a speedup of $1.61\times$ in GCC when it gets parallelized by using
+the speedup information obtained in GIMPLE, as illustrated in Figure
+\ref{fig:parallel_estimate}.
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[scale=0.7]{gimple_parallel.pdf}
+ \caption{Results of parallelizing GIMPLE passes}
+ \label{fig:parallel_gimple}
+\end{figure}
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[scale=0.7]{real.pdf}
+ \caption{Speedup in total compilation time when parallelizing GIMPLE}
+ \label{fig:parallel_real}
+\end{figure}
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[scale=0.7]{gcc_estimate.pdf}
+ \caption{Estimate parallel time when also parallelizing RTL}
+ \label{fig:parallel_estimate}
+\end{figure}
+
+\end{subsection}
+
+\section{LTO-Based Parallelism}
+
+In this section we present our experiments and results about our
+LTO-Based parallelism technique, as presented \ref{sec:parallel_lto}.
+
+\begin{subsection}{Methods}\label{sec:methods}
+
+We ensure the correctness of our changes by running these tests with 2, 4, 8
+and 64 parallel jobs, with minimum partitioning quota of $10^3$ and $10^5$
+instructions:
+\begin{enumerate}
+\item Bootstrapping GCC.
+\item Ensure that the GCC testsuite was passing.
+\item Compiling random programs generated with \textit{csmith} \citep{csmith}
+and ensure that the correct result was found.
+\end{enumerate}
+
+For the time measurements, all points represent the average of collected
+samples, with errorbar representing a $95\%$ confidence interval.
+Our test files consisted of preprocessed source files from GCC, which compiles
+without external includes. We collected $n = 15$ samples for every one of these
+files. For the projects, we collected $n = 5$ samples because compilation is a
+computer intensive task. We made sure that in every test, \texttt{-g0} was passed
+for fairness, once there is a bug in our branch regarding debug symbols of
+nodes in other partitions.
+
+For the power usage measurement, we used the builtin AMD \texttt{fam15h\_power}
+sensor available in the Opteron CPU \citep{fam15h}.
+
+Tests were mainly executed in two computers, which are represented
+in Table \ref{table:machines}. The graphic caption specifies where the test
+was run.
+
+\begin{table}[]
+\centering
+\begin{tabular}{c|c|c|c|c|}
+\cline{2-5}
+                                      & Number of Cores & Number of Threads & RAM                                                    & Storage Device \\ \hline
+\multicolumn{1}{|c|}{Core-i7 8650U}   & 4               & 8                 & \begin{tabular}[c]{@{}c@{}}8Gb\end{tabular} & SSD       \\ \hline
+\multicolumn{1}{|c|}{4x Opteron 6376} & 32              & 64                & \begin{tabular}[c]{@{}c@{}}252Gb\end{tabular}   & HDD       \\ \hline
+\end{tabular}
+\caption{Machine specification of tests}
+\label{table:machines}
+\end{table}
+
+
+The version of GCC used in the tests is available in the \texttt{autopar\_europar\_2021}
+branch of \texttt{git://gcc.gnu.org/git/gcc.git}, with hash \texttt{e2da2f7205}.
+
+\end{subsection}
+
+\begin{subsection}{Results}\label{sec:lto-results}
+
+We first highlight our best results in Table \ref{table:files}. On this table,
+the autogenerated column means that this file is compiled to C++, and then compiled
+into assembly by GCC. We managed speedups of up to a $2.4\times$ on Core-i7 when
+compiling individual files with 8 threads, and up to $3.53\times$ on Opteron 6376 when
+with 64 threads. Fig. \ref{fig:gcc_all_files} shows the results
+of all files in GCC. Here we can see that for files with $\textit{Number of Instructions} >
+1 \times 10^5$, we have mostly significant improvements.
+
+We will now discuss how our proposed changes impact the overall compilation
+time of some projects. For this, we run experiments compiling
+the Linux Kernel 5.19.6, Git 2.30.0, the GCC version mentioned in
+Section \ref{sec:methods} with and without bootstrap enabled, and JSON C++, with
+commit hash \texttt{01f6b2e7418537}. We have only enabled jobserver integration
+in GCC and Git, because it is necessary to modify an absolute large number
+of Makefiles to do so (for instance, Linux has 2597 Makefiles).
+
+In Fig. \ref{fig:gcc_projects} we show our results. We can observe a near
+$35\%$ improvement when compiling GCC with bootstrap disabled, $25\%$ when
+bootstrap is enabled, and $15\%$ improvement when compiling Git compared to
+\texttt{make -j64} alone. Our jobserver implementation also squeezed a small
+improvement in GCC compilation, but showed a massive slowdown in Git. This is
+because Jobserver integration has interprocess communication cost
+with Make, which is a problem if the size of the partitions is small.  These
+tests were executed with 64 Makefile jobs and 8 threads inside the compiler.
+Other than this, we seen no significant speedup or slowdown in these other
+projects.
+
+We can explain our results regarding GCC by looking by comparing Figures
+\ref{fig:analysis_classical} and \ref{fig:analysis_classical_parallel}. On
+Figure \ref{fig:analysis_classical}, we have the classical compilation scheme,
+which has some bottlenecks due to high time-consuming files. When our changes
+are applied and the compiler is running in parallel (Figure
+\ref{fig:analysis_classical}), we see a reduction of compilation time on those
+files. Therefore, by compiling files in parallel, we can reduce the time
+required to compile those files when we have available free CPU cores.
+
+Furthermore, we also observe a reduction in power consumption when using this
+mode, which is displayed in Figure \ref{fig:power}. This may be extra useful for Continuous Integration systems, which
+may compile the same software from scratch several times a day.
+
+\begin{table}[]
+\makebox[\textwidth][c]{
+\begin{tabular}{l|c|c|c|c|c|c|c}
+\cline{2-7}
+                                       & \multicolumn{3}{c|}{Core-i7}     & \multicolumn{3}{c|}{Opteron 6376}                                                                & \multicolumn{1}{l}{}               \\ \hline
+\multicolumn{1}{|l|}{File}             & Sequential & 8 Threads & Speedup & \multicolumn{1}{l|}{Sequential} & \multicolumn{1}{l|}{64 Threads} & \multicolumn{1}{l|}{Speedup} & \multicolumn{1}{c|}{Autogenerated} \\ \hline
+\multicolumn{1}{|l|}{gimple-match.c}   & $76s$        & $31s$       & $2.4\times$     & $221s$                            & $66s$                             & $3.32\times$                         & \multicolumn{1}{c|}{yes}           \\ \hline
+\multicolumn{1}{|l|}{insn-emit.c}      & $23s$        & $10s$       & $2.25\times$    & $97s$                             & $37s$                             & $3.53\times$                         & \multicolumn{1}{c|}{yes}           \\ \hline
+\multicolumn{1}{|l|}{tree-vect-stmt.c} & $11s$        & $5s$        & $2.14\times$    & $32s$                             & $13s$                             & $2.46\times$                         & \multicolumn{1}{c|}{no}            \\ \hline
+\end{tabular}
+}
+\caption{Speedup of highlighted files}
+\label{table:files}
+\end{table}
+
+\begin{figure}
+\centering
+	 \includegraphics[scale=0.6]{figuras/times-insns-crop.pdf}
+	  \caption{Compilation of each file with 1, 2, 4, and 8 threads on
+	  Core-i7}
+	  \label{fig:gcc_all_files}
+\end{figure}
+
+\begin{figure}
+\centering
+	 \includegraphics[scale=1]{figuras/experiment_projects_new-crop.pdf}
+	  \caption{Compilation of some projects with 64 Makefile jobs and 8 threads in compiler in Opteron 6376}
+	  \label{fig:gcc_projects}
+\end{figure}
+
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+    \includegraphics[width=0.9\paperheight]{seq-crop.pdf}
+    \captionof{figure}{Compilation time of GCC without our modifications}
+    \label{fig:analysis_classical}
+%\end{figure}
+\end{landscape}
+
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+    \includegraphics[width=0.9\paperheight]{par-crop.pdf}
+    \captionof{figure}{Compilation time of GCC after our modifications}
+    \label{fig:analysis_classical_parallel}
+%\end{figure}
+\end{landscape}
+
+\begin{landscape}
+%\begin{figure}[ht]
+ \vspace*{-2cm}%
+ \noindent%
+ \hspace*{-2cm}%
+    \includegraphics[width=0.9\paperheight]{power-crop.pdf}
+    \captionof{figure}{Power usage comparison before and after our modifications}
+    \label{fig:power}
+%\end{figure}
+\end{landscape}
+
+\end{subsection}
 
 %%%%%

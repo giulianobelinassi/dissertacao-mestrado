@@ -13,7 +13,7 @@ between distinct programming languages. Usually, compilers translate high-level
 languages such as C, to assembly language, and those are the focus of our work.
 
 This chapter presents a brief introduction to the concepts used in this work.
-In Section \ref{sec:parsing} we present some subjects about computer-theory
+In Section \ref{sec:parsing} we present some topics about computer-theory
 which are heavily used in a compiler. In Section \ref{sec:optimization} we
 present all parts of the compiler pipeline to understand the compilation
 phases. In Section \ref{sec:engineering} we discuss some software engineering
@@ -61,6 +61,8 @@ of some set $A$ is denoted by $2^A$.
 The \textit{length} of a word $x$, denoted as $|x|$, is the number of characters
 in the string. If $x = \lambda$, then $|x| = 0$. It should not be confused with
 the size of a set $|A|$, which is the number of elements of that set.
+For more details, we suggest reading the following references: \cite{sipser2012},
+\cite{lewis1998elements}, and \cite{hopcroft2001introduction}.
 
 \end{subsection}
 
@@ -232,7 +234,7 @@ Therefore, we can split $w$ in
 $$w = xyz$$
 Where $x \in \Sigma^*$ is the part of $w$ before the circuit, $y \in \Sis$ is
 the part of $w$ in this circuit, and $z \in \Sis$ is the part of $w$ after the
-circuit. Note that $x$ and $y$ consists of a sequence of $\texttt{(}$
+circuit. Note that $x$ and $y$ consists of a sequence of `$\texttt{(}$'
 characters, because we are processing the first $2n$ characters of $w$,
 and $|y| \geq 1$ because in this circuit, some characters were
 read.
@@ -296,7 +298,7 @@ in a $\NFA$.
 These machines are more powerful than both \ttt{DFA} and \ttt{NFA}.
 For every \ttt{NFA}, there is a \ttt{PDA} that detects the same language.
 Furthermore, there is a $\PDA$ detecting $L_2$, in
-which we proved that there is no \ttt{DFA} for it.
+which we presented a proof that there is no \ttt{DFA} for it.
 
 \begin{figure}
 \begin{tikzpicture}[node distance = 3cm, auto]
@@ -322,20 +324,20 @@ A sketch of why this machine works is as follows: on the transition
 from $q_1$, to $q_2$, the machine will push an token $\$ \in \Ga$ to mark the
 beginning of the stack. Then we may proceed reading $\ttt{(}$ through the loop
 at $q_2$, and pushing then on the stack, or advance without reading, poping or
-pushing anything on the stack.  Once all $\ttt{(}$ has been pushed on the
-stack, it will then proceed reading all $\ttt{)}$ while poping the $\ttt{(}$
+pushing anything on the stack.  Once all `$\ttt{(}$'s have been pushed on the
+stack, it will then proceed reading all `$\ttt{)}$' while poping the `$\ttt{(}$'
 characters of the stack to count how many occurrences it has seen so far.
-If the stack ends empty after this process, it means that the number of $\ttt{(}$
-is equal to the number of $\ttt{)}$. If the machine incorrectly guesses when to switch
+If the stack ends empty after this process, it means that the number of `$\ttt{(}$'
+is equal to the number of `$\ttt{)}$'. If the machine incorrectly guesses when to switch
 from $q_2$ to $q_3$ even if $w \in L_2$, this would generate an invalid path
-because the top of the stack would contain a $\ttt{(}$ and not the $\$$, and
+because the top of the stack would contain a `$\ttt{(}$' and not the $\$$, and
 the same goes when $w = \ttt{(}^i\ttt{)}^j$, with $j < i$. If, however, $i >
 j$, then it is possible to jump from $q_3$ to $q_4$, however, the entire input string
 would not be completely consumed, and therefore the machine will reject the
 string. The only way that an string is accepted is when $j = i$.
 
 Now that we showed one language that a \ttt{PDA} can recognize that a
-\ttt{NFA} can not, let's prove that any language recognizable by an
+\ttt{NFA} can not, we may prove that any language recognizable by an
 \ttt{NFA} is recognizable by a \ttt{PDA}.
 
 \begin{theorem}
@@ -366,7 +368,7 @@ of backtracking if we remove the nondeterminism from the machine.
 \end{subsection}
 
 \begin{subsection}{Deterministic Finite Pushdown Automata}
-	Let's now restrict the \ttt{PDA} so that
+	We may now present a restriction of the \ttt{PDA} so that
 it is possible to remove the possibility of backtracking from these machines.
 The way to do it is to restrict when the machine can have certain transitions
 with regard to $\delta(q, \sigma, \lambda)$, $\delta(q, \lambda, \gamma)$ and
@@ -397,12 +399,12 @@ is not $\emptyset$.
 By setting these restrictions on $\delta$, we prevent the machine from taking two
 distinct actions given the same input, as it is possible in \ttt{PDA}
 by setting both $\delta(q, \sigma, \gamma) \neq \emptyset$ and
-$\delta(q, \sigma, \lambda) \neq \emptyset$. The machine can also only take an
+$\delta(q, \sigma, \lambda) \neq \emptyset$. The machine can also only take a
 move of form $\delta(q, \sigma, \lambda)$ or $\delta(q, \lambda, \lambda)$ when
 the stack is empty, otherwise the machine will always reject the input. Acceptance
 happens the same way as in \ttt{PDA}.
 
-Let's now build a $\DPDA$ for $L_2$. We can start
+We may now show a $\DPDA$ for $L_2$. We can start
 from the nondeterminisitc version, since the only condition that is violated
 there with regard to a $\DPDA$ are the transitions
 $\delta(q_2, \ttt{(}, \lambda)$ and $\delta(q_2, \lambda, \lambda)$: only one
@@ -434,7 +436,7 @@ once backtracking is not needed. Unfortunately, such machines are less powerful
 than the Nondeterministic version. For instance, the language
 $$L_3 = \conj{ww^R}{w \in \{0, 1\}^*}$$
 can not be detected by such machines, but one can clearly design a $\PDA$
-that recognizes this language: just push an certain amount of characters
+that recognizes this language: just push a certain amount of characters
 and nondeterministically ``guess'' when to start popping the characters
 from the stack and comparing to the next input characters.
 
@@ -600,7 +602,7 @@ to fix this problem for a $\LR{1}$ parser:
 however, one can design a Top-Down Recursive-Descent parser that correctly
 parses that grammar, even with the ambiguity.
 
-Let's now define what it means for a Grammar to be ``Deterministic'' by
+We may now define what it means for a Grammar to be ``Deterministic'' by
 defining the \textit{handle} of a string.
 
 \begin{definition}
@@ -959,6 +961,11 @@ which satisfy the following definition:
 	literal constants.
 \end{definition}
 
+Not only used to detect common subexpressions, the 3AC representation is also
+useful when allocating registers to variables, once instructions usually only
+take two operands as argument (for instance, the \texttt{add} instruction in
+x86). 
+
 \end{subsection}
 
 \begin{subsection}{Control-Flow Graph}
@@ -1059,6 +1066,13 @@ as follows.
 	are no outgoing edges to other nodes.
 \end{definition}
 
+Control-Flow Graphs have several usages in compilers and static analyzers. For
+instance, the analyzer can detect loops in codes that do not use any
+conventional loop operands such as \texttt{while} or \texttt{for} (e.g. the
+code has several \texttt{goto}s), and even detect unreachable code by verifying
+if a certain node is reachable from the CFGraph source node. But its main usage
+is on dataflow frameworks, which we will introduce in Subsection \ref{sec:dataflow}.
+
 \end{subsection}
 
 \begin{subsection}{Posets and Lattices}
@@ -1067,7 +1081,7 @@ One of the mathematical theories to model \textit{order between binary
 relations} is called \textit{Lattice Theory}. One clear example of order in
 mathematics is the set of all integers $\mathbb{Z}$ with the binary, partial
 order relation $\leq$. However, when the set in which we are working on is
-abstract, such order relation turns out to be convoluted. Nevertheless, finding
+abstract, for instance which variables are live on some program point, such order relation turns out to be convoluted. Nevertheless, finding
 such order in these abstract structures may be helpful.
 
 \begin{definition}
@@ -1178,9 +1192,16 @@ some analysis ends after a finite number of iterations.
 	$$x \sqsq y \Rightarrow f(x) \sqsq f(y)$$.
 \end{definition}
 
+Lattices have an important role in the formal definition of dataflow
+frameworks, as they are often used to prove that the analysis always halts with
+some result for every input program.
+For instance, the fact that the meet operation always gives a result closer to
+the bottom element guarantees that frameworks using a meet semilattice will
+always converge to a result.
+
 \end{subsection}
 
-\begin{subsection}{Dataflow Analysis}
+\begin{subsection}{Dataflow Analysis}\label{sec:dataflow}
 
 Dataflow Analysis is a technique to collect and propagate information across a
 Control-Flow Graph. It is used not only in compilers but also in static code
@@ -1191,16 +1212,6 @@ what properties do hold to decide for an optimization.  Incorrectly guessing
 some property may result in an incorrect transformation. Therefore, it is
 useful to employ a way to propagate information across the Control-Flow Graph
 of a function. This is where Dataflow Analysis is useful.
-
-Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct a
-complete or meet lattice $\mathcal{L}$, which represents a set of possible
-information that is true in a certain point of a program.  Then, we define a
-set of \textit{flow functions} $\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$,
-where $f_v: \mathcal{L} \longrightarrow \mathcal{L}$, for each node $v \in V$.
-These functions will generate, destroy, or transform information contained in
-each vertex of the graph. These functions must be of the form of
-\textit{forward analysis}, which yields Equation \ref{eq:forward}, or
-\textit{backward analysis}, which yields Equation \ref{eq:backward}.
 
 Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct a
 complete or meet lattice $\mathcal{L}$, which represents a set of possible
@@ -1268,11 +1279,24 @@ successors of a node, for the \textit{forward analysis} case.
 		\end{itemize}
 	\end{definition}
 
-	
+Dataflow frameworks have an important role in compilers and software static
+analysis, as they are often used to model problems that require information to
+be propagated through the CFGraph. Several problems can be solved by finding a
+solution to a dataflow equation, such as constant folding, liveness analysis,
+pointer alias, and so on. We will present liveness analysis as an example, once
+it is used in the register allocation phase.
 
-	\begin{subsubsection}{Liveness Analysis}
+\begin{subsubsection}{Liveness Analysis}
 
-One example of a problem that can be solved with dataflow analysis is the \textit{liveness analysis}, which is useful in the register selection phase. The purpose of this is to find, given a point in a CFGraph, if a certain variable will be used in the future. \cite{khedker2009data} defines the liveness analysis formally as:
+One example of a problem that can be solved with dataflow analysis is the
+\textit{liveness analysis}.
+The purpose of it is to find, given a point in a CFGraph, if a certain variable
+will be used in the future. This step is important to the register allocation
+phase because if a certain variable is used in the future, we may need to keep
+its value in a register for future use. If the variable is not live anymore,
+then we can use that register to hold another variable, thus improving register
+usage in the final code.  \cite{khedker2009data} defines the liveness
+analysis formally as:
 
 \begin{definition}
 
@@ -1302,13 +1326,16 @@ which yields the dataflow equation:
 \end{split}
 \end{equation}
 
-In this equation, $\texttt{gen[} v \texttt{]}$ represents the variables which turns
-to be line at vertex $v$, and $\texttt{kill[} v \texttt{]}$ are the variables which
-liveness are no longer valid at vertex $v$. For instance, consider the CFGraph
-in Figure \ref{fig:cfg_liveness}. Here, we work on the set $\mathbb{V} = \{a, b, c, d\}$.
-Solving Equation \ref{eq:liveness} using the propagation technique, simulated in Table
-\ref{fig:table_cfg}. There, for instance, we can see that $d$ is not used anywhere
-in the program because $d \not\in \ttt{out[}n_1\ttt{]}$.
+In this equation, $\texttt{gen[} v \texttt{]}$ represents the variables which
+turns to be live at vertex $v$, and $\texttt{kill[} v \texttt{]}$ are the
+variables which liveness are no longer valid at vertex $v$. For instance,
+consider the CFGraph in Figure \ref{fig:cfg_liveness}. Here, we work on the set
+$\mathbb{V} = \{a, b, c, d\}$.  We present the solution of Equation
+\ref{eq:liveness} is presented in Table \ref{fig:table_cfg} using the
+propagation technique. There, for instance, we can see that $d$ is not used
+anywhere in the program because $d \not\in \ttt{out[}n_1\ttt{]}$. This means
+that the variable $d$ can be discarded from the program, and therefore no
+register or memory space is necessary to hold this variable.
 
 \begin{figure}
 \centering
@@ -1395,13 +1422,14 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 \end{figure}
 
 
-	Dominator trees are often used to build the Static Single Form
-	(SSA) of a CFGraph, and to detect loops in the Control-Flow
-	Graph. \cite{appel2004modern} provides algorithms to detect
-	loops using the CFGraph, which is useful when the language
-	supports \texttt{goto}s. A faster algorithm
-	(but complex than the dataflow equation) algorithms to build
-	the Dominator tree of a CFGraph is presented by
+	Dominator trees are often used to build the Static Single Form (SSA) of a
+	CFGraph, to detect loops in the Control-Flow Graph, and in several loop
+	optimizations, such as hoisting constant variables outside of a loop,
+	detecting induction variables, and so on.
+	\cite{appel2004modern} provides algorithms to detect loops using the
+	CFGraph, which is useful when the language supports \texttt{goto}s. A
+	faster algorithm (but complex than the dataflow equation) algorithms to
+	build the Dominator tree of a CFGraph is presented by
 	\cite{georgiadis2006finding}.
 
 \end{subsection}
@@ -1521,9 +1549,15 @@ of a variable $a$, then any node $z$ in the dominance frontier of $x$ needs a $\
 for $a$. \citep{appel2004modern}.
 
 SSA makes the optimizing compiler fast because it avoids relying on dataflow
-bit vector equations. One example is to compute the \textit{def-use} chains
-of some variable. By using SSA, the compiler can quickly find where a certain
-variable was defined and when it is used \citep{appel2004modern}.
+bit vector equations to compute \textit{def-use}. Instead of finding whenether a
+certain variable was redefined, or detecting which version of the variable is being
+used, SSA simply enforces that a variable has a single definition. This makes
+several optimizations easy.
+
+For instance, dead-code elimination can simply check if a variable has no use.
+If a variable had previously two definitions and the second has no use, SSA
+will transform this variable into two other variables and the second one
+would have no use, and therefore could be elminated \citep{appel2004modern}.
 
 \end{subsection}
 
@@ -1606,20 +1640,30 @@ stage on compilers such as GCC \citep{gcc_ipa}.
   \label{fig:call_graph}
 \end{figure}
 
+Callgraphs are often used to model interprocedural optimizations, such as
+function inlining, as it models the call relationship between functions. For
+instance, inlining can increase the program size in bytes tremendously if the
+function is called from multiple locations, which can further slow down the
+program due to instruction cache and page faults.
+
 \end{subsection}
 
 \begin{subsection}{Register Allocation}
-	Registers are very fast, but small memories inside a processor, which data is
-	required to be loaded for operations like add, subtract, multiply, etc. These
-	memories are a very scarce resource in a processor, and therefore this resource
-	must be administered very carefully.
+Registers are very fast, but small memories inside a processor, which data is
+required to be loaded for operations like add, subtract, multiply, etc. These
+memories are a very scarce resource in a processor, and therefore it
+must be administered carefully.
 
-This is the purpose of \textit{register allocation}. A code in an Intermediary
-Representation can contain an arbitrary number of temporary variables, and the
-goal here is to rewrite the code such that it uses no more temporaries than
-there are registers in the machine. For example, consider the Figure
-\ref{fig:register_ir}. In (a), we have a sketch of the program, and in (b) we
-have the rewrite using at most 4 registers.
+A good (near-optimal) register allocation can hugely speed up the program
+because it avoids unnecessary accesses between the CPU and the computer's
+memory, and this is the purpose of the register allocation.
+
+The idea of this step is to represent the variables in the IR so that it can be
+easily mapped into the CPU registers. Therefore, since the IR can have an
+infinite number of variables, the goal here is to rewrite the code such that it
+uses no more temporaries than there are registers in the machine. For example,
+consider the Figure \ref{fig:register_ir}. In (a), we have a sketch of the
+program, and in (b) we have the rewrite using at most 4 registers.
 
 \begin{figure}[ht]
     \centering
@@ -1717,7 +1761,9 @@ An important step in the final translation process is the
 than a way to translate a statement to machine code, for instance, 
 assigning a variable to zero. One could use \texttt{mov reg, 0}, or
 even \texttt{xor reg, reg}, but the latter one is faster as it takes fewer
-cycles to execute. Detecting such cases is the main issue here.
+cycles to execute. This is specially important for CISC-based processors,
+which a sequence of instructions can be replaced with a single instruction,
+resulting in a faster program. Detecting such cases is the main issue here.
 
 There are several techniques to select instruction. One of the simplest
 is the \textit{macro translation}, where each statement is replaced
@@ -2035,7 +2081,7 @@ with each other, as illustrated in Figure \ref{fig:lexico_sintatico}.
 %(CPP)\footnote{https://gcc.gnu.org/onlinedocs/cppinternals/Lexer.html}.
 
 First, the Lexical Analyser is responsible for reading a text file containing
-the Souce Code and splitting the words in the file in Tokens. As a consequence,
+the Source Code and splitting the words in the file in Tokens. As a consequence,
 it is capable of applying some filters, e.g. ignore commentaries, identify
 numerical constants, remove unnecessary spaces, and replace a token with
 another.  Lexical Analysers can also be used for macro expansion, as
@@ -2077,7 +2123,7 @@ yields the control to the Middle-End of the compiler.
 
 \begin{subsection}{Middle End}
 
-The Middle-End is responsible to work on one or more IR of the compiler. If
+The Middle-End is responsible to work on one or more IR(s) of the compiler. If
 there are checks which can be postponed in the Front-End to this stage, it is
 preferable, once it avoids these checks on every Source Language's Front-End.
 
@@ -2358,7 +2404,7 @@ disk.
 	Each optimization must implement an interface according to its type.
 	For GIMPLE, \texttt{gimple\_opt\_pass}. For RTL, \texttt{rtl\_opt\_pass},
 	for IPA, \texttt{ipa\_opt\_pass\_d} or \texttt{simple\_ipa\_opt\_pass} if the pass
-	require only one step. An sketch of the passes class is illustrated in Figure \ref{fig:opt_uml}.
+	require only one step. A sketch of the passes class is illustrated in Figure \ref{fig:opt_uml}.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -2633,7 +2679,7 @@ In our case, you should not compile it in any folder under the
 \texttt{gcc\_git\_gnu} folder.
 
 
-Given that your current shell in in \texttt{gcc\_git\_gnu} folder, use
+Given that your current shell is in \texttt{gcc\_git\_gnu} folder, use
 \texttt{cd ..} to return to a previous folder, create a new directory
 \texttt{build}, enter it using \texttt{cd build} and then run:
 
@@ -2847,7 +2893,7 @@ and some algorithms which are useful when parallelizing a program.
 
 \begin{figure}[ht]
  \centering
- \includegraphics[scale=1.2]{42-years-processor-trend.pdf}
+ \includegraphics[scale=1.5]{42-years-processor-trend.pdf}
  \caption{42 years of microprocessor trend data \citep{42years}.}
  \label{fig:42years}
 \end{figure}

@@ -20,7 +20,7 @@
 A large portion of the research in compilers regarding parallelism is allocated
 to automatically parallelizing the input code. There are two areas of study
 with are related to compiler parallelization, which is parallel parsing and
-compiling \textit{de facto}. We present the works in this area separately.
+compiling \textit{de facto}. We present the works in these areas separately.
 
 %Dos algoritmos apresentados na Seção \ref{chap:fundamentacao}, o algoritmo
 %Recursivo Descendente é o mais simples deles. \cite{Lincoln:1970:PPT:987475.987478}
@@ -425,7 +425,7 @@ removes the requirement of phony object dumps and link time wrappers when
 compared to LTO. Results showed a speedup of up to $10\times$ in compilation
 time when compared to Feedback Driven Optimization (FDO) alone.
 
-Following that, Johnson \textit{et al.} proposes ThinLTO \cite{thinlto}. It
+Following that, Johnson \textit{et al.} proposed ThinLTO \citep{thinlto}. It
 differs from LTO by generating the function summaries on the LGEN stage for
 improved parallelism, while avoiding the large memory footprint requirement on the
 original LTO. ThinLTO also supports incremental builds by hashing the compiled
@@ -433,12 +433,11 @@ function to avoid recompilation of unmodified functions, while LTO requires
 recompilation of the entire partition. Today, most GCC's IPA
 optimizations only use summaries to avoid this memory footprint issue.
 
-These presented approaches were developed not to improve compilation time or
-improve parallelism usage, but to analyze the program as a whole, resulting in
-better optimizations. In our work, we will present a way to use the LTO engine
-to compile single files in parallel, therefore we want to improve compilation
-performance, not improve the quality of the optimizations, which would be as
-good as the classical compilation scheme. 
+In our work, we present a way to use the LTO engine to compile single files in
+parallel, in contrast to the previous presented papers which developed
+approaches to analyze the program as a whole for better optimizations, without
+the intent to compile faster. As for optimization quality, our method results
+in optimizations as good as the classical compilation scheme.
 
 \end{subsection}
 \end{section}

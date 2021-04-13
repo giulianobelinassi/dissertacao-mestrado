@@ -83,14 +83,14 @@ poder computacional de máquinas manycore, sendo a compilação feita em paralel
 pelo número de arquivos disponíveis no projeto. Isso configura um gargalo de
 compilação, principalmente se o projeto utilizar \textit{blobs} grandes que
 precisam ser compilados. Nós propomos duas alternativas para melhorar a
-performance em máquinas \textit{manycores} no GCC: Paralelização via threads,
-ou usando o mecanismo do Link Time Optimization (LTO), para paralelizar a
+desempenho em máquinas \textit{manycores} no GCC: Paralelização via \textit{threads},
+ou usando o mecanismo do \textit{Link Time Optimization} (LTO), para paralelizar a
 aplicação das otimizações intraprocedurais do compilador, discutindo suas
 vantagens e desvantagens de cada metodologia. Embora usemos o GCC como base,
 essas técnicas são gerais o suficiente para serem aplicadas em qualquer
 compilador. Conseguimos \textit{speedups} de até $3.53\times$ ao compilar
 arquivos individuais, e até $35\%$ de \textit{speedup} ao compilar projetos
-inteiros usando um destes métodos, em contraste com utilizando apenas o
+inteiros usando um destes métodos, em contraste com utilizando exclusivamente o
 \texttt{make} em paralelo. Também apresentamos trabalhos relacionados ao
 tópico, indo de \textit{parsing} em paralelo até otimizações em paralelo, além
 de um resumo sobre a teoria de \textit{parsing} e compilação.
