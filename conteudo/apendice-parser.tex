@@ -1,0 +1,856 @@
+\chapter{Parsing Theory}\label{sec:apendix-parser}
+
+In this chapter, we present concepts of the parsing theory in more detail. A
+deeper understanding of this subject is not needed to understand our work nor
+results, however, it is an important subject concerning compilers.
+
+\begin{section}{Languages}
+A large part of a compiler is dedicated to parsing text to determine if
+it belongs to a certain language. A \textit{language} is nothing more than
+a set of words, infinite or not, over some alphabet $\Si$. We denote that
+$\sigma$ is a character of the alphabet $\Si$ by expressing it as
+$\sigma \in \Si$. We can also concatenate two characters $\sigma_1 \sigma_2$
+to form a word, and we say that $\sigma_1 \sigma_2 \in \Sigma^2 = \Sigma\Sigma$.
+In fact, we denote the product of two languages $A$ and $B$ as being
+$$AB = \conj{xy}{x \in A \text{ and } y \in B}$$
+which should not be confused with the cartesian product
+$$A \times B = \conj{(x, y)}{x \in A \text{ and } y \in B}$$
+
+The Kleene Star of a certain language $A$ is defined as:
+$$A^* = \bigcup_{n \geq 0} A^n$$
+where $A^0 = \{\lambda\}$, the set containing the \textit{empty string} $\lambda$.
+Therefore, the set of all possible words over an alphabet $\Si$ is the set
+$\Sis$, and every language $L$ is a subset or equal of $\Sis$, which we will
+denote as $L \ssq \Sis$. We also define $A^+ = AA^*$. Union, intersection,
+and complement work the same way as in set theory. The \textit{power set}
+of some set $A$ is denoted by $2^A$.
+
+The \textit{length} of a word $x$, denoted as $|x|$, is the number of characters
+in the string. If $x = \lambda$, then $|x| = 0$. It should not be confused with
+the size of a set $|A|$, which is the number of elements of that set.
+For more details, we suggest reading the following references: \cite{sipser2012},
+\cite{lewis1998elements}, and \cite{hopcroft2001introduction}.
+\end{section}
+
+\begin{section}{Finite State Automata}
+
+One of the simplest machines designed to parse text is the Finite State
+Automata. These machines are often used to build controllers for various
+applications, such as elevator state controllers, microwave control panels,
+signal detectors, and so on. This is because finite state machines can be
+cheaply implemented using flip-flops, an electronic device that can hold a bit
+as data storage.
+
+Finite Automata are also used in Compilers as a Lexical Analyser for
+recognizing tokens.  They are very useful tools since we can express these
+machines easily with \textit{regular expressions}, and then algorithms can easily
+convert them into a Finite Automata and minimize the number of states in it.
+
+\begin{definition}
+A Deterministic Finite Automata (\ttt{DFA}) is defined as a 5-tuple
+$(Q, \Sigma, \delta, s, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\delta:Q\times\Sigma \longrightarrow Q$ is the transition function.
+\item $s \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+\end{definition}
+
+We say that given an machine $\mathcal{A}$, the \textit{language}
+that it generates is denoted as $L(\mathcal{A})$. The machine accepts an input
+$w \in \Sis$ if $w \in L(\mathcal{A})$. We also say that a machine
+recognizes a certain language $L \ssq \Sis$ if and only if
+$L(\mathcal{A}) = L$.
+
+For an example of automation, let us assume that we want to detect whether a
+certain input is a non-negative integer number. Therefore, let $\Sigma$ be the
+characters in the ASCII table, let $D = \{\texttt{0}, \texttt{1}, \cdots,
+\texttt{9}\}$ be the set of numerals, and $\sigma \in \Sigma$ be the current
+character being read. A \textit{language} describing this subset of words
+is
+
+$$ L_1 = \conj{w \in \Sis}{w \text{ is a non-negative integer}}$$
+
+A \texttt{flex} regular expression for it would be
+$$\land\texttt{[0-9]+\$}$$
+and the following automata to recognize it would be
+$\mathcal{A} = (\{q_1, q_2, q_3\}, \Sigma, \delta, q_1, \{q_2\})$, where
+the $\delta$ function will be defined as:
+	\[
+		\delta(q, \sigma) = \begin{cases}
+		  q_2,& \text{if } \sigma \in D \text{ and } q \in \{q_1, q_2\} \\
+		  q_3,& \text{if } \sigma \in \Sigma \text{ and } q = q_3 \\
+		  q_3,& \text{if } \sigma \in \Sigma - D \text{ and } q \in \{q_1, q_2\} \\
+		\end{cases} \nonumber
+	\]
+Figure \ref{fig:a_automata} illustrates this machine. Here we denote that
+$q_i \overset{\sigma}{\longrightarrow} q_j$ when the machine is on state
+$q_i$, after it reads an input $\sigma$, it will jump to the state $q_j$.
+
+Any $\DFA$ can be easily implemented using a transition
+matrix. In one dimension, we have every state in the machine, in another,
+every possible character of $\Sigma$.  Therefore, by just remembering the
+last state of the machine, we can look up this matrix and select what state
+should the machine jump to when reading a character $\sigma$. This
+yields in a $O(n)$ algorithm to parse a word $w \in \Sigma^*$ with $|w| = n$.
+
+
+\begin{figure}
+\begin{tikzpicture}[node distance = 3cm, auto]
+  \node[state, initial] (q1) {$q_1$};
+  \node[state, accepting, right of=q1] (q2) {$q_2$};
+  \node[state, right of=q2] (q3) {$q_3$};
+
+  \draw[->]   (q1) edge[above, bend left] node{$\sigma \in D$} (q2);
+  \draw[->]   (q1) edge[below, bend right] node{$\sigma \in \Sigma - D$} (q3);
+  \draw[->]   (q2) edge[loop above] node{$\sigma \in D$} (q2);
+  \draw[->]   (q2) edge[above, bend left] node{$\sigma \in \Sigma - D$} (q3);
+  \draw[->]   (q3) edge[loop above] node{$\sigma \in \Sigma$} (q3);
+\end{tikzpicture}
+
+\caption{Finite Automata recognizing $\land\texttt{[0-9]+\$}$}
+\label{fig:a_automata}
+\end{figure}
+
+There is also a slight variant of this machine called Non-deterministic Finite Automata (\ttt{NFA}).
+
+\begin{definition}
+A Nondeterministic Finite Automation (\ttt{NFA}) is a 5-uple
+$(Q, \Sigma, \delta, s, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\delta:Q\times\Sigma \longrightarrow 2^Q$ is the transition function.
+\item $s \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+\end{definition}
+
+$\NFA$ has a feature called \textit{nondeterminism}, which means that given a
+$\sigma \in \Si$ and three states $p, q, r \in Q$, it is possible two have to
+or more transitions from the same state given the same character $\sigma$,
+which means that $p \overset{\sigma}{\longrightarrow} q$ and $p
+\overset{\sigma}{\longrightarrow} r$ can both be present in the machine. Which
+route the $\NFA$ will proceed with its computation in this situation does not
+matter as long as it reaches some final state $f \in F$ reading the entire
+input. There are also transitions like $p \overset{\lambda}{\longrightarrow}
+q$, which means that the $\NFA$ will jump from $p$ to $q$ without reading any
+input. These are called $\lambda$-\textit{transitions}. It is also worth
+mentioning that if a $\NFA$ is in state $q$ with next input character $\sigma$
+and there are no transitions of the form $q \overset{\sigma}{\longrightarrow}
+r$ or $q \overset{\lambda}{\longrightarrow} r$, then this means that the path
+which it has taken from $s$ to $q$ can not lead to a final state and therefore
+it must take another path. If there are no remaining paths, then the $\NFA$
+should reject the input.
+
+Interestingly, if you can present a Nondeterministic Finite Automation to a
+certain language, you can also present a deterministic one for the same
+language and vice versa. There are even algorithms to convert an \ttt{NFA} to
+\ttt{DFA}, which we will only present in this work as the following
+theorem:
+
+\begin{theorem}\label{nfa_to_dfa}
+Every \ttt{NFA} has an equivalent \ttt{DFA}
+\end{theorem}
+\begin{proof}
+	Theorem 1.39 of \citep{sipser2012} shows the Powerset Construction, an algorithm
+	that converts any \ttt{NFA} into a \ttt{DFA}.
+\end{proof}
+
+\texttt{NFA}s are interesting machines in both practical and theoretical aspects,
+once they are often used to implement Regular Expressions via the Thompson
+Construction \citep{dragonbook} and prove theorems related to computer-theory.
+However, the implementation should be done with care, as these machines require
+\textit{backtracking} because of its nondeterministic behavior, which may lead
+to some unfortunate bugs \citep{PR86164}. However, both \DFA and \NFA, are not
+very expressive machines. For example, consider the following language:
+
+$$L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$$
+
+This is a stripped-down version of the Parenthesis Matching Problem.
+Unfortunately, it is impossible to build a finite automata
+that recognizes $L_2$.
+
+\begin{lemma}
+There is no $\DFA$ recognizing $L_2$.
+\end{lemma}
+\begin{proof}
+Let $\mathcal{A} = (Q, \Sigma, \delta, s, F)$ be such $\DFA$,
+with $\Si = \{\ttt{(}, \ttt{)}\}$.
+Since it is a finite automation, then $Q$ is finite, so let
+$n = |Q|$. Now take the following word $w = \texttt{(}^{2n}\texttt{)}^{2n}$.
+Clearly, $w \in L_2$, and therefore the automation $\mathcal{A}$ should
+recognize it. Therefore, there is a sequence of states
+$(p_0, p_1, \cdots, p_{4n})$ when processing $w$ from $p_0 = s$ which leads to a
+final state $p_{4n}$. Furthermore, the subsequence $(p_0, p_1, \cdots, p_{2n})$ is
+related to the processing of the first part of the word containing only
+$\texttt{(}^{2n}$. But since $2n > n$, this means that some of these
+states are repeated, and therefore there is some state $q \in Q$ and integers
+$i$ and $j$ such as $0 \leq i < j \leq 2n$ where $p_i = p_j = q$,
+\textit{i.e.} a circuit in the graph, when processing this first part of the $w$.
+Therefore, we can split $w$ in 
+$$w = xyz$$
+Where $x \in \Sigma^*$ is the part of $w$ before the circuit, $y \in \Sis$ is
+the part of $w$ in this circuit, and $z \in \Sis$ is the part of $w$ after the
+circuit. Note that $x$ and $y$ consists of a sequence of `$\texttt{(}$'
+characters, because we are processing the first $2n$ characters of $w$,
+and $|y| \geq 1$ because in this circuit, some characters were
+read.
+Since $y$ is the part of $w$ in this circuit, then
+$ xyyz $
+is also recognized by $\mathcal{A}$. If $k = |y|$, this means that
+the input string
+$$ \texttt{(}^{n+k}\texttt{)}^n \not\in L_2$$
+is also recognized by $\mathcal{A}$, implying that such machine can
+not exist, and therefore there is no $\DFA$ which can detect
+$L_2$.
+\end{proof}
+
+In fact, this proof is heavily based on the proof of the \textit{pumping lemma},
+a powerful tool to find if a certain language is not recognizable by a
+Finite Automata. Entering in details about this is beyond the scope of
+this work.
+
+\end{section}
+
+\begin{section}{Finite Pushdown Automata}
+	An extension of the \NFA is the Pushdown Finite Automata (\ttt{PDA}), which
+	is, in a simplistic form, a $\NFA$ with an infinite stack. This is a very
+	interesting machine to parse grammars, which we will present in Section
+	\ref{cfg}.
+
+\begin{definition}
+A Nondeterministic Finite Automation (\ttt{PDA}) can be defined as a 6-uple
+$(Q, \Si, \Ga, \delta, q_0, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\Ga$ is the stack alphabet,
+\item $\delta:Q\times\Sigma_\lambda \times \Ga_\lambda \longrightarrow 2^{Q \times \Ga_\lambda}$ is the transition function.
+\item $q_0 \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+\end{definition}
+Here, we denote $\Gamma_\lambda$ and $\Sigma_\lambda$ as being, respectively,
+$\Gamma_\lambda = \Gamma \cup \{\lambda\}$ and $\Sigma_\lambda = \Sigma \cup
+\{\lambda\}$, where $\lambda$ is the empty string. Those machines starts with
+an empty stack, and it will then choose to read an input based on the following
+notation given a transition from $q_i \in Q$ to $q_j \in Q$: $$\sigma, \gamma_1
+\rightarrow \gamma_2$$ which is the same as $$(q_j, \gamma_2) \in \delta(q_i,
+\sigma, \gamma_1)$$ meaning that on input character $\sigma \in \Si_\lambda$
+and with $\gamma_1 \in \Gamma_\lambda$ on the top of the stack, it advances one
+character on the input string, pop $\gamma_1$ from the stack, and push
+$\gamma_2 \in \Gamma_\lambda$ on top of the stack. There are some special
+cases: when $\sigma = \lambda$, then the machine will not advance on the input
+string. When $\gamma_1 = \lambda$, it will not check nor pop anything from the
+stack. Finally, when $\gamma_2 = \lambda$, then nothing is pushed on the stack.
+Note that these three cases can happen together. This notation is enough to
+describe the $\delta$ function.  For an input $w \in \Sis$ to be accepted by
+such automation, there must exist at least one path from the starting state
+$q_0$ to a final state $q_f \in F$ consuming the entire input string $w$, like
+in a $\NFA$.
+
+These machines are more powerful than both \ttt{DFA} and \ttt{NFA}.
+For every \ttt{NFA}, there is a \ttt{PDA} that detects the same language.
+Furthermore, there is a $\PDA$ detecting $L_2$, in
+which we presented a proof that there is no \ttt{DFA} for it.
+
+\begin{figure}
+\begin{tikzpicture}[node distance = 3cm, auto]
+  \node[state, initial] (q1) {$q_1$};
+  \node[state, right of=q1] (q2) {$q_2$};
+  \node[state, right of=q2] (q3) {$q_3$};
+  \node[state, accepting, right of=q3] (q4) {$q_4$};
+
+  \draw[->]   (q1) edge[above, bend left] node{$\lambda, \lambda \rightarrow \$$} (q2);
+  \draw[->]   (q2) edge[above, bend left] node{$\lambda, \lambda \rightarrow \lambda$} (q3);
+  \draw[->]   (q2) edge[loop below] node{$\ttt{(}, \lambda, \rightarrow \ttt{(}$} (q2);
+  \draw[->]   (q3) edge[above, bend left] node{$\lambda, \$ \rightarrow \lambda$} (q4);
+
+  \draw[->]   (q3) edge[loop below] node{$\ttt{)}, \ttt{(} \rightarrow \lambda$} (q3);
+\end{tikzpicture}
+
+\caption{Finite Automata recognizing $L_2$}
+\label{fig:pda_l2}
+\end{figure}
+
+Figure \ref{fig:pda_l2} describes a $\PDA$ which detects $L_2$.
+A sketch of why this machine works is as follows: on the transition
+from $q_1$, to $q_2$, the machine will push an token $\$ \in \Ga$ to mark the
+beginning of the stack. Then we may proceed reading $\ttt{(}$ through the loop
+at $q_2$, and pushing then on the stack, or advance without reading, poping or
+pushing anything on the stack.  Once all `$\ttt{(}$'s have been pushed on the
+stack, it will then proceed reading all `$\ttt{)}$' while poping the `$\ttt{(}$'
+characters of the stack to count how many occurrences it has seen so far.
+If the stack ends empty after this process, it means that the number of `$\ttt{(}$'
+is equal to the number of `$\ttt{)}$'. If the machine incorrectly guesses when to switch
+from $q_2$ to $q_3$ even if $w \in L_2$, this would generate an invalid path
+because the top of the stack would contain a `$\ttt{(}$' and not the $\$$, and
+the same goes when $w = \ttt{(}^i\ttt{)}^j$, with $j < i$. If, however, $i >
+j$, then it is possible to jump from $q_3$ to $q_4$, however, the entire input string
+would not be completely consumed, and therefore the machine will reject the
+string. The only way that an string is accepted is when $j = i$.
+
+Now that we showed one language that a \ttt{PDA} can recognize that a
+\ttt{NFA} can not, we may prove that any language recognizable by an
+\ttt{NFA} is recognizable by a \ttt{PDA}.
+
+\begin{theorem}
+Let $L$ be a language recognizable by an \ttt{NFA}. Then there is a \ttt{PDA}
+which detects $L$.
+\end{theorem}
+\begin{proof}
+	Let $\mathcal{A} = (Q, \Si, \delta, s, F)$ be a \ttt{NFA} recognizing $L$.
+We will show how to build a \ttt{PDA} $\mathcal{P}$ that recognizes $L$.
+The idea is that a $\ttt{PDA}$ that does not use its stack is just a \ttt{NFA}.
+
+Let $\mathcal{P} = (Q, \Si, \emptyset, \delta_p, s, F)$, with $Q, \Si, s, F$ being
+exactly the same as in $\mathcal{A}$. Now let $\delta_p$ be such that
+$$(q_j, \lambda) \in \delta_p(q_i, \sigma, \lambda) \text{ if and only if } q_j \in \delta(q_i, \sigma)$$
+where $\sigma \in \Sigma_\lambda$ and $q_i, q_j \in Q$. This means that given an
+input string $w \in L(\mathcal{A})$, its sequence of states $(p_0, p_1, \cdots, p_{|w|})$
+with $p_0 = s$ and $p_{|w|} \in F$, is also a valid sequence of states in $\mathcal{P}$,
+implying that $w \in L(\mathcal{P})$, and vice versa. This means that $\mathcal{A}$ and
+$\mathcal{P}$ recognizes the same language.
+\end{proof}
+
+However, as these machines can use \textit{nondeterminism} to find its path
+to a final state, its implementation may require \textit{backtracking},
+and in fact, the $\PDA$ in Figure \ref{fig:pda_l2} will require it to correctly
+``guess'' when to jump from $q_2$ to $q_3$. We can eliminate the possibility
+of backtracking if we remove the nondeterminism from the machine.
+
+\end{section}
+
+\begin{section}{Deterministic Finite Pushdown Automata}
+	We may now present a restriction of the \ttt{PDA} so that
+it is possible to remove the possibility of backtracking from these machines.
+The way to do it is to restrict when the machine can have certain transitions
+with regard to $\delta(q, \sigma, \lambda)$, $\delta(q, \lambda, \gamma)$ and
+$\delta(q, \lambda, \lambda)$.
+
+\begin{definition}
+A Deterministic Finite Automation \ttt{DPDA} can be defined as a 6-uple
+$(Q, \Si, \Ga, \delta, q_0, F)$, where
+\begin{itemize}
+
+\item $Q$ is a finite set of states.
+\item $\Sigma$ is a finite set, the language alphabet.
+\item $\Ga$ is the stack alphabet,
+\item $\delta:Q\times\Sigma_\lambda \times \Ga_\lambda \longrightarrow Q \times \Ga_\lambda \cup \{\emptyset \}$ is the transition function.
+\item $q_0 \in Q$ is the initial state of the machine.
+\item $F \subseteq Q$ is the set of accept states, where the machine will
+decide the input as correct if computation terminates in one of these
+states.
+\end{itemize}
+
+Furthermore, $\delta$ must also satisfy the following condition: For every $q \in Q$, $\sigma \in \Si$,
+and $\gamma \in \Ga$, one and only one of these values
+$$\delta(q, \sigma, \gamma), \delta(q, \lambda, \gamma), \delta(q, \sigma, \lambda), \delta(q, \lambda, \lambda)$$
+is not $\emptyset$.
+
+\end{definition}
+
+By setting these restrictions on $\delta$, we prevent the machine from taking two
+distinct actions given the same input, as it is possible in \ttt{PDA}
+by setting both $\delta(q, \sigma, \gamma) \neq \emptyset$ and
+$\delta(q, \sigma, \lambda) \neq \emptyset$. The machine can also only take a
+move of form $\delta(q, \sigma, \lambda)$ or $\delta(q, \lambda, \lambda)$ when
+the stack is empty, otherwise the machine will always reject the input. Acceptance
+happens the same way as in \ttt{PDA}.
+
+We may now show a $\DPDA$ for $L_2$. We can start
+from the nondeterminisitc version, since the only condition that is violated
+there with regard to a $\DPDA$ are the transitions
+$\delta(q_2, \ttt{(}, \lambda)$ and $\delta(q_2, \lambda, \lambda)$: only one
+of these transitions can exist. We therefore can design the following machine
+to address these problems, eliminating the $\delta(q_2, \lambda, \lambda)$
+transition and adding an extra final state so that it accepts $\lambda \in L_2$.
+
+\begin{figure}
+\begin{tikzpicture}[node distance = 3cm, auto]
+  \node[state, accepting, initial] (q1) {$q_1$};
+  \node[state, right of=q1] (q2) {$q_2$};
+  \node[state, right of=q2] (q3) {$q_3$};
+  \node[state, accepting, right of=q3] (q4) {$q_4$};
+
+  \draw[->]   (q1) edge[above, bend left] node{$\lambda, \lambda \rightarrow \$$} (q2);
+  \draw[->]   (q2) edge[above, bend left] node{$\ttt{)}, \ttt{(} \rightarrow \lambda$} (q3);
+  \draw[->]   (q2) edge[loop below] node{$\ttt{(}, \lambda, \rightarrow \ttt{(}$} (q2);
+  \draw[->]   (q3) edge[above, bend left] node{$\lambda, \$ \rightarrow \lambda$} (q4);
+
+  \draw[->]   (q3) edge[loop below] node{$\ttt{)}, \ttt{(} \rightarrow \lambda$} (q3);
+\end{tikzpicture}
+
+\caption{Finite Automata recognizing $L_2$}
+\label{fig:pushdown_automata}
+\end{figure}
+
+One can clearly see that such machines can be implemented with an $O(n)$ algorithm,
+once backtracking is not needed. Unfortunately, such machines are less powerful
+than the Nondeterministic version. For instance, the language
+$$L_3 = \conj{ww^R}{w \in \{0, 1\}^*}$$
+can not be detected by such machines, but one can clearly design a $\PDA$
+that recognizes this language: just push a certain amount of characters
+and nondeterministically ``guess'' when to start popping the characters
+from the stack and comparing to the next input characters.
+
+\begin{lemma}\label{lemma:pushdown_1}
+	There is no Deterministic Finite Pushdown Automata that detects $L_3$
+\end{lemma}
+Proof of such lemma is quite complicated, however the idea behind it is that
+there is no way that the machine find out when to stop pushing the symbols
+on the stack and start popping the symbols to compare for equality, once
+there is no way to discover the point exactly when $w$ stops and $w^R$ starts
+because the machine lacks nondeterminism. This, however, shows that there
+are Languages that can be detected with Nondeterministic Finite Pushdown
+Automata.
+
+\begin{lemma}\label{lemma:pushdown_2}
+	For every \ttt{DPDA} $\mathcal{D}$, there is
+	an equivalent \ttt{PDA} $\mathcal{P}$ that recognizes the
+	same language.
+\end{lemma}
+\begin{proof}
+	 It is enough to note that any \ttt{DPDA} is a \ttt{PDA}.  Let $\mathcal{D}
+	 = (Q, \Si, \Ga, \delta, s, F)$ a \DPDA. Now define
+	 $\delta_p : Q\times\Si_\lambda\times\Ga_\lambda \longrightarrow 2^{Q\times\Ga_\lambda}$ such that
+
+	 $$ (q_j, \gamma_2) \in
+	 \delta_p(q_i, \sigma, \gamma_1) \text{ if and only if } \delta(q_i,
+	 \sigma, \gamma_1) = (q_j, \gamma_2)$$
+
+	 Where $\sigma \in \Si_\lambda$, and
+	 $\gamma_1, \gamma_2 \in \Ga_\lambda$. Then $\mathcal{P} = (Q, \Si, \Ga,
+	 \delta_p, s, F)$ recognizes the same language as $\mathcal{D}$.
+\end{proof}
+
+Lemma \ref{lemma:pushdown_1} and \ref{lemma:pushdown_2} shows that \ttt{DPDA} are not
+so powerful when compared to \ttt{PDA}.
+
+\end{section}
+
+\begin{section}{Context-Free Grammars}\label{cfg}
+
+Grammars are commonly used to express natural language. However, there is
+a subset of grammars that are of interest when designing
+Programming Languages, which are called Context-Free Grammars.
+
+Context-Free Grammars are a very powerful notation to express how a Programming Language
+should behave when reading a program as input, however, algorithms that parse
+such grammars, in general, are $O(n^3)$, where $n$ is the size of the input. Hopefully,
+if we restrict the grammar to be a Deterministic Context-Free Grammar, we can ensure
+that parsing can take $O(n)$.
+
+\begin{definition}
+A Context-Free Grammar $G = (V, \Si, R, S)$ is a 4-uple where:
+\begin{itemize}
+	\item $V$ is the set of \textit{Variables}, often named set of
+	\textit{Nonterminal} symbols.
+	\item $\Si$ is the alphabet, often named \textit{terminal} symbols.
+	\item $R \ssq V \times (\Si \cup V)^*$ is the set of \textit{derivation rules}.
+	\item $S \in V$ is the \textit{starting variable}
+	\item $V \cap \Si = \varnothing$
+\end{itemize}
+\end{definition}
+
+Furthermore, we also define
+
+\begin{definition}
+	If $A \in V$ derivate a string $x \in (V \cup \Si)^*$ in exactly one step, then
+	we denote $A \Rightarrow x$. If we can derive in zero or more steps, then
+	$A \Rightarrow^* x$. If in one or more steps, $A \Rightarrow^+ x$
+\end{definition}
+
+For instance of grammar, $G = (V, \Si, R, S)$ such that
+$V = \{S\}$, $\Si = \{\ttt{(}, \ttt{)}\}$, and $R$ is defined such that
+$$S \rightarrow \ttt{(}S\texttt{)} \; | \; \lambda$$
+can recognize $L_2 = \conj{\ttt{(}^n \ttt{)}^n}{n \geq 0}$, because it is clear that
+$S \Rightarrow^{n+1} \ttt{(}^n\ttt{)}^n$.
+
+There is also an important undesired detail about grammar called ambiguity, which
+allows a string to have multiple derivations. This can confuse a parser into
+generating a distinct parse tree from the one that is intended by the grammar
+designer.
+
+\begin{definition}
+	A grammar $G$ is ambiguous if there are multiple leftmost derivations for the same
+	word.
+\end{definition}
+\begin{definition}
+	A leftmost derivation of a word $w$ from a grammar $G$ is a derivation
+	in which we always derive the leftmost rule.
+\end{definition}
+
+For instance, let $G = (\{S\}, \{a, +, \times\}, R, S)$, where $R$ is defined
+as
+$$S \rightarrow S+S \; | \; S \times S \; | \; a $$
+it is clear that $S \Rightarrow^* w$ if $w$ is a arithmetic expression. This
+grammar is ambiguous, as there are two leftmost derivations for the same string.
+One derivation is
+$$ S \Rightarrow S + S \Rightarrow a + S \Rightarrow a + S \times S \Rightarrow a + a \times S \Rightarrow a + a \times a$$
+Another is
+$$ S \Rightarrow S \times S \Rightarrow S + S \times S \Rightarrow a + S \times S \Rightarrow a + a \times S \Rightarrow a + a \times a$$
+
+This may result in a troublesome parsing, for instance, consider the
+following sketch of Grammar:
+
+% Avoid bug in vim 8.2
+\input{conteudo/grammar.tex}
+
+This can generate the two C code snippets in Figure \ref{fig:left_if} and
+\ref{fig:right_if}. In C, spaces and tabulations are ignored if they are
+repeated, and therefore these two codes are the same. Therefore, that
+\textbf{else} could belong to both first and last \textbf{if} because of
+ambiguity. 
+
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.40\textwidth}
+
+		\begin{lstlisting}[
+			language=pseudocode,
+			style=pseudocode,
+			style=wider,
+			functions={},
+			specialidentifiers={},
+			]
+			if (a)
+				if (b)
+					statement;
+				else
+					another_statement;
+		\end{lstlisting}
+        \caption{\label{fig:left_if}}
+
+    \end{subfigure}
+    \begin{subfigure}[b]{0.40\textwidth}
+		\begin{lstlisting}[
+			language=pseudocode,
+			style=pseudocode,
+			style=wider,
+			functions={},
+			specialidentifiers={},
+			]
+			if (a)
+				if (b)
+					statement;
+			else
+				another_statement;
+		\end{lstlisting}
+        \caption{\label{fig:right_if}}
+\end{subfigure}
+\caption{Distinct C parse tree for the same input}
+\end{figure}
+
+However, the C specification states that an else should always match with the closest
+if, and therefore Figure \ref{fig:left_if} must be selected
+when parsing a C program, or else the compiler has a bug. This can lead
+to some unfortunate bugs in the code if the programmer is not careful enough,
+because one may write the code in \ref{fig:right_if} expecting that the
+tabulation will change the program semantic, and now you have a bug which is
+very hard to catch \citep{ritchie1988c}. This issue can be avoided by removing the
+ambiguity of the grammar. \cite{dragonbook} presents the following grammar
+to fix this problem for a $\LR{1}$ parser:
+\vspace*{-0.5cm}
+\input{conteudo/grammar_unambiguous.tex}
+however, one can design a Top-Down Recursive-Descent parser that correctly
+parses that grammar, even with the ambiguity.
+
+We may now define what it means for a Grammar to be ``Deterministic'' by
+defining the \textit{handle} of a string.
+
+\begin{definition}
+	Let $G = (V, \Si, R, S)$ be a Context-Free Grammar that Recognizes $L$.
+	The \textbf{handle} of a string $w$ such that $S \Rightarrow^* w$ is a string
+	$h \in (V \cup \Si)^*$ such that
+	\begin{enumerate}
+	  \item $w = xhy$, where $x \in (V \cup \Si)^*, A \Rightarrow h, A \in V$,
+	  $y \in \Sis$
+	  \item $h$ is the leftmost string satisfying condition 1.
+	\end{enumerate}
+\end{definition}
+
+One can clearly see that if $G$ is unambiguous, then $w$ should have a unique
+handle, otherwise there would be another leftmost derivation of $w$ from $S$, which
+contradicts the definition of unambiguity.
+
+Furthermore, if we enforce that given a handle of a word $w = xhy$
+is also the handle of $xhz $ for all $z \in \Sis$ such that $S \Rightarrow^* w$ and
+$S \Rightarrow^* xhz$, then we have an entire
+class of languages called \textit{Determinisitic Context-Free Languages}
+
+\begin{definition}
+A Deterministic Context-Free Grammar (\ttt{DCFG}) $G = (V, \Si, R, S)$ is a 4-uple where:
+	\begin{itemize}
+		\item $(V, \Si, R, S)$ is a $\CFG$.
+		\item Given $w = xhy$ such that $S \Rightarrow^* w$, where $h$ is the handle
+		of $w$, then $h$ is the handle for all words $xhz \in L$, where $z \in \Sis$.
+	\end{itemize}
+\end{definition}
+
+$\DCFG$ are also called \ttt{LR}(0) Grammars, because it can
+be easily parsed from \texttt{L}eft-to-right, always taking the \texttt{R}ightmost
+derivations (\textit{i.e.} leftmost reductions).
+
+\end{section}
+\begin{section}{Bottom-up Parsing}
+
+With the idea of handles in mind, it is possible to design a greedy algorithm
+for reducing an input string $w$ of a $\DCFG$ $G = (V, \Sigma, R, S)$. Let $w = xhy$, where $h$ is the
+handle. Then there is some rule $\left(A \rightarrow h \right) \in R$, which will lead to the
+string $xAy$. Note that the string $y$ was never read so far. This new string
+may have another handle, say $h_2$ in $xA$, in which we \textbf{reduce} again
+using some production rule, or we may need to \textbf{shift} to the next character
+in trying to find the handle for the string. Therefore, we may get into a state
+$$u \bullet v$$
+where $u \in (V \cup \Si)^*$ are the symbols currently \textit{on the stack},
+and $v \in \Sis$ are the characters in the input, which we never read so far.
+Note that $u$ may contain Nonterminal characters, because we may have already
+reduced strings before the $\bullet$ symbol.
+
+Once reading a character, we are interesting in how to detect that we have
+seen a handle to reduce. Therefore, we are interested in the elements of
+the following set:
+
+$$H_0 = \conj{xh}{S \Rightarrow^+ xhy, h \text{ is the handle of } xhy, x \in (V \cup \Si)^*, y \in \Sis}$$
+
+\cite{knuth1965translation} showed that this set is a \textit{regular language},
+meaning that there is a $\DFA$, say $\mathcal{DK} = (Q, V \cup \Si, \delta, s, F)$, which
+recognizes $H_0$. Notice that $\mathcal{DK}$ runs on alphabet $V \cup \Si$.
+He also shows that every \textit{accept} state of the $\mathcal{DK}$ is related
+to a production rule of $G$, in which the algorithm should use to reduce the
+contents of the stack.
+
+Furthermore, \cite{sipser2012} shows that the construction of the
+\DFA can be used to test if the grammar is \DCFG by tracking two
+conflicts in its state machine:
+
+\begin{itemize}
+	\item Shift/Reduce conflicts, when the parser can not decide when
+	to Shift (i.e. push next token onto stack) or to Reduce based on
+	some production rule.
+
+	\item Reduce/Reduce conflicts, when the parser can not decide which
+	rule to reduce to because there are two or more production rules
+	related to one $\mathcal{DK}$ accept state.
+\end{itemize}
+
+Implementation of this algorithm consists in showing a \DPDA that
+can be used to parse the input string. When reading the input string,
+the \DPDA also simulates a single character read of $\mathcal{DK}$,
+and push the current $\mathcal{DK}$ state on the stack. If
+$\mathcal{DK}$ reaches one of its accept state, it means that we
+found a handle associated with some production $A \rightarrow h$,
+in which we pop $|h|$ states from the \DPDA stack and ``emulates''
+the read of $A$ as the next read character, once a \DPDA can
+not return a character to its input, and proceed reading the input.
+If it reads the entire input string and ``emulate'' the reduction
+of the starting variable, it means that it is finished. This also
+shows that
+\begin{lemma}
+For every \DCFG there is an equivalent \DPDA
+\end{lemma}
+
+This before-mentioned \DPDA is the $\LR{0}$ algorithm.
+However, this algorithm is not so powerful just because it relies on
+\DCFG. For instance, this simple grammar $G_A = (V, \Si, R, S)$ such that
+$V = \{S, E, T\}, \Si = \{a, \times, +\}$, and $R$ be defined as the rules
+\begin{align}
+S &\rightarrow E \nonumber \\
+E &\rightarrow E + T \; | \; T \nonumber \\
+T &\rightarrow T \times a \; | \; a \nonumber
+\end{align}
+
+\begin{lemma}\label{shift_reduce}
+	$G_A$ is not $\ttt{LR}(0)$.
+\end{lemma}
+\begin{proof}
+	Let $u = T \times a$ and $v = T$. Clearly, $S \Rightarrow^* u$ and
+	$S \Rightarrow^*v$. Since $u = v \times a$, then the handle of
+	$v$ must be equal the handle of $u$. However, the handle of $v$
+	is $E$ and the handle of $u$ is $T$, which means that $G$ is not
+	\ttt{DCFG} and therefore can not be parsed with a $\LR{0}$
+	algorithm.
+\end{proof}
+
+This means that this algorithm can not be used to parse even very simple
+grammars such as above, it will always face a Shift/Reduce conflict
+because on state $T\bullet$ it should reduce to $E$, however, when
+facing the input $T\bullet \times a$, it must shift.
+
+Fortunately, there are ways to expand this algorithm.
+Instead of only using the symbols that are currently on the stack for
+determining which rule to reduce, we could use the immediate next
+token on the input, the \textit{lookahead}, to decide what to do, \textit{i.e.},
+if shift or reduce. So, for instance, when facing the state
+$T\bullet \times a$, the parser should \textit{shift}, because
+$\times$ is the current lookeahead token, even if $T \in H_0$.
+However, on state $T\bullet + a$ and $T\bullet$, the parser should
+\textit{reduce} with regard to $E \rightarrow T$. This is exactly the
+idea behind the $\LR{1}$ parser. In fact, we can define
+
+\begin{definition}
+A $\CFG$ $G = (V, \Si, R, S)$ is $\LR{1}$ if given a string
+$w$ such that $w\$ = xhy \$$ with $S \Rightarrow^* w$, $h$ as
+handle, $x \in (V \cup \Si)^*$, $y \in \Sis$, and $ \$ \not\in \Si \cup V$,
+then $h$ is also the handle of $xhz\$ $ if shares the same first character of $y$, i.e.,
+$y = \sigma u$ and $z = \sigma v$.
+\end{definition}
+
+Therefore, when building the $\ttt{NFA}$ $\mathcal{DK}$, it must now also
+consider the first character immediately next of $\bullet$ in its computation.
+That is why the character $\$$ was added to the input string.
+With this change, \cite{sipser2012} proves that $G_A$ can be parsed with a
+$\LR{1}$ algorithm.
+
+Finally, these tests are widely implemented in \ttt{LR}(1) parser generators
+such as the GNU Bison \citep{manual21bison}. \ttt{LR}(1) parsers are widely
+used in practice, together with \texttt{LALR}(1) bottom-up parser and the top-down,
+Recursive-Descent parser.
+
+\end{section}
+
+\begin{section}{Top-Down Parsing}
+
+Another way to parse a Context-Free Grammar is, instead of on input string $w$
+try to reduce back to the starting rule $S$, try to derive $w$ from $S$.
+A very common way of doing this in practice is to employ an algorithm called
+Recursive-Descent.
+
+The Recursive-Descent is a technique used to parse any generic Context-Free
+Grammar that is free from left recursion, however \textit{backtracking} is
+necessary in several cases. It is also very simple to understand, as there is
+less computer-theory background necessary to understand how they operate and to
+implement by hand, without the use of any parse-generator tools. In fact, this
+is the parser algorithm used by GCC when compiling C \citep{myers_parser}, as
+well as the parser used in clang \citep{clang_parser}. 
+
+Let $G = (V, \Si, R, S)$ be a Context-Free Grammar. In a Recursive Descent
+Parser, each $v \in V$ are represented as a function in the algorithm, and
+that function is responsible to correctly match it derivation by looking
+the next input tokens. Here we are not limited to just one token of lookahead,
+however, the programmer should keep in mind that the more complex method
+he uses to determine which rule to derive to, the more he adds to the
+time complexity of the parser, and therefore it may not operate on $O(n)$,
+where $n$ is the size of the input.
+
+Here is an example of Recursive-Descent Parser. Let $G_A^2 = (V, \Si, R, S)$,
+where $V = \{S, E, T\}, \Si = \{+, \times, a\}$ and $R$ be defined as
+
+\begin{align}
+S &\rightarrow E \nonumber \\
+E &\rightarrow T + E \; | \; T  \nonumber \\
+T &\rightarrow a \times T \; | \; a \nonumber
+\end{align}
+
+Note that $G_A^2$ differs from $G_A$ just by the recursions in $E$ and $T$. We
+will show what happens if one tries to parse $G_A$ on these algorithms in the
+sequence, but we present in Figure \ref{fig:recursive-descent} a pseudocode for
+an algorithm that parses $G_A^2$. Note that the programmer must also take care
+of handling the syntax errors, and therefore this task can become very
+error-prone.
+
+
+\begin{figure}[ht]
+	\centering
+	\begin{lstlisting}[
+		language=pseudocode,
+		style=pseudocode,
+		style=wider,
+		functions={},
+		specialidentifiers={extern, TOKEN},
+		]
+		extern function syntax_error ();
+		extern function yylex ();
+
+		TOKEN current_token;
+		function next_token ()
+			current_token = yylex ();
+
+		function T ()
+			next_token ();
+
+			if (current_token != 'a')
+				syntax_error ();
+
+			next_token ();
+			if (current_token = '*')
+				T ();
+
+		function E ()
+			T ();
+			if (current_token = '+')
+				E ();
+				return;
+			
+			else if (current_token != EOF)
+				syntax_error ();
+		
+		function S ()
+			E ();
+	\end{lstlisting}
+\caption{Recursive-Descent parser for $G_A^2$}
+\label{fig:recursive-descent}
+\end{figure}
+
+Algorithm in Figure \ref{fig:recursive-descent} is able to recognize $G_2^A$.
+Now, what if we try to deploy such a parsing algorithm for $G_2^A$? Figure
+\ref{fig:recursive_descent_2} presents what would be the function \texttt{E()}.
+Notice that this function will call itself again right after it has been
+called. This is an infinite recursion that will lead the parser to an infinite
+loop or a crash due to a runtime stack overflow. Therefore, to deploy a
+Recursive-Descent parser, the following definition must hold for the grammar.
+
+\begin{figure}[ht]
+	\centering
+	\begin{lstlisting}[
+		language=pseudocode,
+		style=pseudocode,
+		style=wider,
+		functions={},
+		specialidentifiers={extern},
+		]
+		function E ()
+			E ();
+			if (current_token == '+')
+				T ();
+				return;
+			
+			else if (current_token != EOF)
+				syntax_error ();
+	\end{lstlisting}
+\caption{Parsing code for nonterminal $\protect E \in V$ of $\protect G_A$ }
+\label{fig:recursive_descent_2}
+\end{figure}
+
+\begin{definition}
+	Let $G = (V, \Si, R, S)$ be a Context-Free Language. $G$ is Free of
+	Left Recursions if, for every $A \in V$, there is no derivations
+	of the form
+	$$ A \Rightarrow^+ A \alpha$$
+	for any $\alpha \in (V \cup \Sigma)^*$
+\end{definition}
+
+Fortunately, there are algorithms for eliminating the left-recursion of
+\textit{any} \texttt{CFG}, but they are often eliminated by hand redesigning
+the grammar to avoid such problems, once $\ttt{LR}(1)$ parsers can also handle
+right recursions very well \citep{dragonbook}.
+
+There are also conditions in which a Recursive-Descent can be implemented
+without backtracking, which are the class of $\ttt{LL}(k)$ parsers. We
+won't discuss these parsers as they are not powerful as powerful
+as \LR{$k$} parsers, and they are not as well used in pratice.
+
+\end{section}
