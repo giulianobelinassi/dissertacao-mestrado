@@ -35,29 +35,37 @@ Figure \ref{fig:analysis_classical} highlights some of these files that consume
 a lot of time to compile. From these files, we select the largest one, named
 \texttt{gimple-match.c}.
 
-When profiling GCC with the file \texttt{gimple-match.c} on a Intel(R) Core
-i5-8250U, we found that
+\begin{figure}
+\centering
+	 \includegraphics[scale=1.0]{figuras/profiling-crop.pdf}
+	  \caption{Profiling GCC with \texttt{gimple-match.c}}
+	  \label{fig:gcc_profiling}
+\end{figure}
+
+Therefore, we used the \texttt{-ftime-report} feature from GCC and compiled
+\texttt{gimple-match.c} to generate a profiling report, which we show on Figure
+\ref{fig:gcc_profiling}. This profiling report was generated on a
+Intel(R) Core(TM) i7-8565U, and we found that.
 \begin{itemize}
-    \item On average, it requires $76s$ to compile that file.
+    \item On average, it requires $87s$ to compile that file.
 
-    \item 91\% of such time ($69s$) is used to optimize and generate the final code.
+    \item 90\% of such time ($78s$) is used to optimize and generate the final code.
 
-    \item 8\% of such time ($6s$) is used in lexical and syntatic analysis.
+    \item 8\% of such time ($7s$) is used in lexical and syntatic analysis.
 
-    \item The remaining 1\% is distributed in the remaining parts of the compiler.
+    \item The remaining 2\% is distributed in the remaining parts of the compiler.
 \end{itemize}
 
-These results were obtained by self compiling GCC 9.0.1, and using the already
-implemented profiling tool inside the compiler.
+These results were obtained by self compiling GCC 10.0.1.
 
 As GCC optimizations are divided into interprocedural and intraprocedural
 optimizations, it is necessary to execute a fine-grain analysis to check which
 of these consumes the most time. We found that:
 \begin{itemize}
-	\item 75\% of the total compilation time ($57s$) is spent in intraprocedural
+	\item 79\% of the total compilation time ($69s$) is spent in intraprocedural
 	optimizations.
 
-	\item 11\% of total compilation time ($11s$) is spent in IPA.
+	\item 11\% of total compilation time ($9s$) is spent in IPA.
 \end{itemize}
 
 Therefore, a good candidate for parallelization is the intraprocedural
@@ -65,20 +73,27 @@ analysis. From the perspective of parallel computing, these optimizations can
 be parallelized regarding the number of functions in the program, once they do
 not require interactions with other functions.
 
-\begin{subsection}{Maximum Speedup}\label{sec:speedup}
+\begin{subsection}{Theoretical Maximum Speedup}\label{sec:speedup}
 
-Assuming that this profiling result is true to every input file, we can
-calculate the maximum speedup of our parallelization process. Let $p$ be the
-number of used processors. Therefore, if we assume linear speedup, the gain is:
+On Figure \ref{fig:gcc_profiling}, the compilation of \texttt{gimple-match.c}
+takes $87s$, where $79\%$ is spent on Intraprocedural Optimizations, consuming
+an relevant slice of the compilation time. If we assume that we can parallelize
+this part with linear speedup, and round up the time taken in the
+Intraprocedural part to $80\%$ (which is $\frac{4}{5}$), then we can calculate
+the parallel time $T_p$ with $p$ processors as:
 
-$$ T_p = \frac{1}{4} T_1 + \frac{3}{4p}T_1 = \frac{1}{4} \left( 1 + \frac{3}{p}
-\right)T_1 $$ Therefore, the maximum speedup per file is: $$
-\lim_{p \rightarrow +\infty} \frac{T_1}{T_p} = \lim_{p \rightarrow +\infty}
-\frac{T_1}{\frac{1}{4} \left( 1 + \frac{3}{p} \right)T_1} = \lim_{p \rightarrow
-+\infty} \frac{4}{1 + \frac{3}{p}} = 4$$
+$$ T_p = \frac{1}{5} T_1 + \frac{4}{5p}T_1 = \frac{1}{5} \left( 1 + \frac{4}{p}
+\right)T_1 $$
+where $T_1$ is the serial time we measured. By the definition of speedup,
+the maximum speedup archivable in the compiler is:
 
-However, it is most likely that the resulted speedup is smaller than 4 due to
-the overhead necessary to implement the parallelism.
+$$\lim_{p \rightarrow +\infty} \frac{T_1}{T_p} = \lim_{p \rightarrow +\infty}
+\frac{T_1}{\frac{1}{5} \left( 1 + \frac{4}{p} \right)T_1} = \lim_{p \rightarrow
++\infty} \frac{5}{1 + \frac{4}{p}} = 5$$
+
+Therefore, if we devise an mechanism to parallelize every Intraprocedural
+Optimization, we can theoretically archive up to $5\times$ speedup when compiling individual
+files.
 
 \end{subsection}
 
@@ -493,24 +508,30 @@ partitioning} problem.
 When LTO is enabled and GCC is in the WPA stage, the body of these nodes
 is not present, just a \textit{summary} of them (\textit{e.g.} the size
 in lines of code it had). This is done to save memory. However,
-when LTO is disabled, the function body is present, resulting
-in some assertion failures, which were fixed after some debugging.
+when LTO is disabled, the function body is present. Therefore,
+the LTO WPA engine must be further patched to expect that the function
+body is present when analyzing the program. 
 
 Then comes the partitioner algorithm \textit{de facto}. In LTO, GCC tries to
-create partitions of similar size, and always try to keep nodes together. The
-heuristic used by the original partitioner runs in linear time, and because of
-that its code is quite complex. This resulted in a difficult process of finding
-and solving the issues causing a partitioning failure, and therefore, we
-decided to design a new partitioning algorithm for this project.
+create partitions of similar size, and always try to keep adjacent nodes together.
+However, we devised an partitioning algorithm for our tests which only keeps
+together nodes which are \textit{required} to be in the same partition. Therefore,
+we do not focus on partition balance, although we did implement a very simple
+partition merging logic for some balance.
 
-This partitioning algorithm works as follows: for each node, we check if it
-is a member of a COMDAT \citep{comdat} group, and
-merged it into the same partition. We then propagate outside of this COMDAT group;
-checking for every node that may trigger the COMDAT to be copied into other
-partitions and group them into the same partition. In practice,
-this means to include every node hit by a Depth-First
-Search (DFS) from the group to a non-cloned node outside of the group.
-Fig. \ref{fig:comdat_frontier} represents a sketch of this process.
+This partitioning algorithm works as follows: for each node, we check if it is
+a member of a COMDAT \cite{comdat} group, and merged it into the same
+partition. We then propagate outside of this COMDAT group; checking for every
+node that may trigger the COMDAT to be copied into other partitions and group
+them into the same partition. In practice, this means to include every node hit
+by a Depth-First Search (DFS) from the group to a non-cloned node outside of
+the group.  Figure \ref{alg:comdat} presents a pseudocode of this process.
+Most of this process is already present from the COMDAT dependency algorithm
+from LTO.  We added the logic to expand the partition frontier if a duplicated
+symbol is encountered, adding further non-duplicated symbols in to
+the boundary, as we illustrate in Figure \ref{fig:comdat_frontier}. Notice how
+$v_{16}$ is not added to the frontier, as is called by $v_{14}$, the symbol marked
+as duplicated.
 
 \begin{figure}
 \centering
@@ -518,6 +539,62 @@ Fig. \ref{fig:comdat_frontier} represents a sketch of this process.
 	  \caption{Example of callgraph, in beige being represented the COMDAT group,
 	  in green the COMDAT frontier, and in red the cloned nodes.}
 	  \label{fig:comdat_frontier}
+\end{figure}
+
+
+\begin{figure}[ht]
+	\begin{center}
+	\begin{lstlisting}[
+		language=pseudocode,
+		style=pseudocode,
+		style=wider,
+		functions={},
+		specialidentifiers={graph},
+		]
+\textbf{Partitions} ds // Hold partitions. Can be implemented with Union-Find.
+
+procedure lto_merge_comdat_map(Callgraph $G$) // To be called by the LTO partitioner
+	\textnormal{Initialize} ds // Initialize one partition per node. 
+	for \textnormal{each symbol of} $G$ \textbf{as} $v$
+		if $v$ \textnormal{belongs to a COMDAT group}
+			\texttt{merge_comdat_nodes}($v$, \textnormal{partition of} $v$)
+		\texttt{merge_contained_symbols}($v$, \textnormal{partition of} $v$)
+	\textnormal{balance the partitions in} ds
+	\textnormal{build LTRANS partitions object} \textbf{from} ds
+
+procedure merge_comdat_nodes(node $v$, Partition $set$) // Merge COMDAT group with its frontier
+	if $v$ \textnormal{is marked} return
+	\textnormal{mark} $v$
+	if $v$ \textnormal{belongs to a COMDAT group}
+		for \textnormal{every node in the same COMDAT group of} $v$ \textbf{as} $w$
+			\textnormal{unite partition of} $w$ \textnormal{with partition} set
+			\texttt{merge_comdat_nodes}($w$, $set$)
+	if $v$ \textnormal{belongs to a COMDAT group} \textbf{or} $v$ \textnormal{is a duplicated symbol}
+// If $v$ is duplicated and not member of COMDAT group, we need to reach to an non-duplicated symbol to add to the frontier.
+		if $v$ \textnormal{is a function}
+			for \textnormal{every caller of} $v$ \textbf{as} $u$
+				if \textnormal{calledge} $(u, v)$ \textnormal{is inlined} \textbf{or} $v$ \textnormal{is a duplicated symbol} // Same as above
+					\textnormal{unite partition of} $u$ \textnormal{with partition} set
+					\texttt{merge_comdat_nodes}($u$, $set$)
+// thunk functions adjust their object \texttt{this} pointer before calling the function
+			if $v$ \textnormal{is a thunk function} \textbf{and} $v$ \textnormal{is not inlined anywhere}
+				for \textnormal{every callee of} $v$ \textbf{as} $w$
+					\textnormal{unite partition of} $u$ \textnormal{with partition} set
+					\texttt{merge_comdat_nodes}($u$, $set$)
+// Look at all nodes refering $v$, and add them to the COMDAT partition as well
+		for \textnormal{every node referring} $v$ \textbf{as} $u$
+			\textnormal{unite partition of} $u$ \textnormal{with partition} $set$
+			\texttt{merge_comdat_nodes}($u$, $set$)
+			$u$ \textnormal{is a duplicated symbol} // we must reach an non-duplicated symbol for the frontier
+				\texttt{merge_comdat_nodes}($u$, $set$)
+
+procedure merge_contained_symbols(node $v$, Partition $set$)
+	for \textnormal{every node contained in} $v$ \textbf{as} $u$
+		\textnormal{unite partition of} $u$ \textnormal{with partition} set
+	\end{lstlisting}
+	\end{center}
+\caption{Partition the callgraph into multiple partitions for parallel compilation}
+\label{alg:comdat}
 \end{figure}
 
 At first, we also did this process for private functions to avoid
@@ -528,7 +605,7 @@ negative hit in any parallelism opportunity.
 For grouping the nodes together,
 we used a Union Find with Path Compression, which yields an attractive
 computational complexity of $O(E + N \lg^*N)$ to our partitioner, where $N$ is the
-number of nodes and $E$ is the number of edges in the callgraph \citep{feufiloff}.
+number of nodes and $E$ is the number of edges in the callgraph \cite{feufiloff}.
 
 Once the partitions are computed, we need to compute its \textit{boundary}.
 If function $f$ calls $g$, but they were assigned into distinct partitions,
@@ -541,9 +618,12 @@ in LTO and we could reuse them. However, some issues were found
 when handling inline functions and global variables marked as part
 of the boundary. First, some functions marked to be inlined into 
 functions inside the partition were incorrectly marked to be removed.
+We fixed that by checking if a marked to be removed function is inlined
+into a function inside the boundary.
 Second, being variables marked as in the boundary (and therefore
-not in the partition) not being correctly promoted to external. The reason
-for these issues was hard to find the reason of, but easy to fix.
+not in the partition) not being correctly promoted to external.
+We further fix that by checking if there are references to that variable
+through other partition, and in this case we promote them to global.
 
 Furthermore, there were some issues concerning how GCC handles
 partitions, which we discuss in the next subsection.
@@ -581,9 +661,11 @@ communication file, which the driver will read in the future. The partition
 number is important to guarantee that the build is reproducible, as we will
 discuss later.
 
-It is also important that some early step in the compiler does not emit assembly
-too early, such as the issue with the gimplifier in GCC, or else the output
-file will be incomplete. We had to fix the gimplifier to avoid that.
+It is also important that some early steps in the compiler does not emit
+assembly too early, such as were the case of the gimplifier in GCC, or else the
+output file will be incomplete. These cases could be easily detected by using
+a breakpoint and flushing the assembler output file before retargeting the new
+assembler output file.
 
 Once the partition is applied to the child process, and the output file has
 been communicated to the driver, it can continue with the compilation. It
@@ -957,7 +1039,7 @@ quick to implement, large outcome method of doing that.
 %Uma ilustração da distribuição dessas tarefas no tempo está representada na
 %Figura \ref{fig:gantt}.
 
-\chapter{Experiments}
+\chapter{Experiments}\label{cap:experiments}
 
 Having our methods explained and implemented, we may now show our experiments
 methodology and results. We proceeded with the following methodology: we
@@ -1151,11 +1233,15 @@ may compile the same software from scratch several times a day.
 \end{table}
 
 \begin{figure}
-\centering
-	 \includegraphics[scale=0.6]{figuras/times-insns-crop.pdf}
-	  \caption{Compilation of each file with 1, 2, 4, and 8 threads on
-	  Core-i7}
-	  \label{fig:gcc_all_files}
+\includegraphics[scale=0.7]{figuras/times-insns-crop.pdf}
+\caption{Times of selected files with 1, 2, 4 and 8 threads on Core-i7}
+\label{fig:gcc_all_files}
+\end{figure}
+
+\begin{figure}
+\includegraphics[scale=0.7]{figuras/times-speedup-crop.pdf}
+\caption{Speedups of selected files with 1, 2, 4 and 8 threads on Core-i7}
+\label{fig:gcc_all_files}
 \end{figure}
 
 \begin{figure}

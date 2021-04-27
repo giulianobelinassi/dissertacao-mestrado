@@ -24,12 +24,12 @@ interpreter executes it.
 %Interpretador.
 
 A compiler is nothing more than a software that translates code from a
-programming language $A$ to another language $B$ \citep{dragonbook}.
-Compilers are enormous programs, largely adopted by industry and academia, where
-a great effort has been employed to produce efficient code --
-but without any sacrifice in correctness --. There are huge projects destined to
-develop and improve them, such as the GNU Compiler Collections
-(GCC\footnote{https://gcc.gnu.org/}), capable of translating several languages
+programming language $A$ to another language $B$ \citep{dragonbook}.  Compilers
+are enormous programs, largely adopted by industry and academia, where a great
+effort has been employed to produce efficient code -- but without any sacrifice
+in correctness --. There are huge projects destined to develop and improve
+them, such as the GNU Compiler Collections (GCC\footnote{https://gcc.gnu.org/})
+and LLVM\footnote{https://llvm.org/}, capable of translating several languages
 such as C, C++, and Fortran, to machine language. There are also smaller
 projects such as F2C\footnote{https://www.netlib.org/f2c/}, a Fortran to C
 compiler, used in systems that there is no Fortran compiler available. Such
@@ -98,7 +98,7 @@ increasingly common nowadays.
 
 \end{section}
 
-\begin{section}{The GCC}
+\begin{section}{Parallelism in Compilation}
 
 %O GCC é um compilador de código aberto amplamente usado tanto no meio
 %acadêmico quanto na indústria. Por ser um grande projeto, o GCC contém uma
@@ -120,7 +120,7 @@ increasingly common nowadays.
 
 Currently, all parallelism in the compilation stage is provided either by the
 GNU Make\footnote{https://www.gnu.org/software/make/}, which only provides a
-per-file level granularity; or through the LTO infrastructure, which we
+per-file level granularity; or through the LTO infrastructure inside the compiler, which we
 approach in Section \ref{chap:related_works}. The former, which we will label
 the \textit{classical compilation method}, may bottleneck the compilation in
 manycore machines if there exists some file that dominates the compilation time.
@@ -146,7 +146,7 @@ Since today the processors' manufacturers are increasing the power of their
 products through parallelism over raw sequential power, compilers that can
 profit from this resource could reduce the time taken when compiling a project
 or even reduce execution time on script languages that rely on Just in Time
-(JIT) compilation. It means a reduction in resource usage, such cases such as
+(JIT) compilation. It means a reduction in resource usage, such as
 power, time, and thus money. So far, every parallelism found internally in
 optimizing compilers was a consequence of a structure created to allow more
 aggressive optimizations, such as the LTO \citep{glek2010optimizing}.
@@ -203,9 +203,9 @@ Therefore, this work is dedicated to the following research questions:
 %técnicas discutidas, além da utilização de técnicas de inferência estatística para
 %análises no tempo total de compilação no projeto GCC e arquivos separados.
 
-We present these questions in the hope that they may be useful to software
+We present answers of these questions in the hope that they may be useful to software
 developers so that they be aware of how compilers may impact the development
-process in their projects, as well as compiler writers about how to improve
+process of their projects, as well as compiler writers about how to improve
 their software using parallelism. Thus, the main contribution of this work is
 to provide ways to modify an industrial-scale compiler to
 compile single files in parallel.
@@ -217,7 +217,8 @@ Following that, Chapter \ref{chap:related_works} presents related work until
 the state of art on this topic, with a brief discussion about their positive
 and negative points. Then, Chapter \ref{chap:proposta} presents a general
 version of the work, with an analysis of what needs to be improved,
-contemplating the parallel architecture and the implementation planning. Finally,
+contemplating the parallel architecture and the implementation planning, presenting
+our experiments about then on Chapter \ref{cap:experiments}. Finally,
 in Chapter \ref{chap:conclusions}, we present our conclusions about this work
 and how this work can be improved, with future works.
 

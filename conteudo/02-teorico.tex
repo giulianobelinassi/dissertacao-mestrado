@@ -11,6 +11,8 @@ generate the code.
 Compilers are large projects destined for the translation of source code
 between distinct programming languages. Usually, compilers translate high-level
 languages such as C, to assembly language, and those are the focus of our work.
+We will not approach JIT compilers in this work, although they are very often
+used in interpreted languages, such as Ruby or Python.
 
 This chapter presents a brief introduction to the concepts used in this work.
 In Section \ref{sec:parsing} we present a brief introduction about parsing
@@ -19,7 +21,7 @@ present all parts of the compiler pipeline to understand the compilation
 phases. In Section \ref{sec:engineering} we discuss some software engineering
 techniques that are employed when implementing compilers.  In Section
 \ref{sec:gcc_compiler} we discuss the internals of the GCC compiler, from the
-several IRs in the compiler to the interaction between the parts.  In
+several Intermediate Representations the compiler to the interaction between the parts.  In
 \ref{sec:contributing} we present the details of the contributing process. In
 Section \ref{sec:parallel_computing} we present some concepts from parallel
 computing, which we use in this dissertation. And finally, Section
@@ -39,17 +41,18 @@ calculation, which we used in our experiments.
 
 Computer programs are written as a text file in some programming language,
 which needs to be compiled or interpreted for execution. The first step of such
-programs is to process the text file and construct a data structure that is
-suitable for processing, which is named \textbf{parsing}.
+programs is to process the text file, validate the input with regard to the
+language, and construct a data structure that is suitable for processing. This
+process is named \textit{parsing}.
 
 Parsing usually consists of two analysers: 
 \begin{itemize}
 
 \item \emph{Lexical Analysis}: responsible for reading a text file containing
-the Source Code and splitting the words in the file in Tokens. As a consequence,
-it is capable of applying some filters, e.g. ignore commentaries, identify
-numerical constants, remove unnecessary spaces, and replace a token with
-another.  Lexical Analysers can also be used for macro expansion, as
+the Source Code and splitting the words in the file into \textit{tokens}. As a
+consequence, it is capable of applying some filters, \textit{e.g.} ignore commentaries,
+identify numerical constants, remove unnecessary spaces, and replace a token
+with another.  Lexical Analysers can also be used for macro expansion, as
 implemented in the C preprocessor
 (CPP)\footnote{https://gcc.gnu.org/onlinedocs/cppinternals/Lexer.html}.
 
@@ -62,17 +65,18 @@ extremely efficient.
 
 \item \emph{Syntactic Analysis}: responsible to generate an Abstract Syntax
 Tree (AST), inspecting the sequence of tokens provided by the Lexical Analyser,
-or point out why the input string is not valid. The objective of a Syntatic
+or point out why the input string is invalid. The objective of a Syntatic
 Analyser is to construct an AST by keeping track of the
 reduction or derivation decisions with respect to the language grammar. The
 decision of doing type analysis, checking for undefined usage of variables,
 etc, can be done while building this AST, or postponed to a next stage, called
 the Semantic Analysis.
 
-Very often, these parsers are implemented either by emplying automatic generated
-parsers such as \texttt{LALR}(1) algorithm provided by
-\textit{Bison}\footnote{https://www.gnu.org/software/bison/}, or by hand-implementing
-Recursive Descent parsers.
+Very often, these parsers are implemented either by emplying automatic
+generated parsers such as \texttt{LALR}(1) algorithm provided by
+\textit{Bison}\footnote{https://www.gnu.org/software/bison/}, or by
+hand-implementing Recursive Descent parsers, which we present an example in
+Figure \ref{fig:recursive-descent}. 
 
 \end{itemize}
 
@@ -172,7 +176,7 @@ of programming languages, and an brief introduction to parsing theory can be
 seen in Appendix \ref{sec:apendix-parser}.
 
 
-\begin{section}{Compiler Optimization Theory}\label{sec:optimization}
+\begin{section}{Compiler Optimization}\label{sec:optimization}
 
 Industrial compilers are what we call to be an ``Optimizer Compiler'', because
 it not only do a direct translation to another language, but because it
@@ -487,7 +491,7 @@ always converge to a result.
 
 Dataflow Analysis is a technique to collect and propagate information across a
 Control-Flow Graph. It is used not only in compilers but also in static code
-analysis in general.
+analysis in general in Software Engineering.
 
 When analyzing a program's function, it is useful to know at a certain point,
 what properties do hold to decide for an optimization.  Incorrectly guessing
@@ -745,7 +749,10 @@ y_2 &= y_1 + 1 \nonumber \\
 y_3 &= 1 \nonumber
 \end{align}
 
-This will lead to the variable $y_2$ being unused because it is nowhere present on the left-hand side of any assignment, meaning that it can be discarded; which will then imply that $y_1$ will be unused and can be discarded as well.
+This will lead to the variable $y_2$ being unused because it is nowhere present
+on the right-hand side of any assignment (has no use in the \textit{def-use}
+chain), meaning that it can be discarded; which will then imply that $y_1$ will
+be unused and can be discarded as well.
 
 However, SSA form can get trickier to implement if there are jumps in the
 programs, which is often the case with \texttt{if} and \texttt{while}
@@ -864,9 +871,10 @@ and each edge represents a call between two functions.
 
 Figure \ref{fig:call_graph} gives an example of a Callgraph. When applying
 Interprocedural Optimizations, each vertex can also hold some sort of
-\textit{summary} of the function instead of the entire function, because often
-the program being compiled is large enough that there is not enough memory
-to hold the contents of the functions. This is the case when working with
+\textit{summary} of the function instead of the entire function, because the
+program being compiled often is large enough that there is not sufficient
+memory to hold the contents of the functions in the host machine which is
+compiling the code. This is the case when working with
 the Link Time Optimization (LTO) technique.
 
 There are some extensions to the dataflow frameworks to work on Interprocedural
@@ -1047,7 +1055,7 @@ cycles to execute. This is specially important for CISC-based processors,
 which a sequence of instructions can be replaced with a single instruction,
 resulting in a faster program. Detecting such cases is the main issue here.
 
-There are several techniques to select instruction. One of the simplest
+There are several techniques to select instructions. One of the simplest
 is the \textit{macro translation}, where each statement is replaced
 by the final code locally for each line of the IR. This has the advantage
 of being a fast way to implement a way to translate the code, but
@@ -1101,10 +1109,10 @@ general.
 \end{figure}
 
 There are some algorithms for matching such trees. One, proposed by
-\cite{glanville1978}, describes a Context-Free Grammar to translate
-the IR into assembler language. However, in many machines, such grammar
-will always be ambiguous, implying that such grammars will not pass
-the $\mathcal{DK}_1$ test, either by \textit{shift-reduce} or
+\cite{glanville1978}, describes a Context-Free Grammar to translate the IR into
+assembler language. However, in many machines, such grammar will always be
+ambiguous, implying that such grammars will not pass the $\mathcal{DK}_1$ test
+(see Section \ref{sec:bottom-up}), either by \textit{shift-reduce} or
 \textit{reduce-reduce} conflicts.
 
 	The solution of this problem is as follows:

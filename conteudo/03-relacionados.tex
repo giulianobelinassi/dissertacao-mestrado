@@ -256,6 +256,14 @@ parallel by levels. Authors show a speedup from $2.7\times$ to $5.4\times$.
 %pelos autores apenas mostram oportunidades de paralelismo encontrada pelo
 %algoritmo.
 
+Recently, \cite{panchenko2021lightning} presented
+Lightning BOLT, a compiler that reads already compiled binaries and outputs an
+optimized version of them. The authors present a list of passes in which
+Lightning BOLT runs in parallel and briefly explain how they parallelized them.
+They include Control-Flow Graph Construction, Local Optimizations, Identical
+Code Folding, Frame optimizations, and Shrink Wrapping running in parallel.
+Speedups ranged up to $1.56\times$ when compared to the sequential version.
+
 However, the works presented so far are concerned with the classical
 compilation scheme. There are also papers expanding this scheme allowing better
 optimizing compilers which also explores parallelism, which we will present in
@@ -277,7 +285,7 @@ Authors      & \multicolumn{1}{l|}{Implemented} & \multicolumn{1}{l|}{Speedup} \
 
 \begin{subsection}{Link Time Optimization (LTO)}\label{lto_section}
 
-The issue around this scheme is that it can only optimize with
+The issue around the classical compilation scheme is that it can only optimize with
 the information found in its Translation Unit (TU) because it can not see the body
 content of other files' functions. A TU is the
 entire content of a source file (a .c file in C) plus all its headers.
