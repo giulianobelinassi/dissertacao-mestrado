@@ -38,8 +38,13 @@ compiling \textit{de facto}. We present the works in these areas separately.
 
 \begin{section}{Parallel Parsing}
 
-From the parsing algorithms presented in Section \ref{chap:fundamentacao}, the
-recursive descent parser is the simplest of them.
+Parsing can be
+described as building a machine to decide if an input string is a member of a
+certain language or not, creating the Abstract Syntax Tree in the process by
+logging the used derivation rules. Parallel parsing can be described as using
+parallel programming techniques for this mean.
+
+
 \cite{Lincoln:1970:PPT:987475.987478} proposed a parallel lexical analysis on a
 Fortran compiler by dividing the input source code into smaller parts, mapping
 the position of each linefeed in the code, and processing them through APL

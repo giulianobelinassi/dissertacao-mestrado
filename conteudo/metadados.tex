@@ -88,7 +88,7 @@ ou usando o mecanismo do \textit{Link Time Optimization} (LTO), para paralelizar
 aplicação das otimizações intraprocedurais do compilador, discutindo suas
 vantagens e desvantagens de cada metodologia. Embora usemos o GCC como base,
 essas técnicas são gerais o suficiente para serem aplicadas em qualquer
-compilador. Conseguimos \textit{speedups} de até $3.53\times$ ao compilar
+compilador. Conseguimos \textit{speedups} num intervalo entre $0.7\times$ até $3.53\times$ ao compilar
 arquivos individuais, e até $35\%$ de \textit{speedup} ao compilar projetos
 inteiros usando um destes métodos, em contraste com utilizando exclusivamente o
 \texttt{make} em paralelo. Também apresentamos trabalhos relacionados ao
@@ -108,9 +108,9 @@ parallelize using threads, or using the Link Time Optimization (LTO), to
 parallelize the application of intraprocedural optimizations in the compiler,
 discussing the advantages and disadvantages of each method. Although we use GCC
 as a basis, these techniques are general enough to be applied to any compiler.
-We managed a speedup of up to $3.53\times$ when compiling individual files, and
-up to $35\%$ of speedup when compiling entire projects contrasting with
-\texttt{make} alone. We also present the related works on the topic, from
-parallel parsing to parallel optimizations, as well as a summary about parsing
-and compiler theory.
+We managed speedups ranging from $0.7\times$ up to $3.53\times$ when compiling
+individual files, and up to $35\%$ of speedup when compiling entire projects
+contrasting with \texttt{make} alone. We also present the related works on the
+topic, from parallel parsing to parallel optimizations, as well as a summary
+about parsing and compiler theory.
 }

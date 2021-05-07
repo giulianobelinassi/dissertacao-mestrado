@@ -21,7 +21,7 @@ present all parts of the compiler pipeline to understand the compilation
 phases. In Section \ref{sec:engineering} we discuss some software engineering
 techniques that are employed when implementing compilers.  In Section
 \ref{sec:gcc_compiler} we discuss the internals of the GCC compiler, from the
-several Intermediate Representations the compiler to the interaction between the parts.  In
+several Intermediate Representations of the compiler to the interaction between the parts.  In
 \ref{sec:contributing} we present the details of the contributing process. In
 Section \ref{sec:parallel_computing} we present some concepts from parallel
 computing, which we use in this dissertation. And finally, Section
@@ -178,7 +178,7 @@ seen in Appendix \ref{sec:apendix-parser}.
 
 \begin{section}{Compiler Optimization}\label{sec:optimization}
 
-Industrial compilers are what we call to be an ``Optimizer Compiler'', because
+Today industrial compilers are what we call to be an ``Optimizer Compiler'', because
 it not only do a direct translation to another language, but because it
 tries to generate faster code than the input code created by the programmer
 while still maintaining its correctness.
@@ -491,7 +491,7 @@ always converge to a result.
 
 Dataflow Analysis is a technique to collect and propagate information across a
 Control-Flow Graph. It is used not only in compilers but also in static code
-analysis in general in Software Engineering.
+analysis in general in the field of Software Engineering.
 
 When analyzing a program's function, it is useful to know at a certain point,
 what properties do hold to decide for an optimization.  Incorrectly guessing
@@ -1779,10 +1779,12 @@ files that do not depend on each other.
 %um arquivo, a compilação pode ser efeutada em paralelo entre arquivos que não dependem
 %uns dos outros.
 
-In this process, it is not possible to apply optimizations observing the program
-as a whole, because the compiler has no information about the information present
-on functions that are outside its Translation Unit (TU). Therefore, every
-optimization are applied only local to its TU.
+In this process, it is not possible to apply optimizations observing the
+program as a whole, because the compiler has no information about the
+information present on functions that are outside its Translation Unit (TU). A
+Translation Unit is the content of the file which will be translated into
+another language (\textit{e.g.} the content of a .c file plus all headers it
+inclues) Therefore, every optimization are applied only local to its TU.
 
 %Neste processo, não é possível aplicar otimizações observando o programa como
 %um todo, pois o compilador não tem informações sobre as funções que estão em
