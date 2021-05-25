@@ -2,12 +2,12 @@
 \label{chap:proposta}
 
 Having discussed both the theoretical and technical aspects of compilers, and
-presented the previous works in the area, we discuss our attempts and success
+presenting the previous works in the area, we discuss our attempts and success
 of parallelizing a compiler.
 
 We start this chapter by presenting a profile report of GCC, which we use to
 decide where to tackle (in Section \ref{sec:profile}). Then we show two ways to
-proceed to parallelize the most costly section: by using threads (in Section
+proceed in order to parallelize the most costly section: by using threads (in Section
 \ref{sec:threads}) or by adapting the LTO engine to compile in parallel (in
 Section \ref{sec:parallel_lto}). In summary, this work will discuss the
 parallelization of intraprocedural analysis inside a compiler (in this case,
@@ -29,12 +29,12 @@ GCC).
 We first start as an analysis of the time spent in some stages of the compiler.
 As stated by \cite{PR84402}, there is a parallel compilation bottleneck in GCC
 due to the existence of blob files. Therefore, the GCC itself has good samples
-of files for our project, which we must achieve a speedup for those to at least
-claim that parallelizing a compiler can improve the compilation performance.
+of files for our project. We must achieve a speedup for those to, at least, claim
+that parallelizing a compiler can improve the compilation performance.
 Figure \ref{fig:analysis_classical} highlights some of these files that consume
 a lot of time to compile. In this figure, we collect the compilation
-timestamp on the beginning and end of each GCC file, which resulted in this
-interval graph. From these files, we select the largest one, named
+timestamp on the beginning and ending of each GCC file, which resulted in this
+interval graph. From these files, we selected the largest one, named
 \texttt{gimple-match.c}.
 
 \begin{landscape}
@@ -59,7 +59,7 @@ interval graph. From these files, we select the largest one, named
 Therefore, we used the \texttt{-ftime-report} feature from GCC and compiled
 \texttt{gimple-match.c} to generate a profiling report, which we show on Figure
 \ref{fig:gcc_profiling}. This profiling report was generated on a
-Intel(R) Core(TM) i7-8565U, and we found that.
+Intel(R) Core(TM) i7-8565U, and we found that:
 \begin{itemize}
     \item On average, it requires $87s$ to compile that file.
 
@@ -70,7 +70,7 @@ Intel(R) Core(TM) i7-8565U, and we found that.
     \item The remaining 2\% is distributed in the remaining parts of the compiler.
 \end{itemize}
 
-These results were obtained by self compiling GCC 10.0.1.
+These results were obtained by self-compiling GCC 10.0.1.
 
 As GCC optimizations are divided into interprocedural and intraprocedural
 optimizations, it is necessary to execute a fine-grain analysis to check which
@@ -118,7 +118,7 @@ files.
 
 \begin{section}{Parallelization with Threads}\label{sec:threads}
 
-After the IPA is complete, GCC launch \texttt{expand\_all\_functions} function
+After the IPA is complete, GCC calls the \texttt{expand\_all\_functions} function
 to resume the compilation. Therefore, we designed the following mechanism: once
 the IPA completes the processing of a function, it then enqueues this function
 in a producer-consumer queue, which the intraprocedural passes will have to
@@ -150,7 +150,7 @@ so this information was not lost after this function switch.
 Then we split the pass engine explicitly into three steps: IPA
 transformation, GIMPLE, and RTL, and we made sure that we could run all IPA
 transformations first on every function, then all GIMPLE passes in every
-function, then all RTL passes in every function; as opposed to the previous
+function, then all RTL passes in every function -- as opposed to the previous
 model that applied every optimization to a single function before proceeding to
 the next function. Figure \ref{fig:intraprocedural_sketch} illustrates how this
 process was before our change, and \ref{fig:intraprocedural_sketch_after}
@@ -172,7 +172,7 @@ FOR_EACH_FUNCTION (g, cfun) {
   cfun->expand ();
 }
 	\end{lstlisting}
-\caption{Sketch of GCC aplying the intraprocedural optimizations}
+\caption{Sketch of GCC applying the intraprocedural optimizations}
 \label{fig:intraprocedural_sketch}
 \end{figure}
 
@@ -207,15 +207,15 @@ FOR_EACH_FUNCTION (g, cfun) {
 }
 	\end{lstlisting}
 	\end{center}
-\caption{Sketch of GCC aplying the intraprocedural optimizations after our changes}
+\caption{Sketch of GCC applying the intraprocedural optimizations after our changes}
 \label{fig:intraprocedural_sketch_after}
 \end{figure}
 
 After that, we chose to parallelize the GIMPLE passes. We chose GIMPLE first
 because it affects every target architecture supported by GCC, whereas RTL
-would require adjustment to every target architecture. For this to work
-minimally, we had to insert locks to several points in the compiler -- which is
-the main issue with this approach -- that we discuss below.
+would require adjustment to every target architecture.  We had to insert locks
+to several points in the compiler – which is the main issue with this approach
+– for it to work minimally. We will discuss that below.
 
 \begin{subsection}{Global Variables}
 
@@ -223,7 +223,7 @@ The first major problem was the abuse of global variables in GCC, and the lack
 of replicability of critical data structures that are necessary for compiling a
 function. For instance, the current function pointer (cfun) is a global
 variable used in almost every intraprocedural pass in GCC, although the pass
-engine itself supports passing the function which must be compiled. Other
+engine itself supports passing the function that must be compiled. Other
 structures required replication across the threads, for which we used the C11
 Thread Local Storage feature (\textit{\_\_thread}).
 
@@ -231,7 +231,7 @@ Then there were the problems with global variables in most passes, which used
 global variables to avoid passing them down into the call chain. Most of these
 issues could be easily identified using tools like
 \texttt{valgrind}\footnote{https://valgrind.org/}, once these data structures
-were released after the pass ends, which leads to write to released memory.
+were released after the ending of the pass, which leads to write to released memory.
 This issue can be fixed by wrapping these variables inside a class and
 instantiate them on the pass execution.
 
@@ -241,19 +241,19 @@ instantiate them on the pass execution.
 
 Memory pools are data structures that allocate several objects of the same type
 in chunks to avoid calls to the \texttt{malloc()} function, and to ensure that data is
-always aligned. This serves both as optimization and to avoid memory leaks, as
+always aligned. This functions both as optimization and to avoid memory leaks, as
 one can free the entire pool at once. 
 
-Memory pools were implemented in GCC as a class that all points to one
-singleton Memory Allocator object, which carries the memory allocation and
+Memory pools were implemented in GCC as a class that points to one
+singleton Memory Allocator object, which carries the memory allocation, and,
 therefore had a serious race condition when threads tried to allocate and
 deallocate memory pools. One thread could release a pool to which other threads
-held pointers to, resulting in references to invalid memory, or typical race
+held pointers to, resulting in references to invalid memory; or typical race
 conditions in this structure with counters, which need to be increased and
 decreased as chunks of objects are allocated and released. 
 As the data structure is required by other threads later in the compilation,
 which is still carried by a single thread in the current state of this project,
-our first try was to implemented a Threadsafe Memory Pool allocator, which
+our first attempt was to implement a Threadsafe Memory Pool allocator, which
 locks a mutex each time memory is allocated or released and annotates the
 thread ID on each chunk. Therefore, when memory is released, the thread only
 releases the chunk they currently own. This approach made the compilation slow,
@@ -272,12 +272,12 @@ $O(1)$, although the current implemented algorithm requires $O(n)$. The reason f
 this is that the memory pool currently uses a single-headed linked list, and it
 needs to be refactored into a double-headed linked list. 
 
-All memory pools touched by GIMPLE intraprocedural optimizations, except one,
-were refactored with this approach, and the merge feature was used only in
+All memory pools touched by GIMPLE intraprocedural optimizations, except for one,
+were refactored with this approach. This merge feature was used only in
 those memory pools which were required. The only pool which was not refactored
-using this approach was the Euler Transversal Forest data structure
+by using this approach was the Euler Transversal Forest data structure
 (et-forest.c), simply because the compiler crashes when the strategy is
-employed here. The reason for this must still be investigated.
+employed here. The reason for this still must be investigated.
 
 \end{subsection}
 
@@ -285,8 +285,8 @@ employed here. The reason for this must still be investigated.
 
 GCC has an internal garbage collector, which is a reference counter of objects.
 Objects that are watched by the garbage collector are declared with the GTY(())
-annotation, which then an external parser calculate the size of the object.
-This parser only supports a subset of C++, and therefore it requires some care
+annotation, which then an external parser calculates the size of the object.
+This parser only supports a subset of C++; therefore, it requires some care
 when using this resource.
 
 Our approach is to either insert locks in
@@ -295,7 +295,7 @@ the compiler or drastically increase the memory requirement of the compiler,
 as per-thread information is duplicated as per-function.
 
 Furthermore, we fixed the issue with the Garbage Collector by ensuring that
-memory allocation at this point is serialized, and disabled any memory
+memory allocation at this point is serialized, and disabling any memory
 collection when the program is running in multi-threaded mode. This is not
 necessary when multi-thread is supported by the Garbage Collector.
 
@@ -309,8 +309,8 @@ GCC uses a cache to keep tracks of memory address allocated to symbols (in
 two arrays may share its memory address with another array (\textit{e.g.} pointer
 copy).
 This cache array is marked to be watched by the
-garbage collector, therefore we lock this structure every time this array has
-to be accessed. 
+garbage collector; therefore we lock this structure every time this array has
+to be accessed.
 
 Another way of fixing this would be clone this cache to each thread and
 let it rebuild the values of already used ones. This might be faster if
@@ -322,8 +322,8 @@ locking this data structure is slower than rebuilding the object.
 
 In \texttt{tree.c}, there is a hash table used to avoid reconstruction of tree nodes
 that represent integer constants. This hash is also marked to be watched by the
-Garbage Collector, and therefore we used a simple lock to this structure every
-time this hash is accessed. This is the same problem as the memory address to
+Garbage Collector; therefore, we used a simple lock to this structure every
+time this hash was accessed. This is the same problem as the memory address to
 symbol conversion, once rebuilding the structure may be faster than using the
 lock.
 
@@ -332,14 +332,14 @@ lock.
 \begin{subsection}{The rtl\_data Structure}
 
 GCC uses a single instance of rtl\_data class, representing the current
-function being compiled in RTL. This should not be a problem as RTL expansion
+function being compiled in RTL. This should not be a problem, as the RTL expansion
 and optimization phase is still single-threaded. However, there are GIMPLE
 passes that calculate instruction costs in RTL mode to decide how the function
-will be optimized. This accesses the rtl\_data singleton and therefore exposes
+will be optimized. This accesses the rtl\_data singleton and, therefore, exposes
 a race condition that needs to be solved. To fix this issue, we have either to
 replicate this structure, which is necessary to parallelize the intraprocedural
-RTL optimizations, or fix the GIMPLE pass so that it does not depends on
-instruction costs. 
+RTL optimizations, or fix the GIMPLE pass so that it does not depend on
+instruction costs.
 
 \end{subsection}
 
@@ -350,10 +350,10 @@ parallel execution. However, using threads on an already fully developed
 compiler may not be feasible from the point of development itself because of
 its complexity.
 
-The main reason is that incremental parallelizing them is hard. The test suite
+The main reason is that parallelizing them incrementally is hard. The test suite
 does not help on that, once they are very small programs designed to test a
 certain aspect of the compiler, meaning that there is not enough stress test.
-There are programs such as Helgrind and ThreadSanitizer which improves our job,
+There are programs such as Helgrind and ThreadSanitizer which improve our job,
 but even then, we reach a point where the race condition window is so small
 that even those tools fail to detect them. There is no alternative left than
 indeed understanding the code and figuring out on our own what is causing the
@@ -362,11 +362,11 @@ large software in general.
 
 Another issue is to guarantee that our builds are always reproducible.
 Even solved race conditions may change the final executable due to order
-changes in the execution that was not present on the original serial version.
+changes in the execution that were not present in the original serial version.
 This is certainly an issue if the feature is used in industrial environments.
 
 With this in mind, perhaps the best approach is to go using a process-based
-approach rather than threads, which we discuss in the next section.
+one rather than threads, which we will discuss in the next section.
 
 \end{subsection}
 
@@ -375,7 +375,7 @@ approach rather than threads, which we discuss in the next section.
 \begin{section}{Modifying LTO for parallel file compilation}\label{sec:parallel_lto}
 
 As presented in Section \ref{lto_section}, LTO was created to allow
-cross-module optimizations in programs, and has a serial part (WPA), imposing a
+cross-module optimizations in programs. It has a serial part (WPA) that imposes a
 compilation bottleneck on manycore machines. On the other hand, \emph{classical
 compilation} scheme can not partition its TU for parallel compilation, which
 can also be a bottleneck for the compilation if it is too large.  The latter
@@ -396,22 +396,22 @@ In this section, we will discuss some of our design decisions based on the
 internal workings of GCC. In Subsection \ref{sec:gcc_driver}, we present how we
 modified the GCC driver to reconstruct the output object file, required for
 maintaining compatibility building tools such as Make. Then, in
-Subsection \ref{sec:lto_partitioner} we present a short algorithm for making
+Subsection \ref{sec:lto_partitioner}, we present a short algorithm for making
 the LTO partitioner work for our proposal. In Subsection
-\ref{sec:partition_mask} we present a necessary change we had to do in our work
+\ref{sec:partition_mask}, we present a necessary change we had to do in our work
 about how partitions are applied in GCC. In
 Subsection \ref{sec:name_clash_resolution}, we explain how we solved the issue
 of private symbols with the same name being promoted to global.
 Then in Subsection \ref{sec:integration_jobserver}, we present an optional part
 of our work about communicating with the GNU Make Jobserver to keep track of
-used processors. And finally, we discuss why our proposal is still compatible
+used processors. Finally, we discuss why our proposal is still compatible
 with the Reproducible Builds project in Subsection \ref{sec:repro_builds}.
 
 \begin{subsection}{The \texttt{gcc} Driver}\label{sec:gcc_driver}
 
 A large program can be written in several languages, with each of them having
 its own compiler. As stated in Section \ref{sec:motivation}, a compiler
-translates a program from a language $A$ to another language $B$.
+translates a program from a language $A$ into another language $B$.
 In GCC, it translates several languages to assembly
 of some architecture (\textit{e.g.} x86). This means that
 encapsulating code in object files, or linking these files in an executable, are
@@ -421,21 +421,21 @@ a \textit{driver}, and it will launch the
 necessary programs for the user. In fact, this line launches three programs,
 as illustrated in Fig. \ref{fig:gnu_toolchain}.
 
-Therefore, if we want our changes do not to break the building scripts
+Therefore, if we want our changes to not to break the building scripts
 (\textit{e.g.}, Makefile) used by most projects -- which is mostly launching
 \texttt{gcc file.c -c} that creates an object file \texttt{file.o} -- we must
-ensure that we create a single object file for each file, not multiple, as does
+ensure that we create a single object file for each file, not multiple ones, as does
 the LTO partitioner. Fortunately, we can rely on GNU \textit{ld} partial linking
-for merging objects file into one. Therefore, the solution to this problem is:
+for merging object files into one. Therefore, the solution to this problem is:
 \begin{enumerate}
 	\item Patch the LTO \textit{partitioner} to communicate the location of
 	each created assembly file (.s) to the \textit{driver}. This can be
 	done by passing a hidden flag \texttt{-fadditional-asm=<file>}
-	by the driver to the partitioner, which the last will write to. This file can also
+	by the driver to the partitioner, in which the last will write to. This file can also
 	be replaced with a Named Pipe for better performance if needed.
 
 	Then, the partitioner checks if this flag has been passed to the compiler.
-	If yes, then a \textit{compatible version} of the driver is installed. If
+	If so, then a \textit{compatible version} of the driver is installed. If
 	the partitioner decides to partition the TU, it should \textit{retarget}
 	the destination assembly file and write the retargeted name to the
 	communication file.
@@ -517,7 +517,7 @@ after our changes}
 
 In GCC, a TU is represented as a callgraph. Every function, global variable, or
 clones (which may represent a function to be inlined) is represented as nodes
-in a callgraph. If there is a function call from $f$ to $g$, or there is a
+in a callgraph. If there is a function call from $f$ to $g$, or a
 reference to a global variable $g$ in $f$, then there is an edge from $f$ to
 $g$. This means that TU partitioning can be represented as a \emph{graph
 partitioning} problem.
@@ -537,7 +537,7 @@ we do not focus on partition balance, although we did implement a very simple
 partition merging logic for some balance.
 
 This partitioning algorithm works as follows: for each node, we check if it is
-a member of a COMDAT \cite{comdat} group, and merged it into the same
+a member of a COMDAT \citep{comdat} group, and if merged it into the same
 partition. We then propagate outside of this COMDAT group; checking for every
 node that may trigger the COMDAT to be copied into other partitions and group
 them into the same partition. In practice, this means to include every node hit
@@ -545,16 +545,16 @@ by a Depth-First Search (DFS) from the group to a non-cloned node outside of
 the group.  Figure \ref{alg:comdat} presents a pseudocode of this process.
 Most of this process is already present from the COMDAT dependency algorithm
 from LTO.  We added the logic to expand the partition frontier if a duplicated
-symbol is encountered, adding further non-duplicated symbols in to
+symbol is encountered, adding further non-duplicated symbols into
 the boundary, as we illustrate in Figure \ref{fig:comdat_frontier}. Notice how
-$v_{16}$ is not added to the frontier, as is called by $v_{14}$, the symbol marked
+$v_{16}$ is not added to the frontier, as it is called by $v_{14}$, the symbol marked
 as duplicated.
 
 \begin{figure}
 \centering
 	 \includegraphics[scale=0.7]{figuras/comdat_frontier.pdf}
-	  \caption{Example of callgraph, in beige being represented the COMDAT group,
-	  in green the COMDAT frontier, and in red the cloned nodes.}
+	  \caption{Example of callgraph, in beige being represented by the COMDAT group,
+	  in green by the COMDAT frontier, and in red, by the cloned nodes.}
 	  \label{fig:comdat_frontier}
 \end{figure}
 
@@ -577,9 +577,9 @@ procedure lto_merge_comdat_map(Callgraph $G$) // To be called by the LTO partiti
 			\texttt{merge_comdat_nodes}($v$, \textnormal{partition of} $v$)
 		\texttt{merge_contained_symbols}($v$, \textnormal{partition of} $v$)
 	\textnormal{balance the partitions in} ds
-	\textnormal{build LTRANS partitions object} \textbf{from} ds
+	\textnormal{builds LTRANS partitions object} \textbf{from} ds
 
-procedure merge_comdat_nodes(node $v$, Partition $set$) // Merge COMDAT group with its frontier
+procedure merge_comdat_nodes(node $v$, Partition $set$) // Merges COMDAT group with its frontier
 	if $v$ \textnormal{is marked} return
 	\textnormal{mark} $v$
 	if $v$ \textnormal{belongs to a COMDAT group}
@@ -587,7 +587,7 @@ procedure merge_comdat_nodes(node $v$, Partition $set$) // Merge COMDAT group wi
 			\textnormal{unite partition of} $w$ \textnormal{with partition} set
 			\texttt{merge_comdat_nodes}($w$, $set$)
 	if $v$ \textnormal{belongs to a COMDAT group} \textbf{or} $v$ \textnormal{is a duplicated symbol}
-// If $v$ is duplicated and not member of COMDAT group, we need to reach to an non-duplicated symbol to add to the frontier.
+// If $v$ is duplicated and not member of COMDAT group, we need to reach to a non-duplicated symbol to add to the frontier.
 		if $v$ \textnormal{is a function}
 			for \textnormal{every caller of} $v$ \textbf{as} $u$
 				if \textnormal{calledge} $(u, v)$ \textnormal{is inlined} \textbf{or} $v$ \textnormal{is a duplicated symbol} // Same as above
@@ -602,7 +602,7 @@ procedure merge_comdat_nodes(node $v$, Partition $set$) // Merge COMDAT group wi
 		for \textnormal{every node referring} $v$ \textbf{as} $u$
 			\textnormal{unite partition of} $u$ \textnormal{with partition} $set$
 			\texttt{merge_comdat_nodes}($u$, $set$)
-			$u$ \textnormal{is a duplicated symbol} // we must reach an non-duplicated symbol for the frontier
+			$u$ \textnormal{is a duplicated symbol} // we must reach a non-duplicated symbol for the frontier
 				\texttt{merge_comdat_nodes}($u$, $set$)
 
 procedure merge_contained_symbols(node $v$, Partition $set$)
@@ -610,7 +610,7 @@ procedure merge_contained_symbols(node $v$, Partition $set$)
 		\textnormal{unite partition of} $u$ \textnormal{with partition} set
 	\end{lstlisting}
 	\end{center}
-\caption{Partition the callgraph into multiple partitions for parallel compilation}
+\caption{Partition the callgraph into multiple partitions for parallel compilation.}
 \label{alg:comdat}
 \end{figure}
 
@@ -622,12 +622,12 @@ negative hit in any parallelism opportunity.
 For grouping the nodes together,
 we used a Union Find with Path Compression, which yields an attractive
 computational complexity of $O(E + N \lg^*N)$ to our partitioner, where $N$ is the
-number of nodes and $E$ is the number of edges in the callgraph \cite{feufiloff}.
+number of nodes and $E$ is the number of edges in the callgraph \citep{feufiloff}.
 
 Once the partitions are computed, we need to compute its \textit{boundary}.
 If function $f$ calls $g$, but they were assigned into distinct partitions,
 then we must include a version of $g$ in $f$'s partitions without its body,
-then check if $g$ is a private function. If yes, then $g$ must be promoted
+then check if $g$ is a private function. If it is, then $g$ must be promoted
 to a public function. There is also extra complexity if a version of $g$
 is marked to be inlined in $f$, which means that its body has to be
 streamed somehow. Fortunately, most of this logic is already present
@@ -635,15 +635,14 @@ in LTO and we could reuse them. However, some issues were found
 when handling inline functions and global variables marked as part
 of the boundary. First, some functions marked to be inlined into 
 functions inside the partition were incorrectly marked to be removed.
-We fixed that by checking if a marked to be removed function is inlined
-into a function inside the boundary.
-Second, being variables marked as in the boundary (and therefore
+We fixed that by checking if a function planned to be removed is inlined
+into a function inside the boundary; secondly, being variables marked as in the boundary (and therefore,
 not in the partition) not being correctly promoted to external.
-We further fix that by checking if there are references to that variable
-through other partition, and in this case we promote them to global.
+We further fixed that by checking if there were references to that variable
+through other partition, and in this case we promoted them to global.
 
 Furthermore, there were some issues concerning how GCC handles
-partitions, which we discuss in the next subsection.
+partitions, which we will discuss in the next subsection.
 
 \end{subsection}
 
@@ -659,27 +658,27 @@ we implemented our own method to apply the partition without having to load
 these phony object files. Fortunately, this consisted
 of four cases:
 \begin{itemize}
-	\item \textit{Node is in partition}: nothing has to be done.
-	\item \textit{Node is in boundary, but keep its body}: we mark that this function
+	\item \textit{Node is in partition}: nothing has to be done;
+	\item \textit{Node is in boundary, but keeping its body}: we mark that this function
 	is available in other partitions, but we do not release its body or
-	data structures.
+	data structures;
 	\item \textit{Node is in boundary}: we mark this mode as having its body removed,
 	but we never actually remove it. This is because the node may share the
 	body contents with another node in the partition. We then remove
-	every edge from its functions to its callees, all references to variables,
+	every edge from its functions to its callees, all the references to variables,
 	the content of the Dominator Tree, and also its Control-Flow Graph. This
-	is now a function which this partition only know that it exists.
+	is now a function which this partition only knows that it exists.
 	\item \textit{Node not in boundary}: we remove the node and all its content.
 \end{itemize}
 
-After this, it retargets the output assembly file to another file private to
-this partition and writes a pair (\textit{partition number, path to file}) into the
+After this, it creates a new output assembly file private to
+this partition, and writes a pair (\textit{partition number, path to file}) into the
 communication file, which the driver will read in the future. The partition
 number is important to guarantee that the build is reproducible, as we will
 discuss later.
 
-It is also important that some early steps in the compiler does not emit
-assembly too early, such as were the case of the gimplifier in GCC, or else the
+It is also important that some early steps in the compiler do not emit
+assembly too early, such as was the case of the gimplifier in GCC, or else the
 output file will be incomplete. These cases could be easily detected by using
 a breakpoint and flushing the assembler output file before retargeting the new
 assembler output file.
@@ -697,16 +696,16 @@ straightforward way to fix that is to increment a counter for each clashed
 symbol. This is possible because LTO has the context of the entire program,
 which we do not. Therefore, we need another way of fixing it.
 
-Two naive approaches would be to select a random integer and append to the
+Two naive approaches would be to select a random integer and append it to the
 function's name, or append the memory address of the function object to the
-function's name.  Both of them breaks bootstrap \citep{bootstrap}, the first
-because output functions will have distinct names on every new compilation. The
-second because stage 1 compiles with \texttt{-O0} and stage 2 with
+function's name.  Both of them break bootstrap \citep{bootstrap}, the first
+one does because output functions will have distinct names on every new compilation; The
+second, because stage 1 compiles with \texttt{-O0} and stage 2 with
 \texttt{-O2}, which changes the memory address of the functions between these stages.
 
 Our solution is to use a crc32 hash of the original file and append it to the
 function's name.  There is still a tiny probability of name clash with this
-approach, however, we did not find any on our tests.
+approach; however, we did not find any on our tests.
 
 \end{subsection}
 
@@ -718,12 +717,12 @@ we have also implemented an integration mechanism with GNU Jobserver
 \citep{posixjobserver}.  The implementation is simple: we query the server for
 an extra token. If we receive the token, then it means that some processor is
 available, and we can partition the TU and launch jobs inside the compiler.
-Else, the processor workload is full, and it may be better to avoid
+Otherwise, the processor workload is full, and it may be better to avoid
 partitioning altogether.
 
 However, for a program to be able to communicate with the jobserver, it should
 be launched with a prepended \texttt{+} character (\textit{e.g.} $\texttt{+gcc
--c file.c}$), and therefore it is not so straightforward to use this mode on
+-c file.c}$); therefore it is not so straightforward to use this mode on
 existing projects.
 
 \end{subsection}
@@ -732,16 +731,16 @@ existing projects.
 
 One interesting point of Open Source is that it can be verified by everyone.
 However, very often these projects are distributed in a binary form to the
-users, removing from them the burden of this process. But nothing avoids that a
+users, removing from them the burden of this process. Nevertheless, nothing avoids that a
 malicious developer modifies the codebase \textit{before} the distribution
-(\textit{e.g.} inserting a backdoor), and claiming that he/her got a distinct
+(\textit{e.g.} inserting a backdoor), and claiming that he/she got a distinct
 binary because his/her system is different from the user.
 
 The Reproducible Builds project aims to solve that issue by providing a way to
 reproduce the released binary from its source. Some software needs to
 be patched to work with Reproducible Builds, for instance,
 to not contain some kind of build timestamp, and so on. A build
-is called \textit{reproducible} if given the same source code and build
+is called \textit{reproducible} if, given the same source code and build
 instructions, anyone can recreate a bit-perfect version of the distributed
 binary \citep{reproducible_builds}.
 
@@ -753,20 +752,20 @@ We claim that our modification still supports the Reproducible Builds because
 of the following reasons:
 
 \begin{itemize}
-	\item No random information is necessary to solve name clashing.
+	\item No random information is necessary to solve name clashing;
 	\item Given a number of jobs, our partitioner will always generate
-	the same number of partitions for a certain program, always with the same content.
+	the same number of partitions for a certain program, always with the same content;
 	\item Partial Linking is always done in the same order. To ensure that,
 	we communicate to the driver a pair (\textit{partition number, path to file}),
-	and we sort this list using the partition number as the key.
+	and we sort this list using the partition number as the key;
 	\item No other race conditions are introduced, as we rely on the quality of
-	the LTO implementation of the compiler.
+	the LTO implementation of the compiler;
 \end{itemize}
 
 However, there is one point of concern, which is the Jobserver Integration.  If
 the processor is already in 100\% usage, we avoid partitioning at all and
 proceed with sequential compilation. This certainly changes accordingly to the
-processor usage of the machine during the build, therefore the build is not
+processor usage of the machine during the build; therefore, the build is not
 guaranteed to be reproducible if this option is enabled. This is not an issue
 if the number of jobs is determined beforehand.
 
@@ -792,7 +791,7 @@ threaded implementation is correct.
 
 Therefore, if the compiler already has LTO support and the developers wants
 to improve the performance of the compiler in manycore environments, this is a
-quick to implement, large outcome method of doing that.
+quick, large outcome method of doing that.
 
 
 \end{subsection}
@@ -1058,16 +1057,16 @@ quick to implement, large outcome method of doing that.
 
 \chapter{Experiments}\label{cap:experiments}
 
-Having our methods explained and implemented, we may now show our experiments
+Having our methods been explained and implemented, we may now show our experiments'
 methodology and results. We proceeded with the following methodology: we
 analyzed which method gave us the best result using compilation time of
 \texttt{gimple-match.c} as criteria, as well as correctness which we could
 ensure in our implementation. Then we selected the best method for the
 remaining three experiments:
 \begin{itemize}
-  \item Compiling every file individually using multiple numbers of threads.
+  \item Compiling every file individually using multiple numbers of threads;
   \item Compiling entire projects using multiple numbers of threads inside the
-	compiler, together with \texttt{make -j} and comparing with \texttt{make -j} alone,
+	compiler, together with \texttt{make -j} and comparing to \texttt{make -j} alone,
 	which we define as our baseline. We then select one project (GCC itself) and
 	show why we managed such speedup.
   \item Collecting the power draw for the CPU using multiple threads inside the
@@ -1104,9 +1103,9 @@ removed, as data structure can be duplicated and the garbage collector could be
 deserialized.
 
 Our parallelization technique resulted in a drop from 7 seconds to around 4
-seconds with 2 threads and around 3 seconds with 4 threads, resulting in a
+seconds with 2 threads, and around 3 seconds with 4 threads, resulting in a
 speedup of $1.72\times$ and $2.52\times$, respectively. Here we can also see
-that using Hyperthreading did not impact the result. This result was used to
+that the use of Hyperthreading did not impact the result. This result was used to
 estimate the improvement in RTL parallelization.
 
 Next, Figure \ref{fig:parallel_real} shows this results when compared with the
@@ -1152,9 +1151,9 @@ We ensure the correctness of our changes by:
 
 \begin{enumerate}
 \item Bootstrapping GCC.
-\item Ensure that the GCC testsuite was passing.
+\item Ensuring that the GCC testsuite was passing.
 \item Compiling random programs generated with \textit{csmith} \citep{csmith}
-and ensure that the correct result was found.
+and ensuring that the correct result was found.
 \end{enumerate}
 
 These tests were done with 2, 4, 8 and 64 parallel jobs, with minimum
@@ -1167,9 +1166,9 @@ external includes. We collected $n = 15$ samples for every one of these files.
 For the projects, we collected $n = 5$ samples because compilation is a
 computer intensive task. We made sure that in every test, \texttt{-g0} was
 passed for fairness, once in the current state we do not eliminate debug
-symbols that are assigned to other partitions, which if enabled imposes an
+symbols that are assigned to other partitions. If enabled, it imposes an
 unfair overhead due to several unnecessary writes to disk because of duplicated
-debug symbols, slowing down the parallel compilation process.
+debug symbols, which slows down the parallel compilation process.
 
 Tests were mainly executed in two computers, which are represented in Table
 \ref{table:machines}. The graphic caption specifies where the test was run.
@@ -1207,8 +1206,8 @@ table, the autogenerated column means that this file is compiled to C++, and
 then compiled into assembly by GCC. Furthermore, Figure
 \ref{fig:gcc_all_files} shows the timings and speedups of compiling files with
 Number of Instructions (insns) > $5\times 10^4$. We used the insns as a metric
-instead of Lines of Code (LoC) as it better captures template-heavy code that
-has to generate multiple functions for each argument from
+instead of Lines of Code (LoC) as it captures the template-heavy code better. It needs to
+generate multiple functions for each argument from
 the same input. In this figure, we can see that for large files, we mostly got
 speedups in general. We managed speedups of up to a $2.4\times$ on Core-i7 when
 compiling individual files with 8 threads, and up to $3.53\times$ on Opteron
@@ -1231,7 +1230,7 @@ massive blob files, as in GCC.  For this, we run experiments compiling the
 Linux Kernel 5.8-rc6, Git 2.30.0, the GCC version mentioned in Section
 \ref{sec:methods} with and without bootstrap enabled, and JSON C++, with commit
 hash \texttt{01f6b2e7418537}. We selected those projects as they are very often
-used on the Open Source community.  We have only enabled jobserver integration
+used in the Open Source community.  We have only enabled jobserver integration
 in GCC and Git, because it is necessary to modify an absolute large number of
 Makefiles for that (for instance, Linux has 2597 Makefiles).
 
@@ -1248,14 +1247,14 @@ cost with Make, which is a problem if the size of the partitions is small.
 Other than this, we seen no significant speedup or slowdown in these
 other projects.
 
-We first analyze why GCC had such a 35\% speedup. In Figure
+We first analyzed why GCC had such a 35\% speedup. In Figure
 \ref{fig:analysis_classical_parallel}, we plot the interval graph of each file
 again, but in this time enabling threads inside the compiler. We can observe a
-significant reduction in both file compilation time and the parallelism bottleneck.
-This is due to our parallel file compilation mechanism. 
+significant reduction in both file compilation time and in the parallelism bottleneck.
+This is due to our parallel file compilation mechanism.
 
 Now, this 15\% improvement on Git was not expected at first, which was an
-excitement. Analyzing the compilation process of git, we found that it simply
+excitement. When analyzing the compilation process of git, we found that it simply
 did not have enough files to fully populate the 64-threaded Opteron machine.
 Therefore, the extra parallelism added by our method improved the CPU usage
 here.  However, this project compiles quite fast in this machine ($5s$), so the
@@ -1270,9 +1269,9 @@ Another interesting observation from both Figures \ref{fig:analysis_classical} a
 \ref{fig:analysis_classical_parallel} is the high amount of serial steps when
 compiling GCC until the high throughput compilation phase starts. This can be
 attributed to GNU Autotools configuring the compiler for the environment of the
-machine. Perhaps the configure part could be parallelized as well, and this
+machine. Perhaps the configuration part could be parallelized as well, and this
 could improve several projects across the board, or replace this tool
-altogether with another that can better handle parallelism.
+altogether with another that could better handle parallelism.
 
 Furthermore, we also observe a reduction in power consumption when using this
 mode, which is displayed in Figure \ref{fig:power}. This may be extra useful for Continuous Integration systems, which

@@ -2,29 +2,29 @@
 \label{chap:fundamentacao}
 
 To avoid confusion regarding the various languages that the compiler works on,
-we denote the following definitions on this work: Denote \textit{Source
+we denote the following definitions in this work: denote \textit{Source
 Language}, as the language in which the code being compiled was originally
 written; \textit{Intermediary Language} (IR) as the languages used internally in the
-compiler; and \textit{Target Language} the language in which the compiler must
+compiler; and \textit{Target Language} as the language in which the compiler must
 generate the code.
 
 Compilers are large projects destined for the translation of source code
 between distinct programming languages. Usually, compilers translate high-level
-languages such as C, to assembly language, and those are the focus of our work.
+languages such as C, into assembly language, and those are the focus of our work.
 We will not approach JIT compilers in this work, although they are very often
 used in interpreted languages, such as Ruby or Python.
 
 This chapter presents a brief introduction to the concepts used in this work.
-In Section \ref{sec:parsing} we present a brief introduction about parsing
-which are heavily used in a compiler. In Section \ref{sec:optimization} we
+In Section \ref{sec:parsing}, we present a brief introduction about parsing
+that are heavily used in a compiler. In Section \ref{sec:optimization}, we
 present all parts of the compiler pipeline to understand the compilation
-phases. In Section \ref{sec:engineering} we discuss some software engineering
+phases. In Section \ref{sec:engineering}, we discuss some software engineering
 techniques that are employed when implementing compilers.  In Section
-\ref{sec:gcc_compiler} we discuss the internals of the GCC compiler, from the
+\ref{sec:gcc_compiler}, we discuss the internals of the GCC compiler, from the
 several Intermediate Representations of the compiler to the interaction between the parts.  In
-\ref{sec:contributing} we present the details of the contributing process. In
-Section \ref{sec:parallel_computing} we present some concepts from parallel
-computing, which we use in this dissertation. And finally, Section
+\ref{sec:contributing}, we present the details of the contributing process. In
+Section \ref{sec:parallel_computing}, we present some concepts from parallel
+computing, which we use in this dissertation. Finally, Section
 \ref{sec:power} briefly presents the concepts behind electrical power and energy
 calculation, which we used in our experiments.
 
@@ -39,7 +39,7 @@ calculation, which we used in our experiments.
 
 \begin{section}{Parsing}\label{sec:parsing}
 
-Computer programs are written as a text file in some programming language,
+Computer programs are written as a text file in some programming languages,
 which needs to be compiled or interpreted for execution. The first step of such
 programs is to process the text file, validate the input with regard to the
 language, and construct a data structure that is suitable for processing. This
@@ -69,7 +69,7 @@ or point out why the input string is invalid. The objective of a Syntatic
 Analyser is to construct an AST by keeping track of the
 reduction or derivation decisions with respect to the language grammar. The
 decision of doing type analysis, checking for undefined usage of variables,
-etc, can be done while building this AST, or postponed to a next stage, called
+etc., can be done while building this AST, or postponed to a next stage, called
 the Semantic Analysis.
 
 Very often, these parsers are implemented either by emplying automatic
@@ -171,7 +171,7 @@ three pieces communicate with each other.
 \label{fig:lexico_sintatico}
 \end{figure}
 
-More details about how to construct parsers, what is a grammar in the context
+More details about how to construct parsers, what a grammar is in the context
 of programming languages, and an brief introduction to parsing theory can be
 seen in Appendix \ref{sec:apendix-parser}.
 
@@ -179,11 +179,11 @@ seen in Appendix \ref{sec:apendix-parser}.
 \begin{section}{Compiler Optimization}\label{sec:optimization}
 
 Today industrial compilers are what we call to be an ``Optimizer Compiler'', because
-it not only do a direct translation to another language, but because it
+it not only does a direct translation into another language, but it
 tries to generate faster code than the input code created by the programmer
 while still maintaining its correctness.
 
-There are several data structures and frameworks which is often used to
+There are several data structures and frameworks which are often used to
 develop optimizations, which we briefly present here.
 
 %Given a program, there are two disjoint set of optimizations in which we
@@ -222,7 +222,8 @@ One issue with large expressions is that it is very hard to find common
 subexpressions and eliminate them. For instance, consider the mathematical
 expression:
 $$y = x \times x + x \times x $$
-this expression can be simplified to $y = 2x^2$, but how
+
+This expression can be simplified to $y = 2x^2$, but how
 can a compiler know this? One could break this expression in the following
 sequence of statements:
 \begin{align}
@@ -230,17 +231,18 @@ t_1 &= x \times x \nonumber \\
 t_2 &= x \times x \nonumber \\
 y &= t_1 + t_2 \nonumber
 \end{align}
-now, some information is evident here. First is that $t_2 = t_1$,
+
+Now, some information is evident here. First is that $t_2 = t_1$,
 and therefore $t_2$ is a completely unnecessary variable, and can be
 eliminated from the program, which will lead to $y = t_1 + t_1$, which is
-evident that can be simplified further to $y = 2 \times t_1$, which will lead
-to the sequence of statements:
+evident that can be simplified further to $y = 2 \times t_1$, generating the
+following sequence of statements:
 
 \begin{align}
 t_1 &= x \times x \nonumber \\
 y &= 2 \times t_1 \nonumber
 \end{align}
-which satisfy the following definition:
+That satisfies the following definition:
 \begin{definition}
 	A program is in Three-Address Code (3AC) format if every expression is
 	in $c = a \texttt{<op>} b$ form, where $a, b, c$ are variables or
@@ -339,7 +341,7 @@ no flow-divergence.
 For instance, both statements $i \leftarrow 0$ and $\textit{sum} \leftarrow 0$ belongs
 to the same basic-block, as there are no \textit{flow-divergence} between
 those two statements. However, \texttt{if (x[i] < 0)} and \texttt{sum += x[i]}
-belongs to distinct basic-blocks. Figure \ref{fig:1-norm_program:cfg} shows
+belong to distinct basic-blocks. Figure \ref{fig:1-norm_program:cfg} shows
 the basic block for the program. The definition of a Control-Flow Graph is
 as follows.
 
@@ -356,7 +358,7 @@ Control-Flow Graphs have several usages in compilers and static analyzers. For
 instance, the analyzer can detect loops in codes that do not use any
 conventional loop operands such as \texttt{while} or \texttt{for} (e.g. the
 code has several \texttt{goto}s), and even detect unreachable code by verifying
-if a certain node is reachable from the CFGraph source node. But its main usage
+if a certain node is reachable from the CFGraph source node. However, its main usage
 is on dataflow frameworks, which we will introduce in Subsection \ref{sec:dataflow}.
 
 \end{subsection}
@@ -439,11 +441,11 @@ That is the main difference between a poset and a \textit{lattice}.
 If $\sqcap$ is closed, we have a \textit{meet semi-lattice}.
 
 \begin{definition}
-	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{meet semi-lattice} if
+	A poset $\mathcal{P} = (L, \sqsq)$ is a \textbf{meet-semilattice} if
 	for every non-empty subset $S \ssq L$, $\left(\bigsqcap_{s \in S} s \right) \in L$.
 \end{definition}
 
-There is also structures which satisfies stronger claims, which is the case
+There are also structures that satisfy stronger claims, which is the case
 of \textit{lattices} and \textit{complete lattices}.
 
 \begin{definition}
@@ -465,12 +467,12 @@ It is also useful to denote the greatest and the smallest element of a lattice.
 \end{definition}
 
 However, for dataflow frameworks, it is not required to work on a complete
-lattice. A meet semi-lattice is enough.
+lattice. A meet-semilattice is enough.
 
 We can also define functions over a lattice in a similar way that functions can
 be defined in $\mathbb{Z}$. From all functions that could be defined over a
-lattice, we are interested in monotone functions, which helps to ensure that
-some analysis ends after a finite number of iterations.
+lattice, we are interested in monotone functions, which help to ensure that
+some analysis end after a finite number of iterations.
 
 \begin{definition}
 	A function $f:\mathcal{L} \longrightarrow \mathcal{L}$ is monotonic if and only if
@@ -482,8 +484,8 @@ Lattices have an important role in the formal definition of dataflow
 frameworks, as they are often used to prove that the analysis always halts with
 some result for every input program.
 For instance, the fact that the meet operation always gives a result closer to
-the bottom element guarantees that frameworks using a meet semilattice will
-always converge to a result.
+the bottom element guarantees that frameworks using a meet-semilattice will
+always converge into a result.
 
 \end{subsection}
 
@@ -494,12 +496,12 @@ Control-Flow Graph. It is used not only in compilers but also in static code
 analysis in general in the field of Software Engineering.
 
 When analyzing a program's function, it is useful to know at a certain point,
-what properties do hold to decide for an optimization.  Incorrectly guessing
+what properties holds to decide for an optimization.  Incorrectly guessing
 some property may result in an incorrect transformation. Therefore, it is
 useful to employ a way to propagate information across the Control-Flow Graph
 of a function. This is where Dataflow Analysis is useful.
 
-Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, construct a
+Given a Control-Flow Graph $G = (V, E, s_0, F)$ of a program, it constructs a
 complete or meet lattice $\mathcal{L}$, which represents a set of possible
 information that is true in a certain point of a program.  Then, we define a
 set of \textit{flow functions} $\mathcal{F}_G = \{f_1, f_2, \cdots, f_{|V|}\}$,
@@ -532,7 +534,7 @@ and from any $v \in F$ in the backward analysis.  Algorithms for solving those
 equations in a general way can be found in \citep{khedker2009data}.
 
 Figure \ref{fig:functions_dataflow} illustrates how each function of
-$\mathcal{F}_G$ are related to each node of the $G$. Furthermore, Figure
+$\mathcal{F}_G$ is related to each node of the $G$. Furthermore, Figure
 \ref{fig:meet_dataflow} illustrates how the meet operator $\bigsqcap$ is used
 to combine the information generated by the predecessors and send it to the
 successors of a node, for the \textit{forward analysis} case.
@@ -552,7 +554,7 @@ successors of a node, for the \textit{forward analysis} case.
   \label{fig:dataflow}
 \end{figure}
 
-	Therefore, in an abstract way, we can define a dataflow framework instance as
+	Therefore, in an abstract way, we can define a dataflow framework instance as:
 	\begin{definition}
 		An instance of dataflow framework is a 4-uple $(G, \mathcal{L}, \bigsqcap, \mathcal{F}_G)$,
 		where
@@ -613,14 +615,14 @@ which yields the dataflow equation:
 \end{equation}
 
 In this equation, $\texttt{gen[} v \texttt{]}$ represents the variables which
-turns to be live at vertex $v$, and $\texttt{kill[} v \texttt{]}$ are the
-variables which liveness are no longer valid at vertex $v$. For instance,
+turn to be live at vertex $v$, and $\texttt{kill[} v \texttt{]}$ are the
+variables in which liveness is no longer valid at vertex $v$. For instance,
 consider the CFGraph in Figure \ref{fig:cfg_liveness}. Here, we work on the set
 $\mathbb{V} = \{a, b, c, d\}$.  We present the solution of Equation
-\ref{eq:liveness} is presented in Table \ref{fig:table_cfg} using the
+\ref{eq:liveness} in Table \ref{fig:table_cfg} using the
 propagation technique. There, for instance, we can see that $d$ is not used
 anywhere in the program because $d \not\in \ttt{out[}n_1\ttt{]}$. This means
-that the variable $d$ can be discarded from the program, and therefore no
+that the variable $d$ can be discarded from the program, and therefore, no
 register or memory space is necessary to hold this variable.
 
 \begin{figure}
@@ -646,7 +648,7 @@ $n_2$                   & $\{a, c\}$                   & $\{b\}      $          
 $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$            & $\{a, b, c\}$     & $\{c\}      $    & $\{a, b, c\}$     & $\{c\}      $    \\ \hline
 
 \end{tabular}
-\caption{Solving the Equation \ref{eq:liveness} for Figure \ref{fig:cfg_liveness} 
+\caption{Solution of the Equation \ref{eq:liveness} for Figure \ref{fig:cfg_liveness} 
 \citep{khedker2009data}.}
 \label{fig:table_cfg}
 \end{table}
@@ -656,8 +658,8 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 \end{subsection}
 
 \begin{subsection}{Dominator Tree}
-	One data structure used on optimization are
-	\textit{dominator trees}. First we must define what \textit{domination} means:
+	One data structure used on optimization is
+	\textit{dominator trees}. First, we must define what \textit{domination} means:
 
 	\begin{definition}
 		Let $G = (V, E, s_0, F)$ be a Control-Flow Graph and $u, v \in V$. We say
@@ -667,7 +669,7 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 
 	That means that if some node $u$ dominates $v$, then it is certain that, in
 	the current thread, the code in $u$ will be executed before $v$.
-	\cite{georgiadis2006finding} presents a forward dataflow equation
+	\cite{georgiadis2006finding} present a forward dataflow equation
 	to compute the set of all dominators of a node:
 
 
@@ -714,7 +716,7 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 	detecting induction variables, and so on.
 	\cite{appel2004modern} provides algorithms to detect loops using the
 	CFGraph, which is useful when the language supports \texttt{goto}s. A
-	faster algorithm (but complex than the dataflow equation) algorithms to
+	faster algorithm (but more complex than the dataflow equation) to
 	build the Dominator tree of a CFGraph is presented by
 	\cite{georgiadis2006finding}.
 
@@ -731,7 +733,10 @@ y &= 1 \nonumber
 \end{align}
 
 Clearly, the second and third statements can be discarded, and the first
-and last statements can be discarded as well if there is no further use of $x$ and $y$ in the program. However, how can the compiler know that? SSA form makes this clear. The idea is that variables can not be redefined, only new variables can be created, which motivates the following definition.
+and last statements can be discarded as well if there is no further use of $x$
+and $y$ in the program. However, how can the compiler know that? The SSA form
+makes this clear. The idea is that variables can not be redefined and only new
+variables can be created, which motivates the following definition.
 
 \begin{definition}
 	A program is in SSA form if there is exactly one assignment for each
@@ -750,16 +755,16 @@ y_3 &= 1 \nonumber
 \end{align}
 
 This will lead to the variable $y_2$ being unused because it is nowhere present
-on the right-hand side of any assignment (has no use in the \textit{def-use}
+on the right-hand side of any assignment (it has no use in the \textit{def-use}
 chain), meaning that it can be discarded; which will then imply that $y_1$ will
 be unused and can be discarded as well.
 
-However, SSA form can get trickier to implement if there are jumps in the
+However, the SSA form can get trickier to implement if there are jumps in the
 programs, which is often the case with \texttt{if} and \texttt{while}
 statements. In Figure \ref{fig:code_normal}, the value of \texttt{u}
 depends upon which path the execution was taken, which depends on the
 \textit{condition}. The solution fot this is to introduce a $\phi$-function,
-which will select the correct variable. Figure \ref{fig:code_ssa_form}
+that will select the correct variable. Figure \ref{fig:code_ssa_form}
 illustrates this.
 
 \begin{figure}[ht]
@@ -805,12 +810,12 @@ illustrates this.
 
 However, this illustration explains little about when to
 place $\phi$ functions. A way of determining it is to use
-the \textit{dominance frontier criteria}
+the \textit{dominance frontier criteria}:
 
 \begin{definition}
 	Let $G = (V, E, s_0, F)$ be a CFGraph and $u, v \in V$. We say that
 	$u$ \textbf{strictly dominates} $v$ if $u$ dominates $v$, but
-	$u \neq v$. We denote that $u$ idom $v$.
+	$u \neq v$. We denote that $u$ sdom $v$.
 \end{definition}
 
 \begin{definition}
@@ -844,7 +849,7 @@ used, SSA simply enforces that a variable has a single definition. This makes
 several optimizations easy.
 
 For instance, dead-code elimination can simply check if a variable has no use.
-If a variable had previously two definitions and the second has no use, SSA
+If a variable previously had two definitions and the second has no use, SSA
 will transform this variable into two other variables and the second one
 would have no use, and therefore could be elminated \citep{appel2004modern}.
 
@@ -852,11 +857,11 @@ would have no use, and therefore could be elminated \citep{appel2004modern}.
 
 \begin{subsection}{Callgraphs and Interprocedural Analysis}
 
-Some optimizations require interaction with other functions, one clear example
+Some optimizations require interaction with other functions. One clear example
 of this is the \textit{function inlining} optimization. When there is a
-function call, the call itself consumes time, and therefore it may be
+function call, the call itself consumes time; therefore, it may be
 interesting to copy and paste the content of the function being called and
-remove the call at all.  Therefore, a data structure is required to model the
+remove it completely.  Therefore, a data structure is required to model the
 interactions between functions.
 
 That is the purpose of a \textit{Callgraph}: each vertex denotes a function,
@@ -871,14 +876,14 @@ and each edge represents a call between two functions.
 
 Figure \ref{fig:call_graph} gives an example of a Callgraph. When applying
 Interprocedural Optimizations, each vertex can also hold some sort of
-\textit{summary} of the function instead of the entire function, because the
-program being compiled often is large enough that there is not sufficient
+\textit{summary} of the function instead of the entire function; that occurs because the
+program being compiled often is large enough so there is not sufficient
 memory to hold the contents of the functions in the host machine which is
 compiling the code. This is the case when working with
 the Link Time Optimization (LTO) technique.
 
 There are some extensions to the dataflow frameworks to work on Interprocedural
-Optimizations \citep{khedker2009data}, however, they require complete
+Optimizations \citep{khedker2009data}; however, they require complete
 information about the function in memory, which may not be present in this
 stage on compilers such as GCC \citep{gcc_ipa}.
 
@@ -939,10 +944,10 @@ program due to instruction cache and page faults.
 \end{subsection}
 
 \begin{subsection}{Register Allocation}
-Registers are very fast, but small memories inside a processor, which data is
-required to be loaded for operations like add, subtract, multiply, etc. These
-memories are a very scarce resource in a processor, and therefore it
-must be administered carefully.
+Registers are very fast, but small memories inside a processor, in which data is
+required to be loaded for operations like addition, subtraction, multiplication, etc. These
+memories are a very scarce resource in a processor; therefore, it
+must be administered carefully,.
 
 A good (near-optimal) register allocation can hugely speed up the program
 because it avoids unnecessary accesses between the CPU and the computer's
@@ -950,7 +955,7 @@ memory, and this is the purpose of the register allocation.
 
 The idea of this step is to represent the variables in the IR so that it can be
 easily mapped into the CPU registers. Therefore, since the IR can have an
-infinite number of variables, the goal here is to rewrite the code such that it
+infinite number of variables, the goal here is to rewriting the code such that it
 uses no more temporaries than there are registers in the machine. For example,
 consider the Figure \ref{fig:register_ir}. In (a), we have a sketch of the
 program, and in (b) we have the rewrite using at most 4 registers.
@@ -978,7 +983,7 @@ program, and in (b) we have the rewrite using at most 4 registers.
 \end{figure}
 
 	However, how can a compiler \textit{know} when a certain variable will not
-	be used anymore, and we can replace the register with computation of some
+	be used anymore and we can replace the register with computation of some
 	kind? By using the \textit{liveness analysis}.
 
 \begin{definition}
@@ -987,8 +992,8 @@ program, and in (b) we have the rewrite using at most 4 registers.
 	share the same register.
 \end{definition}
 
-This information is used to build an \textit{interference graph}, which an
-example is presented in Figure \ref{fig:interf_graph}.
+This information is used to build an \textit{interference graph}, which is presented as an
+example in Figure \ref{fig:interf_graph}.
 
 \begin{definition}
 	An interference graph $G = (V, E)$ is a graph where $V = \mathbb{V}$ is the
@@ -1024,7 +1029,7 @@ example is presented in Figure \ref{fig:interf_graph}.
 \end{figure}
 
 After the interference graph is constructed, it is possible to know how many
-registers it is necessary and where to allocate once the graph is colored.
+registers are necessary and where to allocate them once the graph is colored.
 Graph coloring, unfortunately, is an NP-Complete problem
 \citep{karp1972reducibility}, which implies that a heuristic is necessary to
 solve this problem.
@@ -1032,7 +1037,7 @@ solve this problem.
 \cite{appel2004modern} shows one heuristic. Suppose that the target machine has
 $k$ available registers. Once the interference graph has been built, select one
 node $v$ with degree $d(v)$ such that $d(v) < k$. The idea is around the fact that
-if $G' = G - \{v\}$ can be colored, then so do $G$ because one can simply select
+if $G' = G - \{v\}$ can be colored, then so does $G$, because one can simply select
 a color distinct from every node that $v$ is adjacent to, which results in a 
 recursive coloring algorithm. This is called \textit{simplify}.
 
@@ -1048,21 +1053,22 @@ register, or memory location.
 \begin{subsection}{Instruction Selection}
 An important step in the final translation process is the
 \textit{instruction selection}. Most processors (such as x86) have more
-than a way to translate a statement to machine code, for instance, 
+than a way to translate a statement into machine code, for instance, 
 assigning a variable to zero. One could use \texttt{mov reg, 0}, or
 even \texttt{xor reg, reg}, but the latter one is faster as it takes fewer
-cycles to execute. This is specially important for CISC-based processors,
-which a sequence of instructions can be replaced with a single instruction,
+cycles to execute. This is especially important for CISC-based processors,
+where a sequence of instructions can be replaced with a single instruction,
 resulting in a faster program. Detecting such cases is the main issue here.
 
 There are several techniques to select instructions. One of the simplest
 is the \textit{macro translation}, where each statement is replaced
 by the final code locally for each line of the IR. This has the advantage
-of being a fast way to implement a way to translate the code, but
-very often generate poor final code, as illustrated in
+of being a fast method to implement a way to translate the code, but
+it very often generates poor final code, as illustrated in
 Figure \ref{fig:macro_exp}. Some optimizations can be employed
 to improve the result of such translations, such as
-\textit{peephole optimization}, which search in a small window unnecessary memory operations that annulate themselves.
+\textit{peephole optimization}, that searches for unnecessary memory operations
+that annulate themselves in a small window.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -1118,26 +1124,32 @@ ambiguous, implying that such grammars will not pass the $\mathcal{DK}_1$ test
 	The solution of this problem is as follows:
 
 	\begin{itemize}
-		\item On \textit{shift-reduce} conflicts, always choose to shift. The intuition is that larger patterns will result in more optimal code since it allows more information to be gathered by the parser. However, the parser could simply select to \textit{shift} when it should have 	\textit{reduce}d. Therefore, either backtracking is necessary here when the parser takes the wrong decision, or the grammar designer provides additional rules to avoid such cases.
+		\item On \textit{shift-reduce} conflicts, always choose to shift. The
+		intuition is that larger patterns will result in more optimal code
+		since it allows more information to be gathered by the parser. However,
+		the parser could simply select to \textit{shift} when it should have
+		\textit{reduce}d. Therefore, either backtracking is necessary here when
+		the parser takes the wrong decision, or the grammar designer provides
+		additional rules to avoid such cases.
 
-\item On \textit{reduce-reduce} conflicts, it selects the rule with yields the
+\item On \textit{reduce-reduce} conflicts, it selects the rule with the
 longest pattern. The reason is also that the longest patterns will generate
-better code. However, even this can also result in a parsing error. The
-solution is to devise a rule in which can be used as a fallback, and the
+better codes. However, even this could also result in a parsing error. The
+solution is to devise a rule that can be used as a fallback, and the
 authors provide a way to automatically find such a rule.
 
 	\end{itemize}
 
 Such parsers are very interesting because, given a way to express what the
 parser should produce and the cost of these productions, one can quickly
-implement a new \textit{backend} to the compiler.  The main issue, however, is
+implement a new \textit{backend} to the compiler. However, the main issue, however, is
 the high number of states required by the
-parser \citep{blindell2016instruction}, which often turns it impractical.
+parser \citep{blindell2016instruction}, which often makes it impractical.
 
 There is a way to optimally select instructions on a tree using a technique
 called \textit{dynamic programming} \citep{ripken1977formale}. The idea is that given a node $n$, it is enough to first consider to minimize the cost
 of the child and then try to minimize the cost of $n$. Mathematically, let
-$P_n$ the set of patterns possible to be applied to $n$. Therefore, the
+$P_n$ with the set of patterns possible to be applied to $n$. Therefore, the
 minimal cost $\texttt{PD[}n\texttt{]}$ is:
 
 \[
@@ -1183,7 +1195,7 @@ by \cite{blindell2016instruction}.
 %maneira a acelerar o código a ser produzido, substituindo trechos de código por
 %outros mais eficientes, reordenando as instruções do programa, etc.
 
-Compilers are large programs. Because of this, there is a great interest in
+Compilers are large programs, so there is a great interest in
 avoiding rewriting a compiler when a new language is proposed, or when new
 hardware is created. For that, compiler writers usually adopt the following
 modularization \citep{redhat} \citep{llvm}, as illustrated by Figure
@@ -1198,20 +1210,20 @@ modularization \citep{redhat} \citep{llvm}, as illustrated by Figure
 
 \begin{itemize}
 
-\item A Front End for each Source Language. In this module are executed the
-lexical and syntactical analysis to construct the Abstract Syntax Tree (AST)
-and populating the Symbol Table. Following that, this structure is converted to
-another compiler's IR.
+\item A Front-End for each Source Language. In this module, it is executed both
+the lexical and the syntactical analysis to construct the Abstract Syntax Tree
+(AST) and populating the Symbol Table. Following that, this structure is
+converted to another compiler's IR.
 
-\item A Middle End, responsible for applying several \textit{hardware independent}
+\item A Middle-End, responsible for applying several \textit{hardware independent}
 optimizations to the already converted IR code. A \textit{hardware independent}
-optimization is such that there are no dependency with regard to the Target
+optimization is such that there is no dependency regarding the Target
 Language (often, assembler of some processor). Example: \textit{constant propagation}.
 
-\item A Back End for each Target Language, responsible to translate the IR to
+\item A Back-End for each Target Language, responsible for translating the IR into
 the Target Language and applying \textit{hardware dependent} optimizations,
 such as register allocation and instruction selection. A \textit{hardware dependent}
-optimization is such that there \textit{is} a dependency with regard to the
+optimization is such that there \textit{is} a dependency regarding to the
 Target Language. Example: \textit{register allocation}.
 
 \end{itemize}
@@ -1298,9 +1310,9 @@ new programming languages, as well as adding support to new hardware.
 \begin{subsection}{Front-End}
 
 A Front-End is a module responsible for direct interaction with the code
-written in the Source Language, which means from a Software Engineering
-perspective, for adding support to a new Source Language, it is enough to write
-a new Front-End. It is also possible that some classes are shared between
+written in the Source Language. From a Software Engineering perspective, it
+means that in order to add support to a new Source Language, one could simply
+write a new Front-End. It is also possible that some classes are shared between
 frontends, which may be the case of a compiler that supports both C and C++.
 
 %Um \textit{Front End} é um módulo responsável por interagir diretamente com o
@@ -1352,52 +1364,53 @@ yields the control to the Middle-End of the compiler.
 
 \end{subsection}
 
-\begin{subsection}{Middle End}
+\begin{subsection}{Middle-End}
 
 The Middle-End is responsible to work on one or more IR(s) of the compiler. If
 there are checks which can be postponed in the Front-End to this stage, it is
 preferable, once it avoids these checks on every Source Language's Front-End.
 
-Here, we construct data structures in which might be necessary for the
+Here, we construct data structures that might be necessary for the
 hardware-independent optimizations, such as the Control-Flow Graph, the
 Callgraph, the SSA representation, and so on. After that, the compiler indeed
 runs these optimizations.
 
-The Middle End is where the most effort is spent in development. Every new
+The Middle-End is where the most effort is spent in development. Every new
 optimization here will improve the code for every target machine that the
 compiler supports.
 
 After this optimization process, the code in this IR can be further transformed
-into other IR to something that is more closely related to the target hardware.
-After that, the control is passed to one of the compiler's Back End, where it
+into other IR, which may be more closely related to the target hardware.
+After that, the control is transferred to one of the compiler's Back End, where it
 will be transformed to the final language.
 
 \end{subsection}
 
-\begin{subsection}{\textit{Back End}}
+\begin{subsection}{Back-End}
 
-The \textit{Back End} is responsible for the final translation to the target
+The Back-End is responsible for the final translation into the target
 language, as well as hardware-dependent optimizations. Therefore, it is also
-responsible for selecting instructions optimally (or close to) as well as
+responsible for selecting instructions optimally (or close to), as well as
 selecting registers from the best way possible for the program's variable.
 
-The Back End should be implemented in a way that it can simply be switched for
-another without any modification to the Middle End. With this, the code can be
+The Back-End should be implemented in a way that it can simply be switched for
+another without any modification to the Middle-End. Thus, the code can be
 easily compiled to another target language.
 
-After the Back End has done its processing, the final code is issued and the compilation is complete.
+After the Back-End has done its processing, the final code is issued and the
+compilation is completed.
 
 \end{subsection}
 
 \begin{subsection}{Compilation Passes}
 
-Compilers, however, can optimize for several metrics, not only execution time.
+Compilers can optimize for several metrics, not exclusively for execution time.
 Industrial compilers also very often support \textit{optimization for size} for
 embedded systems, or even \textit{optimize for power consumption}, which can be
 interesting for both embedded systems and data centers. Therefore, some
 optimizations may be executed while others must be disabled depending on what
-are you optimizing to. This is where a simple but powerful modularization comes
-into, the \textit{compiler passes}.
+are you optimizing to. This is where a simple but powerful modularization
+appears: the \textit{compiler passes}.
 
 A pass is simply a set of rules to run in the IR. For instance, one pass
 could match and replace a set of statements in the IR for a faster one,
@@ -1407,7 +1420,7 @@ or even simply collect information about some function, such as the
 Passes can be easily implemented using classes, and all passes are structured
 in a queue. Each pass should receive the information in which it is working on
 (for instance, a data structure representing the current function being worked
-on) and has a \textit{gate} method, which will determine if this optimization
+on). It also has a \textit{gate} method, which will determine if this optimization
 will or will not be run, according to some compilation flags or even with some
 information collected with some previous pass. It is even possible that there
 are subpasses to a pass, containing its own queue of passes. Figure \ref{fig:pass_queue}
@@ -1449,7 +1462,7 @@ illustrates this queue.
 \begin{section}{The GCC Compiler}\label{sec:gcc_compiler}
 
 The GNU Compiler Collection, also known as GCC, is a project started by
-Richard Stallman with the first public release in March of 1987. Back then,
+Richard Stallman with its first public release in March of 1987. Back then,
 it only supported C language but already allowed code generation for
 several architectures \citep{gcc_first_ver}.
 
@@ -1487,14 +1500,14 @@ variable declaration, class, expressions, statements, and others
 
 This language contains a faithful representation of the program closest to what
 was written by the programmer, meaning that there are no modifications in the
-program. This language is not in 3AC or SSA form, it is only there for an easy
+program. This language is not in 3AC or SSA form -- it is only there for an easy
 translation to GIMPLE, the hardware-independent IR of GCC in which most
-optimizations are done, and to make the development of a Front End easily.
+optimizations are done, and also to make the development of a Front-End more easily.
 However, that does not mean that optimizations can not be applied here.
 
 There is a match-and-replace mechanism in GCC supporting GENERIC. This
 mechanism is very simple: it searches for a chain of statements in the IR for a
-pattern and then replaces for another. Such patterns are expressed in the file
+pattern and then replaces it for another. Such patterns are expressed in the file
 \texttt{gcc/match.pd}. This simple mechanism allows several bitwise logic and
 mathematical simplifications that can give a significant speedup in the code in
 particular cases \citep{sinatan}.
@@ -1519,18 +1532,18 @@ particular cases \citep{sinatan}.
 %que pode significar uma melhora de até $10\times$ em casos particulares
 %\citep{sinatan}.
 
-	Finally, each Front End of GCC is responsible for translating the source
-	code for this intermediate language. To visualize a program in this representation,
+	Finally, each Front -End of GCC is responsible into translating the source
+	code into this intermediate language. To visualize a program in this representation,
 	compile the program with the flag \texttt{-fdump-tree-original}. However,
 	the documentation is very clear that C and C++ frontends translate
-	directly to GIMPLE \citep{gimple}.
+	directly into GIMPLE \citep{gimple}.
 
 \end{subsection}
 
 \begin{subsection}{GIMPLE}
 
 GIMPLE is another IR from GCC, basically consisting of conversion from GENERIC
-to a 3AC representation, having a further step into lowering this
+to a 3AC representation, and having a further step into lowering this
 representation to construct the Control-Flow Graph and the SSA form. As
 GENERIC, GIMPLE is general enough to represent every attribute from all Source
 Languages supported by the compiler. This representation is based on SIMPLE, an
@@ -1546,10 +1559,10 @@ IR from McCAT compiler \citep{gimple}.
 It is in GIMPLE that all hardware-independent optimizations are performed.
 GIMPLE has an \textit{Application Programming Interface} (API) for interacting
 with statements, tree nodes, the Control-Flow Graph, SSA nodes, and the
-Callgraph. GIMPLE has two states, the ``high'' state, with lexical scopes and
-nested expressions, and ``low'' state, exposing all implicit jumps and
-Exception Handles (EH) regions, removing the lexical scopes, merging similar
-return statements, and convert try-catch control flows to exception regions.
+Callgraph. GIMPLE has two states: the ``high'' state, with lexical scopes and
+nested expressions; and ``low'' state, exposing all implicit jumps and
+Exception Handles (EH) regions, removing the lexical scopes; merging similar
+return statements and converting try-catch control flows to exception regions.
 
 GIMPLE code can be dumped by using the flag \texttt{-fdump-tree-gimple},
 or even \texttt{-fdump-tree-ssa} to write the SSA representation on the
@@ -1614,16 +1627,16 @@ disk.
 
     \begin{enumerate}
         \item \textbf{IPA} - An Interprocedural pass. This pass operates on the
-		callgraph of the program being compiled. These often three step passes:
-		on the first run it collect a \textit{summary} of the function, then
+		callgraph of the program being compiled. These have often three step passes:
+		on the first run, it collects a \textit{summary} of the function, then
 		it will \textit{analyze} the callgraph with this summary (for instance,
 		to determine if inlining a certain function will not blow the code's size),
 		then finally it will \textit{transform} the code. The reason behind this
-		that the \textit{analyse} phase must be able to run without having the
+		is that the \textit{analyse} phase must be able to run without having the
 		entire function loaded in memory.
 
         \item \textbf{GIMPLE} - A Hardware-Independent Intraprocedural pass.
-		This can do some analysis in the code (such as collecting some metric)
+		It can do some analysis in the code (such as collecting some metric)
 		or even do a deep transformation in the program. One example is
 		the \texttt{pass\_vectorize}, which tries to find vectorizable operations
 		in the code. It operates on GIMPLE.
@@ -1633,9 +1646,9 @@ disk.
     \end{enumerate}
 
 	Each optimization must implement an interface according to its type.
-	For GIMPLE, \texttt{gimple\_opt\_pass}. For RTL, \texttt{rtl\_opt\_pass},
-	for IPA, \texttt{ipa\_opt\_pass\_d} or \texttt{simple\_ipa\_opt\_pass} if the pass
-	require only one step. A sketch of the passes class is illustrated in Figure \ref{fig:opt_uml}.
+	For GIMPLE, \texttt{gimple\_opt\_pass}. For RTL, \texttt{rtl\_opt\_pass}.
+	For IPA, \texttt{ipa\_opt\_pass\_d} or \texttt{simple\_ipa\_opt\_pass} if the pass
+	requires only one step. A sketch of the passes class is illustrated in Figure \ref{fig:opt_uml}.
 
 \begin{figure}
 \tikzstyle{block} = [rectangle, draw, fill=white,
@@ -1703,29 +1716,29 @@ disk.
 
     A \textit{toolchain} is a set of tools that are chained together for
 	developing software. Usually, a \textit{toolchain} consists of a
-	compiler, an assembler, and a linker, but can also contain more tools
-	such as a debugger, and even a text editor.
+	compiler, an assembler and a linker, but can also contain more tools
+	such as a debugger and even a text editor.
 
 	GNU provides a toolset for software development called GNU Toolchain.
-	Is part of this toolchain:
+	It is part of this toolchain:
 
 \begin{itemize}
     \item \textit{Binutils}, a set of tools containing the linker \textit{ld},
-	the assembler \textit{as}, and other tools\footnote{\url{https://www.gnu.org/software/binutils/}}.
+	the assembler \textit{as}, and other tools\footnote{\url{https://www.gnu.org/software/binutils/}};
 
     \item The driver \texttt{gcc}, responsible for calling the compilers \texttt{cc1},
         \texttt{cc1plus}, \texttt{f951} for C, C++ and Fortran, respectively, and also
-		responsible to interact with other tools from the toolchain.
+		responsible for interacting with other tools from the toolchain;
 
-    \item The \texttt{glibc} library.
+    \item The \texttt{glibc} library;
 
     \item The \textit{gdb} debugger.
 \end{itemize}
 
 These tools interact with each other in the following order: first, the code in the Source
-Language is compiled using GCC to a machine language, then the code is assembled using the
-assembler \textit{as}, which builds an object file, and then the linker \textit{ld} will
-collect all generated object files and link together
+Language is compiled using GCC to a machine language; then the code is assembled using the
+assembler \textit{as}, which builds an object file; and then the linker \textit{ld} will
+collect all generated object files and link them together
 into a single binary or library. \ref{fig:gnu_toolchain} illustrates this process.
 This is automatically done by the gcc driver.
 
@@ -1760,13 +1773,13 @@ This is automatically done by the gcc driver.
 \label{fig:gnu_toolchain}
 \end{figure}
 
-This process is traditionally used to compile complex software together with
-some tool that controls this process for each file, such as GNU Make, as
-illustrated in Figure \ref{fig:classical_build}. here, each file is compiled
+This process is traditionally used to compile complex software along with
+some tool that controls this process for each file such as GNU Make, as
+illustrated in Figure \ref{fig:classical_build}. Here, each file is compiled
 individually, going through every compilation process (generation of assembler,
-then encapsulated into an object file), then every file is linked together with
+then encapsulated into an object file), then every file is linked along with
 \textit{ld}. In GNU Make, it is possible to explicitly determine the
-dependencies of each file, the compilation can be done in parallel between
+dependencies of each file, and the compilation can be done in parallel between
 files that do not depend on each other.
 
 %Esse processo é tradicionalmente usado para compilar \textit{softwares} complexos,
@@ -1784,7 +1797,7 @@ program as a whole, because the compiler has no information about the
 information present on functions that are outside its Translation Unit (TU). A
 Translation Unit is the content of the file which will be translated into
 another language (\textit{e.g.} the content of a .c file plus all headers it
-inclues) Therefore, every optimization are applied only local to its TU.
+includes) Therefore, every optimization is applied only locally to its TU.
 
 %Neste processo, não é possível aplicar otimizações observando o programa como
 %um todo, pois o compilador não tem informações sobre as funções que estão em
@@ -1851,7 +1864,7 @@ inclues) Therefore, every optimization are applied only local to its TU.
 \begin{section}{Contributing to GCC}\label{sec:contributing}
 
 GCC is a free software program, and its development is often done by
-contributors worldwide, paid or not. As with every Free Software project,
+contributors worldwide, whether it is paid or not. As with every Free Software project,
 the contribution must be sent in a specific manner and fulfill a list
 of attributes to ensure the quality of the contribution.
 
@@ -1861,7 +1874,7 @@ Since 2020, GCC switched its main software versioning system from Subversion
 to Git \citep{gcc_git}. In order to work on GCC, you must create a working
 copy of the latest revision of GCC, which can be archived by \textit{cloning}
 the GCC repository. Assuming you have git installed, you can clone
-gcc by
+gcc by:
 
 $$\texttt{\$ git clone git://gcc.gnu.org/git/gcc.git gcc\_git\_gnu}$$
 
@@ -1871,7 +1884,7 @@ This will create a folder called ``gcc\_git\_gnu'' in your working directory.
 
 \begin{subsection}{Compiling GCC}
 
-GCC is written in C++11, and therefore you need a working C++11 compiler to
+GCC is written in C++11; therefore you need a working C++11 compiler to
 compile it. It can be an old version of GCC itself distributed by your Linux
 distro such as GCC 4.9, or even other compilers such as \textit{clang}. The
 additional packages are also required:
@@ -1888,20 +1901,20 @@ GCC supports several compilation modes by adding new flags into the
 \texttt{configure} script. The main ones for development are:
 \begin{itemize}
 
-	\item \texttt{-{}-disable-bootstrap}: disable a feature called
+	\item \texttt{-{}-disable-bootstrap}: it disables a feature called
 	\textit{bootstrap}, which makes the compiler compile itself several times to
 	remove any vestige of the system compiler being used. This reduces the time
-	taken to compile the project.
+	spent to compile the project.
 
-	\item \texttt{-{}-enable-checking=release}: disable most sanity checkings
+	\item \texttt{-{}-enable-checking=release}: it disables most sanity checkings
 	in the compiler. This is useful for testing the compiler performance or to
 	build a compiler that may be used in production.
 
-	\item \texttt{-{}-disable-multilib}: disable support for 32-bit x86 binaries on
+	\item \texttt{-{}-disable-multilib}: it disables support for 32-bit x86 binaries on
 	amd64 machines. This requires additional packages in your system that you may
 	not want to install.
 
-	\item \texttt{-{}-enable-languages=c,c++}: compiles only C and C++ compilers,
+	\item \texttt{-{}-enable-languages=c,c++}: it compiles only C and C++ compilers and
 	avoid generating other compilers that may be useless in your development
 	process.
 \end{itemize}
@@ -1920,37 +1933,37 @@ Given that your current shell is in \texttt{gcc\_git\_gnu} folder, use
 \texttt{\$ ../gcc\_git\_gnu/configure} & \texttt{ -{}-disable-bootstrap -{}-disable-multilib} \nonumber \\
 & \texttt{ -{}-enable-languages=c,c++} \nonumber
 \end{align}
-Then finally:
+Then, finally:
 $$\texttt{\$ make -j<num\_jobs>}$$
-where \texttt{<num\_jobs>} are the number of cores available in your computer.
+where \texttt{<num\_jobs>} are the numbers of cores available in your computer.
 
-If there is a missing library in your system, the build process will notice
+If there is a missing library in your system, the building process will notice
 you. In this case, you should install it to proceed the compilation.
 \end{subsection}
 
 \begin{subsection}{Installing and Testing GCC}
 One quick test that can be made to check if your modifications are indeed
 working is to install the compiler and try to compile some toy programs.
-To install GCC in a custom folder (for instance, in \texttt{/tmp}) you
-should install using an additional parameter \texttt{DESTDIR}. For instance,
+In order to install GCC in a custom folder (for instance, in \texttt{/tmp}), you
+should install it by using an additional parameter \texttt{DESTDIR}. For instance,
 if you want to install GCC on \texttt{/tmp/gcc\_trunk}, you should run:
 $$\texttt{\$ make DESTDIR=/tmp/gcc\_trunk install}$$
 
 Once installed, you can launch the new version of gcc simply by pointing
 the binary in the shell:
 $$\texttt{\$ /tmp/gcc\_trunk/usr/local/bin/gcc --version}$$
-If it shows the current version you compiled, then probably everything is
+If it shows the current version you compiled, then everything is
 correct. Compile some toy programs to check if the compiler is indeed working.
 
 When modifying the GCC code, you must always check if you broke something
-that is already working, however, since you cloned a development branch,
+that is already working. However, since you cloned a development branch,
 it is possible that \textit{something was already broken} in the upstream
 itself, and when you
-run the testsuite, you may think that you broke something when in fact
+run the testsuite, you may think that you broke something when, in fact,
 you did not. Therefore, you should run the testsuite before and after your
-development, and take down notes about the tests in which are failing.
+development, and take down notes about the tests that are failing.
 
-You can run the extensive GCC testsuite by launching make as:
+You can run the extensive GCC testsuite by launching \texttt{make} as:
 $$\texttt{\$ make check-gcc -j<num\_cores>}$$
 Sometimes, you just want to launch a single testsuite, for instance,
 the \texttt{dg.exp}. In this case, you can launch make with:
@@ -1977,52 +1990,52 @@ Sometimes, finding the problem in your changes is not trivial at all. If you
 are familiar with \textit{gdb}, you can launch GCC under it for finding the
 problems.
 
-There are two cases, requiring a distinct approach. One if you want to
+There are two cases that require a distinct approach. One is if you want to
 \textit{debug the compiler (cc1)} or if you want to \textit{debug the driver}.
-in the first case, you should launch the compiler with
+In the first case, you should launch the compiler with:
 
 	$$\texttt{\$ /tmp/}\cdots \texttt{/gcc -wrapper gdb,args file.c}$$
-	in the later
+
+	In the second case, you should use:
 	$$\texttt{\$ gdb /tmp/}\cdots \texttt{/gcc -args file.c}$$
 	such difference comes from the fact that the \textit{driver} is responsible
-	to call the correct compiler, and this wrapper will simply make things
-	easy for the user by instructing the driver to call the compiler under gdb.
+	for calling the correct compiler, and this wrapper will simply make things
+	easier for the user by instructing the driver to call the compiler under gdb.
 	When debugging the driver, there is no need for calling the wrapper at all,
 	since the binary is already exposed to the user.
 
 
 We will not enter in details about how to use gdb here, but
-\cite{stallman1988debugging} provide a walkthrough about how to use it.
+\cite{stallman1988debugging} provide a walkthrough on how to use it.
 
 \end{subsection}
 
 \begin{subsection}{Writing and Sending Patches}
 
-Writing patches are quite straightforward. First, be aware that GCC uses the
-GNU Coding Style, and therefore your text editor must be configured
-accordingly. In the \texttt{contrib} folder, there are some configuration files
-for Vim, which you should be using if you code using such text editor.
-
-But perhaps one of the most bureaucratic steps in Free Software development is
-sending the changes back to the community for review. However, once you master
-this process, sending changes comes naturally and can be done quite fast.
+Writing patches is quite straightforward. First, be aware that GCC uses the GNU
+Coding Style; and therefore your text editor must be configured accordingly. In
+the \texttt{contrib} folder, there are some configuration files for Vim, which
+you should be using if you code using such text editor. Perhaps one of the most
+bureaucratic steps in Free Software development is sending the changes back to
+the community for review. However, once you master this process, sending
+changes comes naturally and can be done quite fast.
 
 First, create a new branch for you to work on. A quick way of doing this is
 by $$\texttt{\$ git checkout -b feature}$$ This will create a new branch
 \textit{feature}, and now you are ready to implement your changes. Once you
 have tested, you should \textit{commit} then. This can be done with the
-sequence of commands
+sequence of commands:
 \begin{align}
 \texttt{\$ } & \texttt{git add .} \nonumber \\
 \texttt{\$ } & \texttt{git commit -v \nonumber}
 \end{align}
-then text editor window will show up for you to explain what this
+Then, the text editor window will show up for you to explain what this
 commit does. Commits have a title that should not have more than
-60 characters (but they can depending on the situation),
+60 characters (but they can, depending on the situation),
 followed by a more detailed text, and the
 ChangeLog. For examples of how you should write a commit,
 run $\texttt{\$ git log}$ to show the most recent commits. For an example
-about how to create a detailed changelog, read the file
+of how to create a detailed changelog, read the file
 \texttt{gcc/ChangeLog}. Do not underestimate this task, try to
 write a good commit message because people will review it.
 If your patch contains a new feature (for instance, a match and
@@ -2030,28 +2043,28 @@ replace optimization), you should \textbf{write a test for it} as
 well.
 
 Once committed, you should switch back to the \textit{master} branch
-and update it using
+and update it by using:
 \begin{align}
 \texttt{\$ } & \texttt{git checkout master} \nonumber \\
 \texttt{\$ } & \texttt{git pull \nonumber}
 \end{align}
 	because probably between your changes, someone already commited a new
-	patch. Now you should put place your commit (which is in \textit{feature})
-	on top of \textit{master} by
+	patch. Now you should place your commit (which is in \textit{feature})
+	on top of \textit{master} by:
 	$$\texttt{\$ git rebase master feature}$$
-	now if you run \texttt{git log}, you should see your commit on the top.
-	Now generate a patch by
+	Now, if you run \texttt{git log}, you should see your commit on the top.
+	Then, generate a patch by:
 	$$\texttt{\$ git format-patch HEAD\textasciitilde1 -o /tmp/}$$
 	which will generate a file in \texttt{/tmp/} folder.
 
 	Once the patch file is ready, use \texttt{contrib/check\_GNU\_style.py}
 	script on your patch to find if it respects the GNU codestyle. If
-	everything is correct, then you can send the patch using
+	everything is correct, then you can send the patch by using:
 \begin{align}
 \texttt{\$ git send-email} & \texttt{ -{}-annotate  -{}-to='gcc-patches@gcc.gnu.org'} \nonumber \\
 & \texttt{ file.patch \nonumber}
 \end{align}
-	however, you might need to configure \texttt{git send-email} before you can use it
+	However, you might need to configure \texttt{git send-email} before you can use it
 	\citep{flusp_tavares}.
 
 \end{subsection}
@@ -2061,18 +2074,18 @@ and update it using
 	files to look on, and no clear signal of problem anywhere. However,
 	a good start is:
 	\begin{itemize}
-		\item Check if you can come with a new \texttt{match.pd} rule. This
-		is how we started contributing to the compiler \citep{sinatan_flusp}.
+		\item Checking if you can come with a new \texttt{match.pd} rule. This
+		is how we started contributing to the compiler \citep{sinatan_flusp};
 
 		\item GCC was originally written in C, then switched to C++. Most
 		Intraprocedural passes are still written in plain C and would be
-		very interesting to see them encapsulated into a class
+		very interesting to see them encapsulated into a class;
 
-		\item Read the EasyHacks page\footnote{https://gcc.gnu.org/wiki/EasyHacks}.
+		\item Reading the EasyHacks page\footnote{https://gcc.gnu.org/wiki/EasyHacks}.
 	\end{itemize}
 
-	You can also subscribe to the \texttt{gcc@gcc.gnu.org} mailing list for help,
-	just make sure to send e-mails in plain-text mode, otherwise it will be
+	You can also subscribe to the \texttt{gcc@gcc.gnu.org} mailing list for help.
+	Just make sure to send e-mails in plain-text mode, otherwise it will be
 	classified as spam.
 
 \end{subsection}
@@ -2084,7 +2097,7 @@ and update it using
 \begin{section}{Parallel Computing}\label{sec:parallel_computing}
 \label{sec:parallel_comp}
 
-Parallel Computing is the act of coordinating several executions flow operating
+Parallel Computing is the act of coordinating several executions' flow operating
 simultaneously in one or more computers to archive some common objective. It
 became a tendency in contemporary computing due to affordability and reduced
 production cost of multicore and manycore processors when compared to a
@@ -2103,8 +2116,8 @@ To illustrate this evolution in multicore processors, \cite{42years}
 published a figure showing the number of transistors, cores, and
 performance of each core since 1970, as presented in Figure
 \ref{fig:42years}. We can see in this figure that Moore's law
-is still true, however, the sequential performance of the processors
-is slowing down, while the number of cores grows exponentially
+is still true; however, the sequential performance of the processors
+is slowing down, while the number of cores has been growing exponentially
 since 2008. This justifies the use of parallel computing when possible
 for the maximum usage of computational resources available.
 
@@ -2159,14 +2172,14 @@ and some algorithms which are useful when parallelizing a program.
 
 Even with the evolution of multicore and manycore processors, those are not the
 only architectures available for parallel computing.  Michael J. Flynn
-\citep{pacheco:2011} defined a taxonomy of architectures, however, two of them
+\citep{pacheco:2011} defined a taxonomy of architectures; however, two of them
 must be highlighted:
 
 \begin{enumerate}
 	\item \textbf{SIMD} - \textit{Single Instruction, Multiple Data}. Those are
 	vectorial processors that allow a single operation to be executed
 	simultaneously in every element of a vector. Some examples are the Intel SSE
-	instruction set, and also the \textit{Graphics Processing Units} (GPU) although
+	instruction set, and also the \textit{Graphics Processing Units} (GPU), although
 	this last one is not considered a pure SIMD architecture.
 
     \item \textbf{MIMD} - \textit{Multiple Instruction, Multiple Data}. Those
@@ -2179,7 +2192,7 @@ executing tasks asynchronously. Here we find both shared memory and distributed 
 \begin{subsection}{Parallel Programming in Shared Memory}
 	One way of doing Parallel Computing is through a shared memory
 	behind the cores or processors. Here, a shared memory is connected
-	through a bus to all processors, allowing read and write of data.
+	through a bus to all processors, allowing the reading and writing of data.
 	To avoid concurrency problems, both locking and synchronization mechanisms
 	are required.
 
@@ -2190,8 +2203,8 @@ executing tasks asynchronously. Here we find both shared memory and distributed 
 %Para evitar problemas de concorrência, são necessários mecanismos de
 %travas e sincronização.
 
-	Here, most resources are provided by the Operating System (OS),
-	and therefore a brief explanation is required about its abstractions.
+	Here, most resources are provided by the Operating System (OS);
+	therefore, a brief explanation is required about its abstractions.
 
 %	 Aqui, muitos dos recursos para sincronização são fornecidos pelo
 %Sistema Operacional (OS), e portanto é necessário explicar um pouco
@@ -2214,7 +2227,7 @@ executing tasks asynchronously. Here we find both shared memory and distributed 
 %são capazes de executar vários fluxos de execução simultaneamente, essa
 %é a principal motivação do conceito de Processos e \textit{Threads}.
 
-A \textit{process} is an abstraction provided by the Operating System which
+A \textit{process} is an abstraction provided by the Operating System, which
 gives to the program the illusion that it has the processor's monopoly
 \citep{love:2005}. Each process has its own memory region, and sharing
 information between processes must be done through Interprocess Communication
@@ -2232,16 +2245,16 @@ in which Linux still supports \citep{shmget}, or through a Pipe \citep{pipe}.
 Each process contains at least one execution flow, and each execution
 flow is called a \textit{thread}. Each thread inside a process
 shares memory with every other thread from the same process, except
-for its stack and the Thread Local Storage (TLS) region, which turns
+for its stack and the Thread Local Storage (TLS) region, which makes
 the development of communication mechanisms easier.
 
 When parallelizing a program, the programmer must choose between using threads
 or processes. By selecting threads, the programmer will have the advantage of
-having access to global data structures and therefore an easy communication
+having access to global data structures, and, therefore an easy communication
 between the threads. However, race conditions must be solved individually,
 which may become cumbersome when the software is really large. By selecting to
 parallelize through processes, most race conditions may fade away, but then the
-issue revolves around find \textit{what} must be shared and how to do an
+issue revolves around finding \textit{what} must be shared and how to do an
 efficient communication between processes, as IPC can be slow.
 
 Unix processes are created through a system call named \textit{fork}. On
@@ -2262,7 +2275,7 @@ of threads \citep{abbas_cow}.
 
 An Operating System usually provides synchronization mechanisms to control
 several threads of a process or even several processes. These mechanisms are
-often implemented with the help of hardware resources, however, they can also
+often implemented with the help of hardware resources. However, they can also
 be implemented purely in software.
 
 %	Seja através de auxílio do \textit{hardware}, ou com algoritmos
@@ -2345,12 +2358,11 @@ a mutex and a binary semaphore.
 
 Another useful synchronization mechanism is the barriers. A barrier is a point
 in the program where once a thread executes it, it will be blocked until every
-other thread reach the same point, as illustrated in Figure \ref{fig:barrier}.
+other thread reaches the same point, as illustrated in Figure \ref{fig:barrier}.
 This is very useful to avoid that one thread advances in the execution of a
 code when it should be waiting for the result of some computation by another
 thread. Barriers also receive an integer specifying how many threads should
-reach the barrier for every thread to be allowed to continue with its
-execution.
+reach the barrier so they can be released to continue its execution.
 
 %Outro mecanismo de sincronização muito útil são as Barreiras. Uma barreira
 %é um ponto no programa onde, assim que a \textit{thread} o executar, ela
@@ -2369,7 +2381,7 @@ execution.
  \label{fig:barrier}
 \end{figure}
 
-Except for semaphores, every mechanism mentioned above is implemented in the
+Apart from semaphores, every mechanism mentioned above is implemented in the
 \textit{pthread} library. Semaphores, on the other hand, are available in Linux
 through the \texttt{semaphore.h} interface.
 
@@ -2384,10 +2396,10 @@ through the \texttt{semaphore.h} interface.
 When we want to measure how much energy a computer is consuming, there are
 sensors to measure the \textit{Instantaneous Power}. However, power $P$ is
 defined as the time rate of energy transferred \citep{young2006sears}.
-Therefore, to compute energy measuring the power consumption of a system: $$P =
+Therefore, to compute energy measuring the power consumption of a system, we use: $$P =
 \frac{dE}{dt} \quad \Rightarrow \quad E = \int_{0}^{t'} P(t)dt$$ where $t'$ is
 the elapsed time of the experiment. However, we can only measure information of
-the sensor in discrete time, and not continuously.  Therefore we can
+the sensor in discrete time, and not continuously.  Thus, we can
 approximate this integral by using two Riemann sums.
 
 Assume that we collected $n$ measurements of the sensor at times
@@ -2403,7 +2415,7 @@ $$\sum_{i=1}^{n-1} m_i\Delta t \leq E \leq \sum_{i=1}^{n-1} M_i\Delta t$$
 Which can give us a way to measure the \textit{error} of our integration
 process just by computing $\sum_{i=1}^{n-1} M_i\Delta t -
 \sum_{i=1}^{n-1} m_i\Delta t = \epsilon$. This can also capture the error of the sensor
-itself by representing the real value as between a range of two values, and
+itself by representing the real value in between a range of two values, and
 the lower bound on $m_i$ and the upper bound in $M_i$.
 
 \end{section}

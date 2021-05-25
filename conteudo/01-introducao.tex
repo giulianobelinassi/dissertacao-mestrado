@@ -9,7 +9,7 @@ increasingly faster expansion of software ecosystems. Developers create new
 programs to supply the needs of the most diverse domains by coding new websites
 in scripting languages, creating standalone desktop applications, adding new
 functionalities to an operating system, and so on. Regardless of the reason
-behind the development of them, it is true that their code will be, at some
+behind their development, it is true that their code will be, at some
 point, transformed into machine language by a compiler or assembler, even if an
 interpreter executes it.
 
@@ -24,7 +24,7 @@ interpreter executes it.
 %Interpretador.
 
 A compiler is nothing more than a software that translates code from a
-programming language $A$ to another language $B$ \citep{dragonbook}.  Compilers
+programming language $A$ into another language $B$ \citep{dragonbook}.  Compilers
 are enormous programs, largely adopted by industry and academia, where a great
 effort has been employed to produce efficient code -- but without any sacrifice
 in correctness --. There are huge projects destined to develop and improve
@@ -32,8 +32,8 @@ them, such as the GNU Compiler Collections (GCC\footnote{https://gcc.gnu.org/})
 and LLVM\footnote{https://llvm.org/}, capable of translating several languages
 such as C, C++, and Fortran, to machine language. There are also smaller
 projects such as F2C\footnote{https://www.netlib.org/f2c/}, a Fortran to C
-compiler, used in systems that there is no Fortran compiler available. Such
-compilers that translate from a high-level language to another high-level
+compiler, used in systems where there is no Fortran compiler available. Such
+compilers that translate from a high-level language into another high-level
 language is often called a \textit{transpiler}.
 
 %Um compilador nada mais é que um \textit{software} que traduz um código em uma linguagem
@@ -48,10 +48,10 @@ language is often called a \textit{transpiler}.
 %Fortran para C, utilizado em ambientes onde não há um compilador Fortran
 %disponível.
 
-Although it is possible to write code in machine language, which turns a compiler
-unnecessary, this is extremely expensive and error-prone, apart from being an
+Although it is possible to write code in machine language, which makes a compiler
+unnecessary, it is extremely expensive and error-prone, apart from being an
 uncommon practice in projects contemporary to this work \citep{githuboctoverse}
-(see Figure \ref{fig:github_2017}). An example of this is the Internal Revenue
+(see Figure \ref{fig:github_2017}). As an example, there is the Internal Revenue
 Service (IRS) in the United States of America, which still maintains machines
 compatible with the IBM System/360 due to the existence of several lines of
 code written in assembly language for this architecture \citep{gao}.  This
@@ -75,7 +75,7 @@ millions of lines of code, and even create new programming languages for an
 easy way to develop new features. Therefore, the compilation process must be
 fast, or else it may turn the project development unfeasible.  This means that
 there are several studies employed to develop even faster algorithms for them,
-beyond parallel computing techniques to better use the multicore processors,
+beyond parallel computing techniques to improve the use the multicore processors,
 increasingly common nowadays.
 
 %Compiladores são usados em projetos dos mais variados tamanhos.
@@ -121,7 +121,7 @@ increasingly common nowadays.
 Currently, all parallelism in the compilation stage is provided either by the
 GNU Make\footnote{https://www.gnu.org/software/make/}, which only provides a
 per-file level granularity; or through the LTO infrastructure inside the compiler, which we
-approach in Section \ref{chap:related_works}. The former, which we will label
+approach in Section \ref{chap:related_works}. The former, which we will label as
 the \textit{classical compilation method}, may bottleneck the compilation in
 manycore machines if there exists some file that dominates the compilation time.
 The former may also have this bottleneck if the Whole Program Analysis (WPA) stage,
@@ -205,22 +205,22 @@ Therefore, this work is dedicated to the following research questions:
 
 We present answers of these questions in the hope that they may be useful to software
 developers so that they be aware of how compilers may impact the development
-process of their projects, as well as compiler writers about how to improve
+process of their projects, as well as compiler writers on how to improve
 their software using parallelism. Thus, the main contribution of this work is
 to provide ways to modify an industrial-scale compiler to
 compile single files in parallel.
 
 This work is divided into the following chapters: in Chapter
 \ref{chap:fundamentacao}, we present some theoretical concepts regarding
-Compiler Theory, the GCC,  and Parallel Computing; to clarify some topics about this work.
+Compiler Theory, the GCC,  and Parallel Computing to clarify some topics about this work.
 Following that, Chapter \ref{chap:related_works} presents related work until
 the state of art on this topic, with a brief discussion about their positive
 and negative points. Then, Chapter \ref{chap:proposta} presents a general
 version of the work, with an analysis of what needs to be improved,
-contemplating the parallel architecture and the implementation planning, presenting
-our experiments about then on Chapter \ref{cap:experiments}. Finally,
+contemplating the parallel architecture and the implementation planning, and presenting
+our experiments about it later on Chapter \ref{cap:experiments}. Finally,
 in Chapter \ref{chap:conclusions}, we present our conclusions about this work
-and how this work can be improved, with future works.
+and how it can be improved, with future works.
 
 This work was supported by CAPES and Google Summer of Code (GSoC). For the
 latter, we present our application plans in Appendix \ref{appendex1} for the threaded

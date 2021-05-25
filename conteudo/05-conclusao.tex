@@ -2,7 +2,7 @@
 \label{chap:conclusions}
 
 Finally, in this chapter, we present the conclusions of our work. We did some
-attempts on parallelizing an industrial-scale compiler, which some of them
+attempts on parallelizing an industrial-scale compiler. Some of them
 worked very well for this situation, and others simply stumbled into several
 technical issues with regard to race conditions.
 Nevertheless, we managed to get a working implementation, with guaranteed
@@ -11,12 +11,12 @@ correct compilation and some remarkable results.
 We approach this section by answering our Research Questions, presented in
 Section \ref{sec:rq}, and we start by approaching \textbf{RQ1}. We show in
 Section \ref{sec:profile} that the application of the intraprocedural
-optimizations and code generation is a good candidate for parallelization since
+optimizations and code generation are good candidates for parallelization, since
 in GCC it takes 79\% of compilation time.  For the parser, the related works
-show that the parser can also be the target for parallelization, but our
+show that it can also be the target for parallelization, but our
 experiments (in Figure \ref{fig:parallel_estimate}) show that the time required
 for this step is minimal in GCC. The interprocedural optimizations, on the
-other hand, are a challenge and if possible may also considerably speed up the
+other hand, are a challenge and, if possible, may also considerably speed up the
 LTO in manycore machines. 
 
 %We will now reaproach the Research Questions presented in Chapter
@@ -30,8 +30,8 @@ LTO in manycore machines.
 Our first approach in parallelization involved the application of intraprocedural
 optimizations in parallel to each function, using threads, as presented in
 Section \ref{sec:threads}. Although this
-predicted a $1.68\times$ speedup on GCC, its implementation showed to be
-difficult because of the heavy use of global variables in the software.  We
+predicted a $1.68\times$ speedup in GCC, its implementation was
+difficult due to the heavy use of global variables in the software.  We
 even got to a point where analyzers such as helgrind and thread sanitizer were
 not detecting the race conditions due to the race window being too small.
 Therefore, this approach may not be adequate for already existing
@@ -40,40 +40,40 @@ industrial-scale compilers for adding parallelism.
 However, if we are designing a compiler from the ground up, this approach may
 be better from a software engineering perspective, as it becomes easier to add
 multithreading to a part of the code that was, at least at some point, designed
-with this in mind. We also get the advantage of avoiding the overheads
+with it in mind. We also get the advantage of avoiding the overheads
 associated with process creation, such as page copying, and so on.
 
 Threading the compiler may also be the only option when parallelizing the
 parser or interprocedural analysis, otherwise, there would be a huge amount of
 interprocess communication. However, Figure \ref{fig:parallel_estimate} shows
 that parsing is not a computer-intensive task. This is already parallel in LTO
-by reading the multiple files, therefore this may not be of concern on present
-days nor in the short future. However, the interprocess analysis is of concern,
+by reading the multiple files. Therefore, this may not be a concern in present
+days nor in the short future. However, the interprocess analysis is a concern,
 once it is the only sequential step on LTO and may dominate the compilation
 time on manycore machines just by being sequential.
 
-On our second approach, we show how to use the already-existing LTO engine in
+In our second approach, we showed how to use the already-existing LTO engine in
 GCC to compile single files in parallel, as presented in Section
 \ref{sec:parallel_lto}. The clear advantage of this approach is how fast we got
 the first results when compared to threading the compiler, and how fast we got
-it into a complete working condition (bootstrap the compiler, testsuite
-acceptance, fuzzer testing).
+it into a complete working condition (bootstraping the compiler, testsuite
+acceptance, fuzzing testing).
 
 Although the results were better than the threaded version ($1.88\times$ vs. $2.4\times$
 on a Quad-Core),
 one may argue that the reason for that is due to our threaded implementation
-not being as optimized as the LTO based version -- which is true -- and the
-contrary must be expected because the cost of launching a thread is smaller
+not being as optimized as the LTO based version, which is true. The
+contrary must be expected, because the cost of launching a thread is smaller
 than the cost of launching a process plus all the necessary page copying.
 Therefore, we may expect even larger speedups when compared to the LTO version
 on optimized implementations.
 
 Therefore, as an answer for the \textbf{RQ2}, we show a method of archiving up
-to $4\times$ speedup in theory, which when implemented yielded a speedup of up
+to $4\times$ speedup in theory, which, when implemented, yielded a speedup of up
 to $3.52\times$. This method also yielded a speedup of up to $35\%$ when
-compiling entire projects (in this case, GCC) when compared to \texttt{make
+compiling entire projects (in this case, GCC), when compared to \texttt{make
 -j64} alone. The reason for this speedup is the existence of files with large
-TU in the GCC project, as shown in Figure \ref{fig:analysis_classical}, and
+TU in the GCC project; as shown in Figure \ref{fig:analysis_classical}, and
 this result might be interesting when the project uses autogenerated (blob) C++
 files. We also found a small speedup on Git, which we find interesting because
 it consists of small files. One explanation for this is that it does not have
@@ -84,15 +84,15 @@ two scenarios: (1) in the existence of massive autogenerated blob files in the
 the project, which consumes a large amount of compilation time when compared to
 the remaining files of the project, and (2) if the number of files in the
 project is not enough to fully populate the processors of the machine. This
-means that our approach has some generalization limitations, but can result in
+means that our approach has some limitations on generalization, but can result in
 speedups. Else, our methodology performs as well as the default per-file
 compilation parallelism.  Furthermore, if this is implemented as a feature in a
 compiler, it could be used in projects where LTO imposes a slowdown.  Johnson
 \textit{et al.} show some of these projects when presenting ThinLTO
 \citep{thinlto}. This is an answer to \textbf{RQ3}.
 
-As for the electrical energy usage, we show a reduction in power draw by 72\%
-the CPU when compiling GCC with our options enabled. This means that our
+As for the electrical energy usage, we showed a reduction in power draw of 72\%
+when the CPU compiled GCC with our options enabled. This means that our
 implementation is able to save power when compiling some projects, which we
 provide this as an answer to \textbf{RQ4}. On Figure \ref{fig:power}, we
 observe a significant reduction in the peak power usage on the parallel
@@ -100,43 +100,43 @@ version. It may be that there is a point when the processor is in partial usage
 (not in full usage) and may draw the same amount of power as if it is in full
 usage. Therefore, for better energy efficiency, we should use the maximum power
 of the CPU in the shortest amount of time to get a task done -- and this will
-also save energy --.
+also save energy.
 
 \section{Future Works}
 
-For future works, we concentrate on the following topics:
+For future works, we will concentrate on the following topics:
 
 \begin{enumerate}
 
-\item Fix the already-know bugs on the LTO implementation.
-Mainly, the issue with our partitioner applier not removing debug symbols
+\item Fixing the already-known bugs on the LTO implementation.
+Mainly, the issue relates to our partitioner applier not removing debug symbols
 associated with removed nodes, resulting in duplicated symbols being dumped
-into the final assembly. This is a programming issue rather than a design flaw,
-and therefore it is still fine as a proof of concept to support our claims.
+into the final assembly. This is a programming issue rather than a design flaw;
+therefore, it is still fine as a proof of concept to support our claims.
 
 \item Implementing a better partitioner to the LTO project. One main issue
 with our partitioner is that we kept its load balancing algorithm minimal to
 ensure that it works. Using the LTO default partitioner as a base is a good start.
 
-\item Modify the driver to also support external compiler through GCC
+\item Modifying the driver to also support external compilers through GCC
 SPEC language. Our current implementation only checks if launching program
-is a known compiler/assembler/linker, and will get confused in languages that
-needs additional steps (such as CUDA).
+is a known compiler/assembler/linker, and it might get confused in languages that
+need additional steps (such as CUDA).
 
-\item Try to develop a predictive model to decide if the input file is
+\item Trying to develop a predictive model to decide if the input file is
 a good candidate for parallel compilation. Fig. \ref{fig:gcc_all_files} shows
 a clear linear correlation between the expected number of instructions and time
 (and maybe it is the best parameter), but it may be possible to (statically)
 collect more information about the file for a better decision.
 
-\item Try to avoid partial linking and symbol promotion altogether by
+\item Trying to avoid partial linking and symbol promotion altogether by
 concatenating the generated assembly files, instead of linking every generated
 assembly file into temporary object files. This is extra useful for
 architectures that require extra steps to generate code that must be globally
 available across the program, which may generate a slower code when compared to
 the non-public promoted version.
 
-\item Research about how Interprocedural Optimizations can be implemented
+\item Researching about how Interprocedural Optimizations can be implemented
 in parallel in GCC. This not only improves our parallel implementation,
 but also might improve the parallelism in LTO mode.
 
