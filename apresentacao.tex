@@ -14,6 +14,11 @@
   brazilian,english,12pt,aspectratio=149,
 ]{beamer}
 
+\usepackage{qtree}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.multipart}
+
 % Vários pacotes e opções de configuração genéricos
 \input{extras/basics}
 \input{extras/languages}
@@ -112,23 +117,23 @@
 % de referências
 %\nocite{*}
 
-\title[The shortened title]{The full title, which may be quite,\\ quite long indeed}
-\subtitle{The (optional) subtitle}
+\title[The shortened title]{Compiling Files in Parallel: a study with GCC}
+%\subtitle{The (optional) subtitle}
 
-\author[Authors Name]{Authors Name}
+\author[Authors Name]{Giuliano Belinassi}
 
-\institute[USP]{\textbf{Workshop Name} \\ Computer Science Department \\ IME USP}
+\institute[USP]{Computer Science Department \\ IME USP}
 %\institute[USP]{\textbf{Orientador:} \\ Computer Science Department \\ IME USP}
 
-\date{Month and day, year}
+\date{July 28, 2021}
 
 % Coloca a imagem no fundo da página de título
-\bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
+% \bgimage{\includegraphics[width=\paperwidth]{fundo_predios_e_grafo}}
 
 % Logotipos no rodapé da página de título
 \logos{
   \hfil\hfil\includegraphics[width=.1\textwidth]{usp-logo}\hfil%
-  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{interscity-logo}}\hfil%
+  \raisebox{-.0103\paperheight}{\includegraphics[height=.0932\paperheight]{capes-logo}}\hfil%
   \raisebox{-.033\paperheight}{\includegraphics[width=.07\textwidth,trim=0 230 0 0,clip]{ime-logo}}\hfil\hfil
 }
 
@@ -141,10 +146,10 @@
 %}
 
 % Usado para criar o qrcode com o endereço da apresentação
-\presentationurl{http://interscity.org}
+%\presentationurl{http://interscity.org}
 
 % Inclui o qrcode no sumário da apresentação
-\includeqrcodeintoc
+%\includeqrcodeintoc
 
 % O slide de sumário pode ser dividido em colunas; o parâmetro
 % determina após qual o número da seção fazer a quebra de coluna
