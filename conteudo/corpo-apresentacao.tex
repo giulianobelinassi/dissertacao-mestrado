@@ -367,31 +367,341 @@ T &\rightarrow a \times T \; | \; a \nonumber
     \item Clearly, $t_1 = t_2$, so expression is $2x^2$
     \item Also useful on register allocation step
 \end{itemize}
-
 \end{frame}
 
-\begin{frame}[plain]
-  \includegraphics[width=\textwidth]{interscity-logo}
-\end{frame}
+%------------------------------------------------------------------------------
 
-\begin{frame}[standout]
-  This is a problem!
-\end{frame}
-
-\begin{frame}{Goals}
-  \begin{block}{Functional requirements}
+\begin{frame}{Control-Flow Graphs}
+\begin{itemize}
+    \item Program consists of more than a linear sequence of statements
     \begin{itemize}
-      \item Integration and Management of \alert{IoT} Devices
-      \item Data Acquisition, Storing, and Processing
-      \item Context-awareness
-      \item City Resource Discovery
-      \item Geolocation-based Services
-      \item External data access
+        \item There are jumps, loops, comparisons, ...
     \end{itemize}
-  \end{block}
+    \item This \textit{flow divergence} can be moduled using graphs
+    \begin{itemize}
+        \item Agglutinates a sequence of non-divergent statements in blocks (nodes)
+        \item Edges show the possible path after the block is executed
+    \end{itemize}
+    \item Example:
+\end{itemize}
 \end{frame}
 
-\section{Concepts}
+%------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Control-Flow Graphs}
+
+\begin{itemize}
+    \item Example:
+\end{itemize}
+
+\begin{columns}[c]
+      \begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call},
+      ]
+        function norm_1(x[n])
+            sum := 0; i := 0
+            while (i < n) {
+                if (x[i] < 0)
+                    sum -= x[i]
+                else
+                    sum += x[i]
+                i := i + 1
+            }
+            return sum
+        end
+      \end{lstlisting}
+\column{.5\textwidth}
+    \begin{center}
+    \scalebox{0.5}{
+    \tikzstyle{line} = [draw, -latex]
+    \tikzstyle{node} = [draw, rectangle]
+    \begin{tikzpicture}[node distance = 2.3cm, minimum height = 1cm, auto]
+        % Place nodes
+        \node [node]                    (source) {$s_0$};
+        \node [node, below of = source] (head) {while};
+        \node [node, below of = head]   (check) {if};
+        \coordinate[below of = check]            (c2);
+        \node [node, left of = c2]  (true) {true};
+        \node [node, right of = c2]   (false) {false};
+        \node [node, below of = c2]   (merge) {$i \leftarrow i + 1$};
+        \node [node, left of = head]   (return) {return};
+        \coordinate[right of=false]    (c3);
+
+        % Draw edges
+        \draw[->]    (source)         -- (head);
+        \draw[->]    (head)           -- (check);
+        \draw[->]    (check)          -- (true);
+        \draw[->]    (check)          -- (false);
+        \draw[->]    (true)       -- (merge);
+        \draw[->]    (false)      --  (merge);
+        \draw    (merge.east) to [out=0, in=-90]  (c3);
+        \draw[->]    (c3) to [out=90, in=0]  (head);
+
+        \draw[->]    (head.west)  to [out=180, in=180] (return.east);
+    \end{tikzpicture}
+    }
+    \end{center}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}{Dataflow Analysis}
+\begin{itemize}
+    \item Analsyis need to propagate information about the program
+    \begin{itemize}
+        \item Example: \textit{liveness analysis}
+        \item Find if variable will be needed in the future
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}{Dataflow Analysis}
+\begin{itemize}
+    \item \textit{Dataflow Analysis} is a framework to propagate information
+    \begin{itemize}
+        \item Runs on the Control-Flow Graph.
+        \item For each node $v$ in the graph, define a \textit{flow} function
+              $f_v : \mathcal{L} \longrightarrow \mathcal{L}$
+        \item Flow functions have the form (foward and backward):
+    \end{itemize}
+\end{itemize}
+
+\begin{equation}\label{eq:forward}
+	\texttt{in[} v \texttt{]} = \begin{cases}
+	  BI,& \text{if } v = s_0 \\
+	  \bigsqcap_{p \in \text{pred}(v)}f_p(\texttt{in[}p\texttt{]}) ,& \text{otherwise}
+	\end{cases}
+\end{equation}
+
+\begin{equation}\label{eq:backward}
+	\texttt{out[} v \texttt{]} = \begin{cases}
+	  BI,& \text{if } v \in F \\
+	  \bigsqcap_{p \in \text{succ}(v)}f_p(\texttt{out[}p\texttt{]}) ,& \text{otherwise}
+	\end{cases}
+\end{equation}
+
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}{Dataflow Analysis}
+
+\begin{itemize}
+    \item Example: Liveness Analysis
+\end{itemize}
+
+\begin{columns}[c]
+\includegraphics[scale=0.16]{cfg_liveness.png}
+
+\column{.5\textwidth}
+
+\vspace{-5.3cm}
+
+\scalebox{0.55}{
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multirow{3}{*}{Vertex} & \multicolumn{2}{c|}{\multirow{2}{*}{Local Generation}}  & \multicolumn{4}{c|}{Global Information}                             \\ \cline{4-7} 
+                        & \multicolumn{2}{c|}{}                                   & \multicolumn{2}{c|}{Iteration 1} & \multicolumn{2}{c|}{Iteration 2} \\ \cline{2-7} 
+                        & $\texttt{gen[} n \texttt{]}$                        & $\texttt{kill[}n\texttt{]}$                   & $\texttt{out[}n\texttt{]}$             & $\texttt{in[} n\texttt{]}$             & $\texttt{out[}n\texttt{]}$             & $\texttt{in[} n\texttt{]}$            \\ \hline
+$n_8$                   & $\{a, b, c\}$                & $\emptyset          $            & $\emptyset$               & $\{a, b, c\}$    & $\emptyset          $     & $\{a, b, c\}$    \\ \hline
+$n_7$                   & $\{a, b\}$                   & $\emptyset          $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b, c\}$    \\ \hline
+$n_6$                   & $\{b, c\}$                   & $\emptyset          $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b, c\}$    \\ \hline
+$n_5$                   & $\{a, b\}$                   & $\{d\}      $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b, c\}$    \\ \hline
+$n_4$                   & $\{a, b\}$                   & $\{c\}      $            & $\{a, b, c\}$     & $\{a, b\}   $    & $\{a, b, c\}$     & $\{a, b\}   $    \\ \hline
+$n_3$                   & $\{b, c\}$                   & $\{c\}      $            & $\{a, b, c\}$     & $\{a, b, c\}$    & $\{a, b, c\}$     & $\{a, b\}   $    \\ \hline
+$n_2$                   & $\{a, c\}$                   & $\{b\}      $            & $\{a, b, c\}$     & $\{a, c\}   $    & $\{a, b, c\}$     & $\{a, c\}   $    \\ \hline
+$n_1$                   & $\{c\}   $                   & $\{a, b, d\}$            & $\{a, b, c\}$     & $\{c\}      $    & $\{a, b, c\}$     & $\{c\}      $    \\ \hline
+
+\end{tabular}
+} %
+\end{columns}
+
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}{SSA form}
+
+\begin{itemize}
+    \item A variable can be redefined many times in a function
+    \begin{itemize}
+        \item Example: $x = 2$, and some lines after: $x = 42$
+    \end{itemize}
+    \item It can be refactored so variables can have one definition
+    \begin{itemize}
+        \item $x_1 = 2$, and then $x_2 = 42$
+    \end{itemize}
+    \item[]
+    \item Advantage: easier analysis
+\end{itemize}
+
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{SSA form}
+\begin{itemize}
+    \item Example:
+\end{itemize}
+
+\begin{columns}[c]
+        \begin{lstlisting}[
+            language=pseudocode,
+            style=pseudocode,
+            style=wider,
+            functions={},
+            specialidentifiers={extern, call},
+            ]
+            if (condition) then
+                a = -1;
+            else
+                a = 1;
+            end
+            u = a*v;
+        \end{lstlisting}
+\column{.4\textwidth}
+        \begin{lstlisting}[
+                language=pseudocode,
+                style=pseudocode,
+                style=wider,
+                functions={},
+                specialidentifiers={extern, call, PHI},
+              ]
+            if (condition) then
+                $a_1$ = -1;
+            else
+                $a_2$ = 1;
+            end
+            $a_3$ = $\phi$($a_1$, $a_2$)
+            u = $a_3$*v;
+        \end{lstlisting}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{SSA form}
+
+\begin{itemize}
+    \item Example:
+
+\begin{align}
+& x = 2 \nonumber \\
+& y_1 = f(x) \nonumber \\
+& y_2 = 1 \nonumber \\
+& \texttt{return} \nonumber
+\end{align}
+    \item $y_2$ can be removed
+    \begin{itemize}
+        \item No use in the \textit{use-def} chain
+    \end{itemize}
+
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Register Allocation}
+
+\begin{itemize}
+    \item Variables needs to be loaded in registers to perform operations
+    \item Avoid unnecessary memory transfers
+    \item Construct an interference graph and rename variables
+\end{itemize}
+
+\begin{columns}[c]
+\column{.3\textwidth}
+        \begin{lstlisting}[
+            language=pseudocode,
+            style=pseudocode,
+            style=wider,
+            functions={},
+            specialidentifiers={extern, call},
+            ]
+			$a = b + c$
+			$d = a * e$
+			$f = d + 1$ 
+        \end{lstlisting}
+\column{.5\textwidth}
+        \begin{lstlisting}[
+                language=pseudocode,
+                style=pseudocode,
+                style=wider,
+                functions={},
+                specialidentifiers={extern, call, PHI},
+              ]
+			$r_1 = r_2 + r_3$
+			$r_1 = r_1 * r_4$
+			$r_1 = r_2 + 1$
+        \end{lstlisting}
+\end{columns}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}{Instruction Selection}
+
+\begin{itemize}
+    \item A single code can have multiple possible translations
+    \begin{itemize}
+        \item Example: $x = 0$ can be $\texttt{mov eax, 0}$ or $\texttt{xor eax, eax}$
+    \end{itemize}
+    \item Example: \textit{Macro Translation}
+\end{itemize}
+
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=15em, text centered, rounded corners, node distance = 1cm and 1cm, auto, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\tikzstyle{cloud} = [draw, ellipse,fill=white, node distance=2cm,
+    minimum height=2em]
+
+\begin{center}
+\scalebox{0.6}{
+\begin{tikzpicture}
+    % Place nodes
+    \begin{scope}[node distance = 1cm and 5cm]
+    \node [block]                  (c1) {$\textit{fib}_i = \textit{fib}_{i-1} + \textit{fib}_{i-2}$};
+    \node [block, below=of c1]     (c2) {$\textit{fib}_{i-2} = \textit{fib}_{i-1}$};
+    \node [block, below=of c2]     (c3) {$\textit{fib}_{i-1} = \textit{fib}_{i}$};
+    \end{scope}
+
+    \node [block, right=of c1]     (asm1) {\texttt{mov eax, DWORD [ebp-8]} \\ \texttt{mov ebx, DWORD [ebp-12]} \\ \texttt{add eax, ebx} \\ \texttt{mov [ebp-4], eax}  };
+    \node [block, right=of c2]     (asm2) {\texttt{mov eax, DWORD [ebp-8]} \\ \texttt{mov [ebp-12], eax}};
+    \node [block, right=of c3]     (asm3) {\texttt{mov eax, DWORD [ebp-4]} \\ \texttt{mov [ebp-8], eax}};
+
+    % Draw edges
+    \draw[->]    (c1.east)        -- (asm1.west);
+    \draw[->]    (c2.east)        -- (asm2.west);
+    \draw[->]    (c3.east)        -- (asm3.west);
+\end{tikzpicture}
+}
+\end{center}
+
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}{Instruction Selection}
+
+\begin{itemize}
+    \item Example: \textit{Tree Pattern Matching}
+\end{itemize}
+\begin{center}
+	 \includegraphics[scale=1.0]{tree_replace.pdf}
+\end{center}
+
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\section{Interprocedural Analysis}
 
 \begin{frame}{Concepts}
   \begin{columns}[t]
