@@ -203,7 +203,7 @@
 %------------------------------------------------------------------------------
 %------------------------------------------------------------------------------
 \begin{frame}{Theorectical Background}
-  \begin{block}{Problems}
+  \begin{coloredblock}{red!90!black}{Problems}
     \begin{itemize}
       \item Not every part of a compiler can be parallelized
       \begin{itemize}
@@ -216,10 +216,9 @@
       \end{itemize}
       \item If theory says it is possible, it is a good option to try
     \end{itemize}
-  \end{block}
+  \end{coloredblock}
 \end{frame}
 %------------------------------------------------------------------------------
-\subsection{Parser}
 \begin{frame}{Parser}
     \begin{itemize}
         \item Computer language programs are written in text files
@@ -347,7 +346,7 @@ T &\rightarrow a \times T \; | \; a \nonumber
 \end{frame}
 
 %------------------------------------------------------------------------------
-\subsection{Intraprocedural Optimizations}
+\subsection{Intraprocedural Analysis}
 %------------------------------------------------------------------------------
 %------------------------------------------------------------------------------
 \begin{frame}{Three-Address Form (3AC)}
@@ -466,7 +465,7 @@ T &\rightarrow a \times T \; | \; a \nonumber
 \begin{itemize}
     \item \textit{Dataflow Analysis} is a framework to propagate information
     \begin{itemize}
-        \item Runs on the Control-Flow Graph.
+        \item Runs on the Control-Flow Graph $G = (V, E, s_0, F)$.
         \item For each node $v$ in the graph, define a \textit{flow} function
               $f_v : \mathcal{L} \longrightarrow \mathcal{L}$
         \item Flow functions have the form (foward and backward):
@@ -491,7 +490,25 @@ T &\rightarrow a \times T \; | \; a \nonumber
 
 %------------------------------------------------------------------------------
 
-\begin{frame}{Dataflow Analysis}
+\begin{frame}[fragile]{Dataflow Analysis}
+
+\begin{itemize}
+    \item Example: Liveness Analysis
+\end{itemize}
+
+\begin{equation}\label{eq:liveness}
+\begin{split}
+	\texttt{in[} v \texttt{]} &= (\texttt{out[} v \texttt{]} - \texttt{kill[} v \texttt{]}) \cup \texttt{gen[} v \texttt{]} \\
+	\texttt{out[} v \texttt{]} &= 
+	\begin{cases}
+	  \emptyset,& \text{if } v \in F \\
+	  \bigcup_{p \in \text{succ}(v)}\texttt{in[}p\texttt{]} ,& \text{otherwise} \\
+	\end{cases}
+\end{split}
+\end{equation}
+\end{frame}
+
+\begin{frame}[fragile]{Dataflow Analysis}
 
 \begin{itemize}
     \item Example: Liveness Analysis
@@ -528,7 +545,6 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 %------------------------------------------------------------------------------
 
 \begin{frame}{SSA form}
-
 \begin{itemize}
     \item A variable can be redefined many times in a function
     \begin{itemize}
@@ -701,87 +717,1212 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 
 %------------------------------------------------------------------------------
 
-\section{Interprocedural Analysis}
+\subsection{Interprocedural Analysis}
 
-\begin{frame}{Concepts}
-  \begin{columns}[t]
-    \col
-      \begin{coloredblock}{red!90!black}{Functional requirements}
-        \begin{itemize}
-          \item Integration and Management of IoT Devices
-          \item Data Acquisition, Storing, and Processing
-          \item Context-awareness
-          \item City Resource Discovery
-          \item Geolocation-based Services
-          \item External data access
-        \end{itemize}
-      \end{coloredblock}
+%------------------------------------------------------------------------------
 
-    \col
-      \begin{coloredblock}{red!90!black}{Non-functional requirements}
-        \begin{itemize}
-          \item Interoperability
-          \item Scalability
-          \item Security
-          \item Privacy
-          \item Evolvability
-          \item Adaptability
-        \end{itemize}
-      \end{coloredblock}
-  \end{columns}
+\begin{frame}{Interprocedural Analysis}
+
+\begin{itemize}
+    \item Programs consists of several functions
+    \begin{itemize}
+        \item Previous presented models only takes a single function in account
+    \end{itemize}
+    \item[]
+    \item \textit{Callgraphs}: model interactions between functions
+\end{itemize}
+
 \end{frame}
 
-\begin{frame}{Theorems and proofs}
-  \pause
-  \begin{theorem}[An example theorem]
-    Theorem\dots
-  \end{theorem}
+%------------------------------------------------------------------------------
 
-  \pause
-  \begin{example}[An example of an example]
-    Example\dots
-  \end{example}
+\begin{frame}{Callgraphs}
 
-  \pause
-  \begin{proof}[An example proof]
-    Proof\dots
-  \end{proof}
+\begin{itemize}
+    \item A \textit{callgraph} is a directed graph where:
+    \begin{itemize}
+        \item Nodes represent functions
+        \item Edges represent call points
+    \end{itemize}
+    \item[]
+    \item \textit{Callgraphs}: model interactions between functions
+    \begin{itemize}
+        \item Example:
+    \end{itemize}
+\end{itemize}
 
-  \pause
-  \begin{definition}[An example definition]
-    Definition\dots
-  \end{definition}
+\begin{center}
+\begin{tikzpicture}[every text node part/.style={align=left}]
+ \node [draw, minimum width=5cm] (main) { 
+int main()\\
+\{ \\
+  \quad int r = answer(); \\
+  \quad printf("Answer: \%d", r); \\
+\}};
+ \node [draw, minimum width=5cm] (resp) at (7, 0.6) {int answer()\\
+ \{ \\
+ \quad return 42; \\
+ \}};
+ \node [draw, minimum width=5cm] (printf) at (7, -1) {int printf(const char *, ...);};
 
-  \pause
-  \begin{proposition}[An example proposition]
-    Proposition\dots
-  \end{proposition}
+ \draw[->] (1,0) -- (resp.west);
+ \draw[->] (2.3,-0.5) -- (printf.west);
+\end{tikzpicture}
+\end{center}
+
 \end{frame}
 
+%------------------------------------------------
+
+\begin{frame}[fragile]{Callgraphs}
+\begin{itemize}
+    \item Usually, only a \textit{summary} of the function is loaded in memory
+    \begin{itemize}
+        \item Reduce memory usage
+        \item Example:
+    \end{itemize}
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[every text node part/.style={align=left}]
+ \node [draw, minimum width=5cm] (main) {
+int main()\\
+LoC: 2 \\
+Expected insns: 5
+};
+ \node [draw, minimum width=5cm] (resp) at (7, 0.6) {int resposta()\\
+ LoC: 1\\
+ Expected insns: 2
+ };
+ \node [draw, minimum width=5cm] (printf) at (7, -1) {int printf(const char *, ...);};
+
+ \draw[->] ([yshift=+0.7em]main.east) -- (resp.west);
+ \draw[->] ([yshift=-0.7em]main.east) -- (printf.west);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+%------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Callgraphs}
+\begin{itemize}
+    \item Classical interprocedural optimization: \textit{Function inlining}
+    \begin{itemize}
+        \item Copy \& paste the body of callee into caller
+        \item Usually done when function is called once or is very small
+    \end{itemize}
+    \item Example: \textit{answer} will be inlined into main
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[every text node part/.style={align=left}]
+ \node [draw, minimum width=5cm] (main) {
+int main()\\
+LoC: 2 \\
+Expected insns: 5
+};
+ \node [draw, minimum width=5cm] (resp) at (7, 0.6) {int resposta()\\
+ LoC: 1\\
+ Expected insns: 2
+ };
+ \node [draw, minimum width=5cm] (printf) at (7, -1) {int printf(const char *, ...);};
+
+ \draw[->] ([yshift=+0.7em]main.east) -- (resp.west);
+ \draw[->] ([yshift=-0.7em]main.east) -- (printf.west);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+%------------------------------------------------------------------------------
 \section{Related Works}
+%------------------------------------------------------------------------------
 
 \begin{frame}{Related Works}
+\begin{itemize}
+    \item \textit{Parallel Compilation} is not a new subject
+    \begin{itemize}
+        \item Previous authors have studied this subject before
+        \item First papers dates from 1970
+        \item Too much focus on \textit{parallel parsing}
+    \end{itemize}
+\end{itemize}
 \end{frame}
 
-\section{Methodology}
+\subsection{Parallel Parsing}
 
-\begin{frame}{Methodology}
+\begin{frame}{Parallel Parsing}
+\begin{itemize}
+    \item First work: Lincoln \cite{Lincoln:1970:PPT:987475.987478} and Krohn \cite{Krohn:1975:PAC:390015.808414}
+    \begin{itemize}
+        \item Splitting the input text
+        \item Using vectorial units.
+    \end{itemize}
+\end{itemize}
 \end{frame}
 
-\section{Results}
+%--------------------------------------------------------------------------------
 
-\subsection{Validation and Analysis}
-
-\begin{frame}{Validation}
+\begin{frame}{Parallel Parsing}
+\begin{itemize}
+    \item Fischer \cite{fischer1975parsing} and Mickunas \cite{Mickunas:1978:PCM:800127.804105}: Parallel LR$(k)$ parsing
+    \begin{itemize}
+        \item Split the input text into several parts
+        \item Run a serial LR$(k)$ parser in each of then
+        \item Heuristic to reconstruct the non-initial parser stack
+        \item On failure, send tokens to the left-neighbor parser
+    \end{itemize}
+\end{itemize}
 \end{frame}
 
-\begin{frame}{Case Study}
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallel Parsing}
+\begin{itemize}
+    \item Fowler and Paul \cite{fowler2009parallel} parallelized Earley and Packrat methods 
+    \begin{itemize}
+        \item Split the input text into several blocks
+        \item Especulate new itens into the parser
+        \item Run serial algorithm in each block
+        \item[]
+        \item Speedups: $5.5\times$ in Earley, and $2.5\times$ in Packrat
+    \end{itemize}
+\end{itemize}
 \end{frame}
 
-\section{Conclusion and Future works}
+%--------------------------------------------------------------------------------
 
-\begin{frame}{Conclusion and Future works}
+\begin{frame}{Parallel Parsing}
+\begin{itemize}
+    \item Barenghi \textit{et.al.} \cite{Barenghi:2015:PPM:2839536.2840146} proposes a parallel parser based on Operator Precedence Grammars
+    \begin{itemize}
+        \item Yacc-like generator
+        \item[]
+        \item Speedups: $5.5\times$
+    \end{itemize}
+\end{itemize}
 \end{frame}
+
+%--------------------------------------------------------------------------------
+\subsection{Parallel Compilation}
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallel Compilation}
+\begin{itemize}
+    \item Parallel compilation may include
+    \begin{itemize}
+        \item Parallel parsing
+        \item Parallel code generation
+        \item Parallel optimizations
+    \end{itemize}
+    \item[]
+
+    \item Vandevoorde \cite{vandevoorde1988parallel} Parallelized a C compiler
+    \begin{itemize}
+        \item Syntatic analyiser pipelined with lexical analyser
+        \item Compilation run in parallel in statement level
+        \item[]
+        \item Speedups: $10\%$ when pipelining the analysers, $3.1\times$ total in compiler
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallel Compilation}
+\begin{itemize}
+    \item Wortman and Junkin \cite{wortman1992} Parallelized a Modula-2+ compiler
+    \begin{itemize}
+        \item Lexical Analyzer detect functions
+        \item Symbol Table can handle not defined yet symbols
+        \item Producer-consumer queue between Syntactic Analyser and Code Generator
+        \item[]
+        \item Speedups: Up to $6\times$
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallel Compilation}
+\begin{itemize}
+    \item Lee and Ryder \cite{lee1994} proposed a parallel daftaflow analysis method
+    \begin{itemize}
+        \item Hybrid Algorithm: use both propagation and linear system techniques
+        \item Graph is decomposed in stronggly connected partitions
+        \item Each partition runs its dataflow analysis independently
+        \item Local results are then propagated to other partitions
+        \item Propagated results are propagated back to local nodes
+        \item[]
+        \item Speedups: Up to $7.8\times$
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallel Compilation}
+\begin{itemize}
+    \item Kramer \textit{et al.} \cite{krammer1994combining} proposed another parallel daftaflow analysis method
+    \begin{itemize}
+        \item Convert the Graph into a DAG
+        \item Proves that dataflow solutions to this DAG is equivalent to the original graph
+        \item Process in parallel by levels
+        \item[]
+        \item Speedups: Up to $5.4\times$
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallel Compilation}
+\begin{itemize}
+    \item Panchenko \textit{et al.} \cite{panchenko2021lightning} Present Lightning BOLT
+    \begin{itemize}
+        \item Reads generated binaries from other compilers
+        \item Output optimized version of them
+        \item Parallel passes:
+        \begin{itemize}
+            \item Control-Flow Graph construction
+            \item Local Optimizations
+            \item Identical Code Folding
+            \item Shrink Wrapping
+        \end{itemize}
+        \item[]
+        \item Speedups: Up to $5.4\times$
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\subsection{Link Time Optimization}
+%--------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Link Time Optimization (LTO)}
+\begin{itemize}
+    \item \textit{Classical Compilation Method}: each file is compiled separately
+    \begin{itemize}
+        \item Side effect: no cross-module optimizations
+        \item Example:
+    \end{itemize}
+\end{itemize}
+
+  \begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+    \column{.45\textwidth} % Left column and width
+    \begin{center}
+        File a.c
+    \end{center}
+
+\begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call, var},
+]
+extern function answer();
+
+function main()
+  var r = answer();
+  print("Resposta: ", r);
+\end{lstlisting}
+
+    \column{.5\textwidth} % Right column and width
+    \begin{center}
+        File b.c
+    \end{center}
+
+\begin{lstlisting}[
+        language=pseudocode,
+        style=pseudocode,
+        style=wider,
+        functions={},
+        specialidentifiers={extern, call},
+]
+function answer()
+  return 42;
+
+
+
+
+
+\end{lstlisting}
+
+  \end{columns}
+
+\begin{itemize}
+    \item Function \texttt{answer} can not be inlined into \texttt{main}
+\end{itemize}
+
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Link Time Optimization (LTO)}
+\begin{itemize}
+	\item Translation Unit callgraph of \texttt{a.c}
+\end{itemize}
+\begin{center}
+\begin{tikzpicture}[every text node part/.style={align=left}]
+ \node [draw, minimum width=5cm] (main) { 
+function main()\\
+  \quad var r = answer(); \\
+  \quad print("Answer: ", r);
+};
+ \node [draw, minimum width=5cm] (resp) at (7, 1) {extern function answer();};
+ \node [draw, minimum width=5cm] (printf) at (7, -1) {extern function printf(string s);};
+
+ \draw[->] (1,0) -- (resp.west);
+ \draw[->] (2.3,-0.5) -- (printf.west);
+\end{tikzpicture}
+\end{center}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}[fragile]{Link Time Optimization (LTO)}
+\begin{itemize}
+	\item Translation Unit callgraph of \texttt{b.c}
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[every text node part/.style={align=left}]
+\centering
+ \node [draw, minimum width=1cm] (main) { 
+function answer()\\
+  \quad return 42;
+};
+\end{tikzpicture}
+\end{center}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}[fragile]{Link Time Optimization (LTO)}
+
+\begin{itemize}
+    \item United Translation Unit callgraph with LTO
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[every text node part/.style={align=left}]
+ \node [draw, minimum width=5cm] (main) { 
+function main()\\
+  \quad var r = answer(); \\
+  \quad printf("Answer: ", r);
+};
+ \node [draw, minimum width=5cm] (resp) at (7, 0.6) {function answer()\\
+ \quad return 42;
+ };
+ \node [draw, minimum width=5cm] (printf) at (7, -1) {extern function print(string);};
+
+ \draw[->] (1,0) -- (resp.west);
+ \draw[->] (2.3,-0.5) -- (printf.west);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+	\item Now the compiler has enough information to inline \texttt{answer}
+\end{itemize}
+
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Link Time Optimization (LTO)}
+
+\begin{itemize}
+    \item LTO work in three stages: \cite{whoprgoogle,glek2010optimizing}
+    \begin{itemize}
+        \item LGEN (\textit{Local Generation}): Translate source to IR
+        \item WPA (\textit{Whole Program Analysis}): Do analysis on callgraph
+        \item LTRANS (\textit{Local Transformations}): Compile partitions to assembly
+    \end{itemize}
+\end{itemize}
+
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=6em, text centered, rounded corners, node distance=1cm and 0.5cm, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+\makebox[\textwidth][c]{
+
+\scalebox{0.5}{
+\begin{tikzpicture}[node distance = 3cm, auto]
+    % Place nodes
+    \node [block]              (fonte1) {source1.c};
+    \node [block, right= of fonte1]        (fonte2) {source2.cpp};
+    \node [block, right= of fonte2]        (fonte3) {source3.f90};
+    \node [block, above= of fonte2]         (make)   {Makefile};
+
+    \node [block, below= of fonte1]        (gcc)      {gcc};
+    \node [block, below= of fonte2]        (g++)      {g++};
+    \node [block, below= of fonte3]        (gfortran) {gfortran};
+
+    \node [block, below= of gcc]           (objeto1) {obj1.o};
+    \node [block, below= of g++]           (objeto2) {obj2.o};
+    \node [block, below= of gfortran]      (objeto3) {obj3.o};
+
+    \node [block, below= of objeto2]       (gcc_lto) {collect2 (lto1)};
+
+    \node [block, right= of fonte3]            (gcc_ltrans1) {gcc\_ltrans};
+    \node [block, right= of gcc_ltrans1]   (gcc_ltrans2) {gcc\_ltrans};
+    \node [block, right= of gcc_ltrans2]   (gcc_ltrans3) {gcc\_ltrans};
+
+    \node [block, above= of gcc_ltrans2]       (gcc_wpa) {gcc\_wpa};
+    \coordinate[below= of gcc_wpa]            (c2);
+
+
+    \node [block, below= of gcc_ltrans1]   (obj1) {obj1.o};
+    \node [block, below= of gcc_ltrans2]   (obj2) {obj2.o};
+    \node [block, below= of gcc_ltrans3]   (obj3) {obj3.o};
+
+    \node [block, below=of obj2]   (ld) {collect2 (LD)};
+
+	\node [block, below=of ld]   (bin) {Binary};
+
+    % Draw edges
+    \draw[->]    ([xshift=-0.7em] make.south)   -- (fonte1.north);
+    \draw[->]    (make.south)   -- (fonte2.north);
+    \draw[->]    ([xshift=+0.7em] make.south)   -- (fonte3.north);
+
+    \draw[->]    (fonte1.south)   -- (gcc.north);
+    \draw[->]    (fonte2.south)   -- (g++.north);
+    \draw[->]    (fonte3.south)   -- (gfortran.north);
+
+    \draw[->]    (gcc.south)   -- (objeto1.north);
+    \draw[->]    (g++.south)   -- (objeto2.north);
+    \draw[->]    (gfortran.south)   -- (objeto3.north);
+
+    \draw[->]    (objeto1.south)   -- ([xshift=-0.7em]gcc_lto.north);
+    \draw[->]    (objeto2.south)   -- (gcc_lto.north);
+    \draw[->]    (objeto3.south)   -- ([xshift=+0.7em]gcc_lto.north);
+
+    %\draw[->]    (gcc_lto.south)   -- (gcc_wpa.north);
+ 	\draw[->]  (gcc_lto.east) .. controls +(7.5,0) and +(-7.5,0).. (gcc_wpa.west);
+
+    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans1.north);
+    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans2.north);
+    \draw[->]    (gcc_wpa.south)   -- (gcc_ltrans3.north);
+
+    \draw[->]    (gcc_ltrans1.south)   -- (obj1.north);
+    \draw[->]    (gcc_ltrans2.south)   -- (obj2.north);
+    \draw[->]    (gcc_ltrans3.south)   -- (obj3.north);
+
+    \draw[->]    (obj1.south)   -- ([xshift=-0.7em]ld.north);
+    \draw[->]    (obj2.south)   -- (ld.north);
+    \draw[->]    (obj3.south)   -- ([xshift=+0.7em]ld.north);
+
+	\draw[->]    (ld.south)   -- (bin.north);
+	
+	%draw brackets
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-0.5cm,yshift=0pt]
+([xshift=-1.3cm]objeto1.south) -- ([xshift=-1.3cm]fonte1.north) node [black,midway,xshift=-0.3cm]
+{\footnotesize \begin{turn}{90}LGEN\end{turn}};
+
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-0.5cm,yshift=0pt]
+([xshift=1.3cm]gcc_ltrans3.north) -- ([xshift=1.3cm]obj3.south) node [black,midway,xshift=0.3cm]
+{\footnotesize \begin{turn}{-90}LTRANS\end{turn}};
+
+
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-0.5cm,yshift=0pt]
+([xshift=1.3cm]gcc_wpa.north) -- ([xshift=1.3cm]gcc_wpa.south) node [black,midway,xshift=0.3cm]
+{\footnotesize \begin{turn}{-90}WPA\end{turn}};
+
+
+\end{tikzpicture}
+}
+}%
+
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Link Time Optimizations}
+
+\begin{itemize}
+    
+    \item Refinements: Johnson \textit{et al.} \cite{thinlto} proposes ThinLTO
+    \begin{itemize}
+        \item Generate function summaries on LGEN
+        \item Only uses summary on WPA stage to reduce memory usage
+        \item Calculate function footprint to avoid recompiling the entire partition
+    \end{itemize}
+    \item[]
+
+    \item Other approaches: Li \textit{et al.} \cite{lipo} proposes LIPO
+    \begin{itemize}
+        \item IPA analysis on binary runtime
+        \item Load functions in other modules based on profiling report
+    \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\section{Proposed work}
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Proposed work}
+
+\begin{itemize}
+    \item To compile source files in parallel:
+    \begin{itemize}
+        \item Parallelizing the compiler
+        \item Which parts can be parallelized?
+        \item[]
+    \end{itemize}
+    \item If we parallelize by functions:
+    \begin{itemize}
+        \item Intraprocedural Analysis can be easily parallelized
+        \item Parser can be parallelized, as shown in Related Works
+        \item Interprocedural Analysis: not trivial
+    \end{itemize}
+    \item Start tackling the most consuming part
+\end{itemize}
+
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Proposed work}
+
+\begin{itemize}
+    \item To compile source files in parallel:
+    \begin{itemize}
+        \item Parallelizing the compiler
+        \item Which parts can be parallelized?
+        \item[]
+    \end{itemize}
+    \item If we parallelize by functions:
+    \begin{itemize}
+        \item Intraprocedural Analysis can be easily parallelized
+        \item Parser can be parallelized, as shown in Related Works
+        \item Interprocedural Analysis: not trivial
+    \end{itemize}
+    \item Start tackling the most consuming part
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Proposed work}
+\begin{center}
+\includegraphics[scale=0.8]{figuras/profiling-crop.pdf}
+\end{center}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Proposed Work}
+
+\begin{itemize}
+    \item Intraprocedural Analysis take 79\% of compilation time
+    \begin{itemize}
+        \item Maximum speedup of $5\times$ if we parallelize only this part
+        \item[]
+    \end{itemize}
+    \item We begin parallelizing Intraprocedural Analysis
+    \begin{itemize}
+        \item First attempt: threading the compiler
+        \item Second attempt (succeded): partitioning the callgraph
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\subsection{Parallelizing with threads}
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing with threads}
+
+\begin{itemize}
+    \item Idea: adapt work by Wortman and Junkin \cite{wortman1992}
+    \begin{itemize}
+        \item IPA output functions to a producer-consumer queue
+        \item Intraprocedural Analyzer pop functions from this queue
+        \item Barrier at code generation
+        \item In GCC: Parallelize GIMPLE passes first, idea was move to RTL next
+        \item[]
+    \end{itemize}
+ \includegraphics[scale=0.5]{paralelizacao.pdf}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing with threads}
+
+\begin{itemize}
+    \item Problems
+    \begin{itemize}
+        \item Garbage Collection (GC)
+        \begin{itemize}
+            \item Useful for holding tree nodes -- reference count
+            \item Solution: use locks in the GC
+        \end{itemize}
+        \item Memory pools
+        \begin{itemize}
+            \item Seriallizing them made the compiler very slow
+            \item Solution: Distributive approach, merge memory pools on request
+        \end{itemize}
+        \item Hash caches
+        \begin{itemize}
+            \item Use locks to ensure seriallize access
+        \end{itemize}
+        \item Target independent modules depending of Target dependent information
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing with threads}
+
+\begin{itemize}
+    \item Is this approach feasible?
+    \begin{itemize}
+        \item Yes, if we are building a compiler from the ground up
+        \item No, if we are working on legacy code -- classical race condition problems
+        \begin{itemize}
+            \item Race condition detectors failing to detect race conditions
+            \item Hard to track down the cause of issue
+            \item Hard to test modifications incrementally
+            \item Hard to ensure that builds are reproducible
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing with threads}
+
+\begin{itemize}
+    \item 
+    \begin{itemize}
+        \item Yes, if we are building a compiler from the ground up
+        \item No, if we are working on legacy code -- classical race condition problems
+        \begin{itemize}
+            \item Race condition detectors failing to detect race conditions
+            \item Hard to track down the cause of issue
+            \item Hard to test modifications incrementally
+            \item Hard to ensure that builds are reproducible
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing with threads}
+
+\begin{itemize}
+    \item Results
+\end{itemize}
+\begin{columns}
+\begin{column}{0.5\textwidth}
+ \includegraphics[scale=0.4]{gimple_parallel.pdf}
+\end{column}
+\begin{column}{0.5\textwidth}
+ \includegraphics[scale=0.4]{gcc_estimate.pdf}
+\end{column}
+\end{columns}
+\begin{itemize}
+    \item Up to $2.52\times$ on GIMPLE, $1.61\times$ total in compiler
+\end{itemize}
+
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\subsection{Parallelizing by partitioning the callgraph}
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+
+\begin{itemize}
+    \item Idea: Reuse the largely serial and tested parts of the compiler
+    \item Callgraph partitioning is already implemented in LTO
+    \begin{itemize}
+        \item Can we modify it to compile a single file?
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+
+\begin{itemize}
+    \item First part: ensure that the partitioned code will be merged together 
+    \begin{itemize}
+        \item Generate a single object file for each partition
+        \item Link them together using partial linking
+    \end{itemize}
+\end{itemize}
+
+\tikzstyle{block} = [rectangle, draw, fill=white,
+    text width=6em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{line} = [draw, -latex]
+
+\makebox[\textwidth][c]{
+\scalebox{0.6}{
+\begin{tikzpicture}[node distance = 3cm, auto]
+    % Place nodes
+    \node [block]                      (cc1_1) {cc1};
+    \coordinate [right= of cc1]          (c);
+    \node [block, right= of c,fill={rgb:black,1;white,2}]        (driver1) {gcc};
+    \node [block, above= of c]                      (cc1_2) {cc1};
+    \node [block, below= of c]                      (cc1_3) {cc1};
+    \coordinate [above= of driver1]          (c2);
+    \coordinate [below= of driver1]          (c3);
+    \node [block, right= of c2]      (as2) {as};
+    \node [block, right= of c3]      (as3) {as};
+    \node [block, right= of driver1]       (ld) {ld};
+    \coordinate [left= of cc1]          (fonte);
+    \coordinate [right= of ld]    (bin);
+
+    % Draw edges
+    \draw[->]    (driver1.west)    -- (cc1_1.east) node[midway, above] {\texttt{-fadditional-asm=<file>}};
+    \draw[->]    ([xshift=+0.5cm]cc1_2.south) -- ([xshift=-0.5cm]driver1.north) node[midway, above, sloped] {Generates .s file};
+    \draw[->]    ([xshift=+0.5cm]cc1_3.north) -- ([xshift=-0.5cm]driver1.south) node[midway, above, sloped] {Generates .s file};
+
+    \draw[->]    (cc1_1.north)    -- ([xshift=-0.5cm]cc1_2.south) node[midway, above, sloped] {Forks};
+    \draw[->]    (cc1_1.south)    -- ([xshift=-0.5cm]cc1_3.north) node[midway, above, sloped] {Forks};
+
+    \draw[->]    ([xshift=+0.5cm]driver1.north)  -- (as2.south) node[midway, above, sloped] {Assemble received .s};
+    \draw[->]    ([xshift=+0.5cm]driver1.south)  -- (as3.north) node[midway, above, sloped] {Assemble receibed .s};
+    \draw[->]    (driver1.east)  -- (ld.west) node[midway, above, sloped] {Links};
+
+%    \draw[->]    (cc1.east)    -- (as.west)       node[midway, above] {Assembler File};
+%    \draw[->]    (cc1.east)    -- (as.west)       node[midway, above] {Assembler File};
+%
+%    \draw[->]    (cc1.east)    -- (as.west)       node[midway, below] {(.s)};
+    \draw[->]    ([xshift=+0.5cm]as2.south)     -- (ld.north)       node[midway, above, sloped] {Object File};
+    \draw[->]    ([xshift=+0.5cm]as3.north)     -- (ld.south)       node[midway, below, sloped] {Object File};
+%    \draw[->]    (fonte.west)  -- (cc1.west)      node[pos=0, above] {Source File};
+%    \draw[->]    (fonte.west)  -- (cc1.west)      node[pos=0, below] {(.c)};
+    \draw[->]    (ld.east)     -- (bin.west)      node[pos=1, above] {\texttt{file.o}};
+\end{tikzpicture}
+}
+}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+
+\begin{itemize}
+    \item Adapting the LTO Partitioner:
+    \begin{itemize}
+        \item Find all dependencies: COMDAT groups
+        \item Propagate to all symbols touching the COMDAT group
+        \item Agglutinate to the same partition
+    \end{itemize}
+\begin{center}
+	 \includegraphics[scale=0.5]{figuras/comdat_frontier.pdf}
+\end{center}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+
+\begin{itemize}
+    \item Boundary Computation
+    \begin{itemize}
+        \item Add functions and variables referenced in the partition
+        \item Remove the body of functions in boundary
+        \item Avoid removing if function is marked to be inlined
+        \item Promote private function in boundary to global
+        \begin{itemize}
+            \item Mangle names to avoid clashing
+        \end{itemize}
+    \end{itemize}
+    \item Partition application can be reduced to four cases:
+    \begin{itemize}
+        \item \textit{Node is in partition}
+        \item \textit{Node is in boundary, but keeping its body}
+        \item \textit{Node is in boundary}
+        \item \textit{Node not in boundary}
+    \end{itemize}
+    \item Communicate the partition number to the driver
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+
+\begin{itemize}
+    \item Builds are reproducible
+    \begin{itemize}
+        \item No random information is necessary to solve name clashing
+        \item Always generate the same partitions
+        \item Partial Linking is always done in the same order
+        \item No other race conditions are introduced
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+\begin{itemize}
+    \item Results
+    \item[]
+
+\begin{center}
+\resizebox{.9\textwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+File             & Sequential & 8 Threads & Speedup      & \multicolumn{1}{l|}{Sequential} \\ \hline
+gimple-match.c   & $76s$      & $31s$     & $2.4\times$  & $221s$                          \\ \hline
+insn-emit.c      & $23s$      & $10s$     & $2.25\times$ & $97s$                           \\ \hline
+tree-vect-stmt.c & $11s$      & $5s$      & $2.14\times$ & $32s$                           \\ \hline
+brig-lang.c      & $10s$      & $15s$     & $0.7\times$  & $29s$                           \\ \hline
+\end{tabular}
+}
+\end{center}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+
+\begin{itemize}
+    \item Feasibilty
+    \begin{itemize}
+        \item Quick to implement
+        \item Rely on tested serial parts of the compiler
+        \item No other race conditions are introduced
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Parallelizing by partitioning the callgraph}
+\begin{itemize}
+    \item Results
+    \item[]
+
+\begin{center}
+\resizebox{.9\textwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+File             & Sequential & 8 Threads & Speedup      & \multicolumn{1}{l|}{Sequential} \\ \hline
+gimple-match.c   & $76s$      & $31s$     & $2.4\times$  & $221s$                          \\ \hline
+insn-emit.c      & $23s$      & $10s$     & $2.25\times$ & $97s$                           \\ \hline
+tree-vect-stmt.c & $11s$      & $5s$      & $2.14\times$ & $32s$                           \\ \hline
+\end{tabular}
+}
+\end{center}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\section{Experiments and Results}
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Experiments}
+
+\begin{itemize}
+    \item Two machines:
+    \begin{itemize}
+        \item Core-i7: 8 threads, 4 cores CPU
+        \item Optreon 6376: 64 threads, 32 cores CPU
+    \end{itemize}
+    \item Partitioning quota:
+    \begin{itemize}
+        \item Minimum program size to start partitioning
+        \item $10^3$ and $10^5$
+    \end{itemize}
+    \item 15 samples per file, 5 samples per project
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Experiments}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|c|c|c|c|c|c|c|c}
+\cline{2-7}
+                                       & \multicolumn{3}{c|}{Core-i7}     & \multicolumn{3}{c|}{Opteron 6376}                                                                & \multicolumn{1}{l}{}               \\ \hline
+\multicolumn{1}{|l|}{File}             & Sequential & 8 Threads & Speedup & \multicolumn{1}{l|}{Sequential} & \multicolumn{1}{l|}{64 Threads} & \multicolumn{1}{l|}{Speedup} & \multicolumn{1}{c|}{Autogenerated} & \multicolumn{1}{c|}{LoC}  \\ \hline
+\multicolumn{1}{|l|}{gimple-match.c}   & $76s$        & $31s$       & $2.4\times$     & $221s$                            & $66s$                             & $3.32\times$                         & \multicolumn{1}{c|}{yes} & \multicolumn{1}{c|}{$244320$}          \\ \hline
+\multicolumn{1}{|l|}{insn-emit.c}      & $23s$        & $10s$       & $2.25\times$    & $97s$                             & $37s$                             & $3.53\times$                         & \multicolumn{1}{c|}{yes}  & \multicolumn{1}{c|}{$273482$}         \\ \hline
+\multicolumn{1}{|l|}{tree-vect-stmt.c} & $11s$        & $5s$        & $2.14\times$    & $32s$                             & $13s$                             & $2.46\times$                         & \multicolumn{1}{c|}{no}    & \multicolumn{1}{c|}{$12133$}        \\ \hline
+\multicolumn{1}{|l|}{brig-lang.c} & $11s$        & $11	s$        & $1.02\times$    & $29s$                             & $29s$                             & $1.02\times$                         & \multicolumn{1}{c|}{no}    & \multicolumn{1}{c|}{$958$}        \\ \hline
+\end{tabular}
+}
+\end{frame}
+
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Experiments}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|c|c|c|c|c|c|c|c}
+\cline{2-7}
+                                       & \multicolumn{3}{c|}{Core-i7}     & \multicolumn{3}{c|}{Opteron 6376}                                                                & \multicolumn{1}{l}{}               \\ \hline
+\multicolumn{1}{|l|}{File}             & Sequential & 8 Threads & Speedup & \multicolumn{1}{l|}{Sequential} & \multicolumn{1}{l|}{64 Threads} & \multicolumn{1}{l|}{Speedup} & \multicolumn{1}{c|}{Autogenerated} & \multicolumn{1}{c|}{LoC}  \\ \hline
+\multicolumn{1}{|l|}{gimple-match.c}   & $76s$        & $31s$       & $2.4\times$     & $221s$                            & $66s$                             & $3.32\times$                         & \multicolumn{1}{c|}{yes} & \multicolumn{1}{c|}{$244320$}          \\ \hline
+\multicolumn{1}{|l|}{insn-emit.c}      & $23s$        & $10s$       & $2.25\times$    & $97s$                             & $37s$                             & $3.53\times$                         & \multicolumn{1}{c|}{yes}  & \multicolumn{1}{c|}{$273482$}         \\ \hline
+\multicolumn{1}{|l|}{tree-vect-stmt.c} & $11s$        & $5s$        & $2.14\times$    & $32s$                             & $13s$                             & $2.46\times$                         & \multicolumn{1}{c|}{no}    & \multicolumn{1}{c|}{$12133$}        \\ \hline
+\multicolumn{1}{|l|}{{\color{red} brig-lang.c}} & $11s$        & $11	s$        & {\color{red}$1.02\times$}    & $29s$                             & $29s$                             & $1.02\times$                         & \multicolumn{1}{c|}{no}    & \multicolumn{1}{c|}{$958$}        \\ \hline
+\end{tabular}
+}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\begin{frame}[fragile]{Experiments}
+\begin{columns}
+\begin{column}{0.5\textwidth}
+
+\begin{verbatim}
+Num threads: 8
+Promote priv. functions: true
+Without debug symbols
+Wall clock time: 11.083s
+Phases:
+  Parsing: 1.145s
+  IPA: 1.885s
+  Partitioner: 0.003s
+  LTRANS: 9.849s
+\end{verbatim}
+
+\end{column}
+
+
+\begin{column}{0.5\textwidth}
+\begin{verbatim}
+Num threads: 1
+Promote priv. functions: true
+Without debug symbols
+Wall clock time: 11.383s
+Phases:
+  Parsing: 2.1498s
+  IPA: 1.916s
+  Intraprocedural: 8.868s
+\end{verbatim}
+\end{column}
+\end{columns}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\begin{frame}[fragile]{Experiments}
+\begin{verbatim}
+Number of partitions: 2
+Partition: 0, Nr of insns: 4465, Symbols: 483
+  ...
+
+Partition: 1, Nr of insns: 51356, Symbols: 2842
+  ...
+  Node name: brig_define_builtins, insns: 47261
+\end{verbatim}
+\begin{itemize}
+    \item $84\%$ of generated code belongs to a single function
+\end{itemize}
+
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Experiments}
+\begin{itemize}
+    \item Effect on projects:
+    \begin{itemize}
+        \item Up to 35\% improvement
+    \end{itemize}
+
+\end{itemize}
+\begin{center}
+\includegraphics[scale=0.7]{figuras/experiment_projects_new-crop.pdf}
+\end{center}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Experiments}
+\begin{itemize}
+    \item Compiling GCC without our changes
+\end{itemize}
+\begin{center}
+\includegraphics[scale=.3]{seq-crop.pdf}
+\end{center}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}[fragile]{Experiments}
+\begin{itemize}
+    \item Compiling GCC with our changes
+\end{itemize}
+\begin{center}
+\includegraphics[scale=.3]{par-crop.pdf}
+\end{center}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Experiments}
+\begin{itemize}
+    \item Power consumption measurement
+\end{itemize}
+\begin{center}
+\includegraphics[scale=.3]{power-crop.pdf}
+\end{center}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+\section{Conclusions}
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Conclusions}
+\begin{itemize}
+    \item We presented a method of parallelizing a significant part of a compiler
+    \begin{itemize}
+        \item Intraprocedural Analysis consume large amount of time
+        \item Reuse the LTO engine to incrementally parallelize compilation
+    \end{itemize}
+    \item[]
+    \item RQ1 - Main point that can take advantage of parallelism
+    \begin{itemize}
+        \item Intraprocedural Analysis
+        \item Takes $79\%$ of runtime
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Conclusions}
+\begin{itemize}
+    \item RQ2 - Performance improvement
+    \begin{itemize}
+        \item Up to $3.52\times$ when compiling individual files
+        \item Up to $35\%$ when compiling projects
+    \end{itemize}
+    \item[]
+    \item RQ3 - When is compiling in parallel faster
+    \begin{itemize}
+        \item Existence of blob files
+        \begin{itemize}
+            \item Takes significant amount of time when compared to remaining files
+        \end{itemize}
+        \item Not enough files to populate the CPU
+    \end{itemize}
+    \item RQ4 - How does it impact consumption
+    \begin{itemize}
+        \item Reduction of $8.27Wh$ of power consumption when compiling GCC
+        \item Better usage of cores $\rightarrow$ less power consumption
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Conclusions}
+\begin{itemize}
+    \item Future Works
+    \begin{itemize}
+        \item Develop a predictive model to automatically decide to run in parallel
+        \item Improve our partitioner algorithm
+        \item Avoid relying on partial linking
+        \item Research about how to parallelize Interprocedural Optimizations
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+%--------------------------------------------------------------------------------
+
+\begin{frame}{Thank you!}
+\begin{center}
+    \huge Thank you!
+\end{center}
+\end{frame}
+
+
+%\begin{frame}{Parallelization by partitioning the callgraph}
+%  \begin{columns}[t]
+%    \col
+%      \begin{coloredblock}{red!90!black}{Functional requirements}
+%        \begin{itemize}
+%          \item Integration and Management of IoT Devices
+%          \item Data Acquisition, Storing, and Processing
+%          \item Context-awareness
+%          \item City Resource Discovery
+%          \item Geolocation-based Services
+%          \item External data access
+%        \end{itemize}
+%      \end{coloredblock}
+%
+%    \col
+%      \begin{coloredblock}{red!90!black}{Non-functional requirements}
+%        \begin{itemize}
+%          \item Interoperability
+%          \item Scalability
+%          \item Security
+%          \item Privacy
+%          \item Evolvability
+%          \item Adaptability
+%        \end{itemize}
+%      \end{coloredblock}
+%  \end{columns}
+%\end{frame}
+%
+%\begin{frame}{Theorems and proofs}
+%  \pause
+%  \begin{theorem}[An example theorem]
+%    Theorem\dots
+%  \end{theorem}
+%
+%  \pause
+%  \begin{example}[An example of an example]
+%    Example\dots
+%  \end{example}
+%
+%  \pause
+%  \begin{proof}[An example proof]
+%    Proof\dots
+%  \end{proof}
+%
+%  \pause
+%  \begin{definition}[An example definition]
+%    Definition\dots
+%  \end{definition}
+%
+%  \pause
+%  \begin{proposition}[An example proposition]
+%    Proposition\dots
+%  \end{proposition}
+%\end{frame}
+%
+%\section{Related Works}
+%
+%\begin{frame}{Related Works}
+%\end{frame}
+%
+%\section{Methodology}
+%
+%\begin{frame}{Methodology}
+%\end{frame}
+%
+%\section{Results}
+%
+%\subsection{Validation and Analysis}
+%
+%\begin{frame}{Validation}
+%\end{frame}
+%
+%\begin{frame}{Case Study}
+%\end{frame}
+%
+%\section{Conclusion and Future works}
+%
+%\begin{frame}{Conclusion and Future works}
+%\end{frame}
 
 \section{References}
 
@@ -804,18 +1945,18 @@ $n_1$                   & $\{c\}   $                   & $\{a, b, d\}$          
 
 \end{frame}
 
-\showqrcode
+%\showqrcode
 
-\appendix
+%\appendix
 
-\begin{frame}{Extra info}
-  \begin{itemize}
-    \item It is often useful to have some extra slides addressing likely questions from the audience at the end of the presentation
-    \item By putting them after the ``appendix'' command, they are not counted in the page count indicator
-  \end{itemize}
-\end{frame}
+%\begin{frame}{Extra info}
+%  \begin{itemize}
+%    \item It is often useful to have some extra slides addressing likely questions from the audience at the end of the presentation
+%    \item By putting them after the ``appendix'' command, they are not counted in the page count indicator
+%  \end{itemize}
+%\end{frame}
+%
+%
 
-
-
-\input{extras/aviso-conteudo}
-\avisoApresentacao
+%\input{extras/aviso-conteudo}
+%\avisoApresentacao

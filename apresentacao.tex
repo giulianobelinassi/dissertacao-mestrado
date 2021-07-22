@@ -14,9 +14,11 @@
   brazilian,english,12pt,aspectratio=149,
 ]{beamer}
 
+\usepackage{mathptmx}
 \usepackage{qtree}
 \usepackage{graphicx}
 \usepackage{tikz}
+%\usepackage{listing}
 \usetikzlibrary{shapes.multipart}
 
 % Vários pacotes e opções de configuração genéricos
@@ -66,6 +68,16 @@
 \setbeamercolor{footline}{fg=,bg=}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% COMANDOS PARA O USUÁRIO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+\providecommand{\bigsqcap}{%
+  \mathop{%
+    \mathpalette\@updown\bigsqcup
+  }%
+}
+\newcommand*{\@updown}[2]{%
+  \rotatebox[origin=c]{180}{$\m@th#1#2$}%
+}
 
 \newcommand\col{\column{.5\textwidth}}
 
